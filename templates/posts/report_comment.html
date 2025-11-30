@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Comment - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.report-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.report-header {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.report-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.report-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.report-body {
+    padding: 2rem;
+}
+
+.comment-preview {
+    background: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--brown);
+}
+
+.comment-preview .author {
+    font-weight: 600;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-preview .content {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.required {
+    color: var(--pink);
+}
+
+.reason-options {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.reason-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reason-option:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.reason-option input[type="radio"] {
+    margin-right: 0.75rem;
+    cursor: pointer;
+}
+
+.reason-option input[type="radio"]:checked + label {
+    color: var(--pink);
+    font-weight: 600;
+}
+
+.reason-option label {
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.info-box {
+    background: var(--sage-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--sage-green);
+}
+
+.info-box p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--pink);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--pink-dark);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e0e0e0;
+    color: var(--brown);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+@media (max-width: 768px) {
+    .report-container {
+        padding: 0 0.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <!-- Back Link -->
+    <a href="{% url 'post_detail' comment.post.id %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); text-decoration: none; margin-bottom: 1.5rem;">
+        <i class='bx bx-arrow-back'></i> Back to Post
+    </a>
+
+    <div class="report-card">
+        <!-- Header -->
+        <div class="report-header">
+            <h1><i class='bx bx-flag'></i> Report Comment</h1>
+            <p>Help us maintain a safe and respectful community</p>
+        </div>
+
+        <!-- Body -->
+        <div class="report-body">
+            <!-- Comment Preview -->
+            <div class="comment-preview">
+                <div class="author">
+                    <i class='bx bx-user-circle'></i>
+                    <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                </div>
+                <div class="content">
+                    {{ comment.content }}
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p><strong><i class='bx bx-info-circle'></i> Before reporting:</strong> Please make sure this comment violates our community guidelines. False reports may affect your account standing.</p>
+            </div>
+
+            <!-- Report Form -->
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Reason Selection -->
+                <div class="form-section">
+                    <label class="form-label">
+                        Reason for Report <span class="required">*</span>
+                    </label>
+                    <div class="reason-options">
+                        {% for value, label in report_reasons %}
+                        <div class="reason-option">
+                            <input type="radio" name="reason" value="{{ value }}" id="reason_{{ value }}" required>
+                            <label for="reason_{{ value }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Additional Details -->
+                <div class="form-section">
+                    <label class="form-label" for="description">
+                        Additional Details (Optional)
+                    </label>
+                    <textarea
+                        name="description"
+                        id="description"
+                        class="form-control"
+                        placeholder="Provide any additional context that might help us review this report..."></textarea>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                        Maximum 500 characters
+                    </small>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'post_detail' comment.post.id %}" class="btn btn-secondary">
+                        <i class='bx bx-x'></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class='bx bx-send'></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add visual feedback for selected reason
+document.querySelectorAll('.reason-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        // Remove selected class from all
+        document.querySelectorAll('.reason-option').forEach(option => {
+            option.style.borderColor = '#e0e0e0';
+            option.style.background = 'white';
+        });
+
+        // Add to selected
+        if (this.checked) {
+            this.closest('.reason-option').style.borderColor = 'var(--pink)';
+            this.closest('.reason-option').style.background = 'var(--pink-light)';
+        }
+    });
+});
+</script>
+{% endblock %}

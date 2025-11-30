@@ -1,0 +1,554 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Content Moderation Queue - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.moderation-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--brown);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--sage-green);
+}
+
+.stat-card.critical {
+    border-left-color: #dc3545;
+}
+
+.stat-card.pending {
+    border-left-color: #ffc107;
+}
+
+.stat-card.resolved {
+    border-left-color: #28a745;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.filters-bar {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.filter-group select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+.alerts-list {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.alert-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.alert-item:hover {
+    background: var(--bg-light);
+}
+
+.alert-item:last-child {
+    border-bottom: none;
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.alert-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge.severity-critical {
+    background: #dc3545;
+    color: white;
+}
+
+.badge.severity-high {
+    background: #ff9800;
+    color: white;
+}
+
+.badge.severity-medium {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge.severity-low {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.badge.type {
+    background: var(--sage-light);
+    color: var(--sage-dark);
+}
+
+.badge.status-pending {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge.status-reviewing {
+    background: #17a2b8;
+    color: white;
+}
+
+.badge.status-resolved {
+    background: #28a745;
+    color: white;
+}
+
+.alert-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.alert-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.alert-user-info h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.alert-user-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.alert-content {
+    background: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #ffc107;
+}
+
+.alert-content.critical {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.alert-content.high {
+    border-left-color: #ff9800;
+    background: #fff8f0;
+}
+
+.alert-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.toxic-words {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.toxic-word {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.alert-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.alert-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-meta-item i {
+    font-size: 1.1rem;
+}
+
+.alert-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--sage-dark);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e0e0e0;
+    color: var(--brown);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem 0;
+}
+
+.pagination a,
+.pagination span {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--brown);
+    background: white;
+    border: 2px solid #e0e0e0;
+}
+
+.pagination a:hover {
+    background: var(--sage-light);
+    border-color: var(--sage-green);
+}
+
+.pagination .current {
+    background: var(--sage-green);
+    color: white;
+    border-color: var(--sage-green);
+}
+
+@media (max-width: 768px) {
+    .moderation-container {
+        padding: 0 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .alert-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .alert-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moderation-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class='bx bx-shield-alt-2'></i> Content Moderation Queue</h1>
+        <p>Review and take action on AI-detected harmful content</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card pending">
+            <div class="stat-label">Pending Review</div>
+            <div class="stat-value">{{ total_pending }}</div>
+        </div>
+
+        <div class="stat-card critical">
+            <div class="stat-label">Critical Alerts</div>
+            <div class="stat-value">{{ critical_alerts }}</div>
+        </div>
+
+        <div class="stat-card resolved">
+            <div class="stat-label">Resolved</div>
+            <div class="stat-value">{{ total_resolved }}</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; width: 100%;">
+            <div class="filter-group">
+                <label>Status</label>
+                <select name="status" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Reviewing</option>
+                    <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="dismissed" {% if status_filter == 'dismissed' %}selected{% endif %}>Dismissed</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Severity</label>
+                <select name="severity" onchange="this.form.submit()">
+                    <option value="all" {% if severity_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="critical" {% if severity_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    <option value="high" {% if severity_filter == 'high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if severity_filter == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if severity_filter == 'low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Type</label>
+                <select name="type" onchange="this.form.submit()">
+                    <option value="all" {% if alert_type_filter == 'all' %}selected{% endif %}>All Types</option>
+                    <option value="toxicity" {% if alert_type_filter == 'toxicity' %}selected{% endif %}>Toxic Content</option>
+                    <option value="spam" {% if alert_type_filter == 'spam' %}selected{% endif %}>Spam</option>
+                    <option value="hate_speech" {% if alert_type_filter == 'hate_speech' %}selected{% endif %}>Hate Speech</option>
+                    <option value="violence" {% if alert_type_filter == 'violence' %}selected{% endif %}>Violence</option>
+                    <option value="self_harm" {% if alert_type_filter == 'self_harm' %}selected{% endif %}>Self Harm</option>
+                    <option value="explicit" {% if alert_type_filter == 'explicit' %}selected{% endif %}>Explicit</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Alerts List -->
+    <div class="alerts-list">
+        {% if alerts %}
+            {% for alert in alerts %}
+            <div class="alert-item">
+                <!-- Header with Badges -->
+                <div class="alert-header">
+                    <div class="alert-badges">
+                        <span class="badge severity-{{ alert.severity }}">{{ alert.severity }}</span>
+                        <span class="badge type">{{ alert.get_alert_type_display }}</span>
+                        <span class="badge status-{{ alert.status }}">{{ alert.status }}</span>
+                        {% if alert.is_repeat_offender %}
+                        <span class="badge" style="background: #dc3545; color: white;">Repeat Offender</span>
+                        {% endif %}
+                    </div>
+                    <small style="color: var(--text-muted);">{{ alert.created_at|timesince }} ago</small>
+                </div>
+
+                <!-- User Info -->
+                <div class="alert-user">
+                    {% if alert.content_author.profile_picture %}
+                    <img src="{{ alert.content_author.profile_picture.url }}" alt="{{ alert.content_author.username }}" class="alert-avatar">
+                    {% else %}
+                    <div class="alert-avatar" style="background: var(--bg-light); display: flex; align-items: center; justify-content: center;">
+                        <i class='bx bx-user' style="font-size: 1.5rem; color: var(--text-muted);"></i>
+                    </div>
+                    {% endif %}
+                    <div class="alert-user-info">
+                        <h4>@{{ alert.content_author.username }}</h4>
+                        <p>{{ alert.content_author.country|default:"Unknown location" }} • {{ alert.user_previous_violations }} previous violations</p>
+                    </div>
+                </div>
+
+                <!-- Content Preview -->
+                <div class="alert-content {% if alert.severity == 'critical' %}critical{% elif alert.severity == 'high' %}high{% endif %}">
+                    <div class="alert-text">{{ alert.content_text|truncatewords:50 }}</div>
+                    {% if alert.toxic_words %}
+                    <div class="toxic-words">
+                        <strong style="font-size: 0.85rem;">Detected words:</strong>
+                        {% for word in alert.toxic_words %}
+                        <span class="toxic-word">{{ word }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Metadata -->
+                <div class="alert-meta">
+                    <div class="alert-meta-item">
+                        <i class='bx bx-error-circle'></i>
+                        <span>Toxicity: {{ alert.toxicity_score|floatformat:2 }}</span>
+                    </div>
+                    <div class="alert-meta-item">
+                        <i class='bx bx-chart'></i>
+                        <span>Sentiment: {{ alert.sentiment_score|floatformat:2 }}</span>
+                    </div>
+                    <div class="alert-meta-item">
+                        <i class='bx bx-file'></i>
+                        <span>{{ alert.content_type|title }}</span>
+                    </div>
+                    {% if alert.assigned_to %}
+                    <div class="alert-meta-item">
+                        <i class='bx bx-user-check'></i>
+                        <span>Assigned to @{{ alert.assigned_to.username }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="alert-actions">
+                    <a href="{% url 'review_alert' alert.id %}" class="btn btn-primary">
+                        <i class='bx bx-search-alt'></i> Review & Take Action
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class='bx bx-check-circle'></i>
+                <h3>No alerts to review</h3>
+                <p>All content moderation alerts have been processed</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if alerts.has_other_pages %}
+    <div class="pagination">
+        {% if alerts.has_previous %}
+            <a href="?page={{ alerts.previous_page_number }}&status={{ status_filter }}&severity={{ severity_filter }}&type={{ alert_type_filter }}">Previous</a>
+        {% endif %}
+
+        {% for num in alerts.paginator.page_range %}
+            {% if num == alerts.number %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}&status={{ status_filter }}&severity={{ severity_filter }}&type={{ alert_type_filter }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if alerts.has_next %}
+            <a href="?page={{ alerts.next_page_number }}&status={{ status_filter }}&severity={{ severity_filter }}&type={{ alert_type_filter }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,1709 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.author.get_full_name }}'s Post - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --sage-green: #87a96b;
+    --sage-green-dark: #6d8a56;
+    --sage-light: #f0f4ed;
+    --pink: #ffb6c1;
+    --pink-light: #ffe4e9;
+    --pink-dark: #ff8fa3;
+    --brown: #964b00;
+    --brown-light: #c17817;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666;
+    --text-muted: #999;
+    --light-bg: #fafafa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.post-detail-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fafafa 0%, #fff 100%);
+    padding: 2rem 0;
+}
+
+.post-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Main Post Card */
+.post-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Post Header */
+.post-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.author-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.author-avatar-wrapper {
+    position: relative;
+}
+
+.author-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--sage-light);
+    transition: transform 0.3s ease;
+}
+
+.author-avatar:hover {
+    transform: scale(1.05);
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: var(--sage-green);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border: 2px solid white;
+}
+
+.author-info {
+    flex: 1;
+}
+
+.author-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.author-name h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.author-name a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.author-name a:hover {
+    color: var(--sage-green);
+}
+
+.author-username {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.post-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.post-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-exclusive {
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+    color: white;
+}
+
+.badge-announcement {
+    background: var(--sage-green);
+    color: white;
+}
+
+/* Post Actions Menu */
+.post-menu {
+    position: relative;
+}
+
+.menu-btn {
+    background: var(--light-bg);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    min-width: 220px;
+    display: none;
+    z-index: 1000;
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+    text-align: left;
+    background: none;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.dropdown-item i {
+    font-size: 1.25rem;
+}
+
+.dropdown-item.danger {
+    color: #dc3545;
+}
+
+.dropdown-item.danger:hover {
+    background: #fff5f5;
+}
+
+/* Post Media */
+.post-media {
+    position: relative;
+    width: 100%;
+    background: #000;
+}
+
+.post-media img,
+.post-media video {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 600px;
+    object-fit: contain;
+}
+
+/* Post Content */
+.post-content {
+    padding: 2rem;
+}
+
+.post-text {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 1.5rem;
+}
+
+/* Sentiment & AI Analysis */
+.ai-insights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.insight-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.sentiment-positive {
+    background: rgba(135, 169, 107, 0.1);
+    color: var(--sage-green);
+    border: 1px solid rgba(135, 169, 107, 0.3);
+}
+
+.sentiment-negative {
+    background: rgba(255, 182, 193, 0.1);
+    color: var(--pink-dark);
+    border: 1px solid rgba(255, 182, 193, 0.3);
+}
+
+.sentiment-neutral {
+    background: rgba(150, 75, 0, 0.05);
+    color: var(--brown);
+    border: 1px solid rgba(150, 75, 0, 0.2);
+}
+
+.engagement-prediction {
+    background: linear-gradient(135deg, rgba(135, 169, 107, 0.1), rgba(255, 182, 193, 0.1));
+    border: 1px solid rgba(135, 169, 107, 0.3);
+    color: var(--text-primary);
+}
+
+/* Tags */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tag {
+    padding: 0.375rem 0.875rem;
+    background: var(--pink-light);
+    color: var(--pink-dark);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.tag:hover {
+    background: var(--pink);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
+}
+
+/* Post Actions */
+.post-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 2rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--light-bg);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.action-btn:hover {
+    background: var(--sage-light);
+    border-color: var(--sage-green);
+    color: var(--sage-green);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(135, 169, 107, 0.2);
+}
+
+.action-btn i {
+    font-size: 1.25rem;
+}
+
+.action-btn.liked {
+    background: var(--pink-light);
+    border-color: var(--pink);
+    color: var(--pink-dark);
+}
+
+.action-btn.liked:hover {
+    background: var(--pink);
+    color: white;
+}
+
+.action-btn .count {
+    font-weight: 700;
+}
+
+/* Comments Section */
+.comments-section {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    padding: 2rem;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.comments-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-sort {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--sage-light);
+    border-radius: 10px;
+    background: white;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.comment-sort:hover {
+    border-color: var(--sage-green);
+    color: var(--sage-green);
+}
+
+/* Comment Form */
+.comment-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.comment-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--sage-light);
+}
+
+.comment-input-wrapper {
+    flex: 1;
+}
+
+.comment-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    resize: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    min-height: 100px;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: var(--sage-green);
+    box-shadow: 0 0 0 4px rgba(135, 169, 107, 0.1);
+}
+
+.comment-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.char-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.comment-submit-btn {
+    background: var(--sage-green);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.comment-submit-btn:hover:not(:disabled) {
+    background: var(--sage-green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(135, 169, 107, 0.3);
+}
+
+.comment-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Comment Item */
+.comment-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.comment-content-wrapper {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-author {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.comment-author:hover {
+    color: var(--sage-green);
+}
+
+.comment-verified {
+    color: var(--sage-green);
+    font-size: 0.875rem;
+}
+
+.comment-time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.comment-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+/* AI Warnings for Comments */
+.ai-warning {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-warning.warning-high {
+    background: #fff5f5;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+.ai-warning.warning-medium {
+    background: #fff8f0;
+    border-left: 4px solid #ff9800;
+    color: #8a2c0d;
+}
+
+.ai-warning.warning-low {
+    background: #fffbf0;
+    border-left: 4px solid #ffc107;
+    color: #856404;
+}
+
+.ai-warning i {
+    font-size: 1.1rem;
+}
+
+.blocked-notice {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #721c24;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.blocked-notice i {
+    font-size: 1.1rem;
+}
+
+/* Comment Actions */
+.comment-actions {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+}
+
+.comment-action {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.comment-action:hover {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.comment-action.liked {
+    color: var(--pink-dark);
+}
+
+.comment-action i {
+    font-size: 1rem;
+}
+
+/* Replies */
+.replies {
+    margin-left: 3.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f5f5f5;
+}
+
+/* Empty State */
+.empty-comments {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-comments i {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+    color: var(--sage-green);
+}
+
+.empty-comments p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* AI Recommendations */
+.recommendations-section {
+    margin-top: 2rem;
+}
+
+.recommendations-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.recommendations-header i {
+    color: var(--sage-green);
+    font-size: 1.5rem;
+}
+
+.recommendations-header h4 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Report Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    max-width: 550px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.75rem 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-close {
+    background: var(--light-bg);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.report-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.reason-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reason-option:hover {
+    border-color: var(--sage-green);
+    background: var(--sage-light);
+}
+
+.reason-option input[type="radio"] {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--sage-green);
+}
+
+.reason-option label {
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+    font-weight: 500;
+}
+
+.reason-description {
+    margin-top: 1.25rem;
+}
+
+.reason-description textarea {
+    width: 100%;
+    padding: 0.875rem 1.125rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.reason-description textarea:focus {
+    outline: none;
+    border-color: var(--sage-green);
+    box-shadow: 0 0 0 4px rgba(135, 169, 107, 0.1);
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.btn-secondary {
+    background: var(--light-bg);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.btn-primary {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--sage-green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(135, 169, 107, 0.3);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .post-detail-container {
+        padding: 0;
+    }
+    
+    .post-card,
+    .comments-section {
+        border-radius: 0;
+    }
+    
+    .post-header,
+    .post-content,
+    .post-actions,
+    .comments-section {
+        padding: 1.25rem;
+    }
+    
+    .post-actions {
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .replies {
+        margin-left: 2rem;
+    }
+    
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loading Animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(135, 169, 107, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--sage-green);
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-detail-wrapper">
+    <div class="post-detail-container">
+        <!-- Main Post Card -->
+        <article class="post-card">
+            <!-- Post Header -->
+            <div class="post-header">
+                <div class="author-section">
+                    <div class="author-avatar-wrapper">
+                        <a href="{% url 'profile' post.author.username %}">
+                            {% if post.author.profile.avatar %}
+                                <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}" class="author-avatar">
+                            {% else %}
+                                <div class="author-avatar" style="background: linear-gradient(135deg, var(--sage-green), var(--pink)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem;">
+                                    {{ post.author.username|first|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        {% if post.author.is_verified %}
+                            <div class="verified-badge" title="Verified">
+                                <i class='bx bxs-badge-check'></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="author-info">
+                        <div class="author-name">
+                            <h3>
+                                <a href="{% url 'profile' post.author.username %}">
+                                    {{ post.author.get_full_name }}
+                                </a>
+                            </h3>
+                        </div>
+                        <div class="author-username">@{{ post.author.username }}</div>
+                        <div class="post-meta">
+                            <div class="post-time">
+                                <i class='bx bx-time-five'></i>
+                                <span>{{ post.created_at|timesince }} ago</span>
+                            </div>
+                            {% if post.is_exclusive %}
+                                <span class="post-badge badge-exclusive">
+                                    <i class='bx bxs-crown'></i> Exclusive
+                                </span>
+                            {% endif %}
+                            {% if post.post_type == 'announcement' %}
+                                <span class="post-badge badge-announcement">
+                                    <i class='bx bxs-megaphone'></i> Announcement
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="post-menu">
+                    <button class="menu-btn" onclick="togglePostMenu()" id="postMenuBtn">
+                        <i class='bx bx-dots-horizontal-rounded'></i>
+                    </button>
+                    <div class="dropdown-menu" id="postDropdown">
+                        {% if user == post.author %}
+                            <a href="{% url 'edit_post' post.id %}" class="dropdown-item">
+                                <i class='bx bx-edit'></i>
+                                <span>Edit Post</span>
+                            </a>
+                            <button onclick="deletePost()" class="dropdown-item danger">
+                                <i class='bx bx-trash'></i>
+                                <span>Delete Post</span>
+                            </button>
+                        {% else %}
+                            <button onclick="openReportModal()" class="dropdown-item">
+                                <i class='bx bx-flag'></i>
+                                <span>Report Post</span>
+                            </button>
+                            <button onclick="blockUser()" class="dropdown-item">
+                                <i class='bx bx-block'></i>
+                                <span>Block @{{ post.author.username }}</span>
+                            </button>
+                        {% endif %}
+                        <button onclick="copyLink()" class="dropdown-item">
+                            <i class='bx bx-link'></i>
+                            <span>Copy Link</span>
+                        </button>
+                        <button onclick="sharePost('{{ post.id }}')" class="dropdown-item">
+                            <i class='bx bx-share-alt'></i>
+                            <span>Share</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Media -->
+            {% if post.image %}
+                <div class="post-media">
+                    <img src="{{ post.image.url }}" alt="Post image" loading="lazy">
+                </div>
+            {% endif %}
+            
+            {% if post.video %}
+                <div class="post-media">
+                    <video controls>
+                        <source src="{{ post.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            {% endif %}
+
+            <!-- Post Content -->
+            <div class="post-content">
+                <p class="post-text">{{ post.content|linebreaksbr }}</p>
+                
+                <!-- AI Insights & Sentiment -->
+                {% if post.sentiment_label or engagement_prediction %}
+                    <div class="ai-insights">
+                        {% if post.sentiment_label %}
+                            <div class="insight-badge sentiment-{{ post.sentiment_label }}">
+                                {% if post.sentiment_label == 'positive' %}
+                                    <i class='bx bx-happy-alt'></i>
+                                    <span>Positive Vibes</span>
+                                {% elif post.sentiment_label == 'negative' %}
+                                    {% if post.toxicity_score and post.toxicity_score > 0.5 %}
+                                        <i class='bx bx-error-circle'></i>
+                                        <span>Critical Content</span>
+                                    {% else %}
+                                        <i class='bx bx-message-rounded-dots'></i>
+                                        <span>Serious Topic</span>
+                                    {% endif %}
+                                {% else %}
+                                    <i class='bx bx-meh'></i>
+                                    <span>Neutral</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if engagement_prediction %}
+                            <div class="insight-badge engagement-prediction">
+                                <i class='bx bx-trending-up'></i>
+                                <span>{{ engagement_prediction.engagement_score|floatformat:0 }}% Engagement</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Tags -->
+                {% if post.tags %}
+                    <div class="post-tags">
+                        {% for tag in post.tags %}
+                            <a href="{% url 'post_list' %}?tag={{ tag }}" class="tag">#{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Post Actions -->
+            <div class="post-actions">
+                <button class="action-btn {% if is_liked %}liked{% endif %}" 
+                        id="likeBtn" 
+                        onclick="toggleLike('{{ post.id }}')">
+                    <i class='bx {% if is_liked %}bxs-heart{% else %}bx-heart{% endif %}'></i>
+                    <span class="count" id="likeCount">{{ post.likes_count }}</span>
+                    <span>Like{% if post.likes_count != 1 %}s{% endif %}</span>
+                </button>
+                
+                <button class="action-btn" onclick="focusCommentInput()">
+                    <i class='bx bx-comment'></i>
+                    <span class="count">{{ post.comments_count }}</span>
+                    <span>Comment{% if post.comments_count != 1 %}s{% endif %}</span>
+                </button>
+                
+                <button class="action-btn" onclick="sharePost('{{ post.id }}')">
+                    <i class='bx bx-share-alt'></i>
+                    <span>Share</span>
+                </button>
+                
+                <button class="action-btn" onclick="savePost('{{ post.id }}')">
+                    <i class='bx bx-bookmark'></i>
+                    <span>Save</span>
+                </button>
+            </div>
+        </article>
+
+        <!-- Comments Section -->
+        <section class="comments-section">
+            <div class="comments-header">
+                <h4>
+                    <i class='bx bx-message-rounded-dots'></i>
+                    Comments ({{ comments.count }})
+                </h4>
+                <select class="comment-sort" onchange="sortComments(this.value)">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="popular">Most Popular</option>
+                </select>
+            </div>
+
+            <!-- Comment Form -->
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'comment_on_post' post.id %}" class="comment-form" id="commentForm">
+                    {% csrf_token %}
+                    <img src="{{ user.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                         alt="{{ user.username }}" 
+                         class="comment-avatar">
+                    <div class="comment-input-wrapper">
+                        <textarea class="comment-input" 
+                                  name="content" 
+                                  id="commentInput"
+                                  placeholder="Add a thoughtful comment..." 
+                                  rows="3"
+                                  maxlength="1000"
+                                  oninput="updateCharCount()"
+                                  required></textarea>
+                        <div class="comment-actions-bar">
+                            <span class="char-count" id="charCount">0/1000</span>
+                            <button type="submit" class="comment-submit-btn" id="submitBtn" disabled>
+                                Post Comment
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info" style="padding: 1.25rem; background: var(--sage-light); border-radius: 12px; text-align: center;">
+                    <i class='bx bx-info-circle' style="font-size: 1.5rem; color: var(--sage-green);"></i>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary);">
+                        <a href="{% url 'login' %}" style="color: var(--sage-green); font-weight: 600;">Log in</a> to join the conversation
+                    </p>
+                </div>
+            {% endif %}
+
+            <!-- Comments List -->
+            <div id="commentsList">
+                {% if comments %}
+                    {% for comment in comments %}
+                        <div class="comment-item" id="comment-{{ comment.id }}">
+                            <a href="{% url 'profile' comment.author.username %}">
+                                <img src="{{ comment.author.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                                     alt="{{ comment.author.username }}" 
+                                     class="comment-avatar">
+                            </a>
+                            <div class="comment-content-wrapper">
+                                <div class="comment-header">
+                                    <div class="comment-author-info">
+                                        <a href="{% url 'profile' comment.author.username %}" class="comment-author">
+                                            {{ comment.author.username }}
+                                        </a>
+                                        {% if comment.author.is_verified %}
+                                            <i class='bx bxs-badge-check comment-verified' title="Verified"></i>
+                                        {% endif %}
+                                        <span class="comment-time">{{ comment.created_at|timesince }} ago</span>
+                                    </div>
+                                    {% if comment.author == user or post.author == user %}
+                                        <div class="post-menu">
+                                            <button class="menu-btn" style="width: 32px; height: 32px; font-size: 1.25rem;" onclick="toggleCommentMenu('{{ comment.id }}')">
+                                                <i class='bx bx-dots-vertical-rounded'></i>
+                                            </button>
+                                            <div class="dropdown-menu" id="commentDropdown-{{ comment.id }}">
+                                                {% if comment.author == user %}
+                                                    <button onclick="editComment('{{ comment.id }}')" class="dropdown-item">
+                                                        <i class='bx bx-edit'></i>
+                                                        <span>Edit</span>
+                                                    </button>
+                                                {% endif %}
+                                                <button onclick="deleteComment('{{ comment.id }}')" class="dropdown-item danger">
+                                                    <i class='bx bx-trash'></i>
+                                                    <span>Delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <p class="comment-text">{{ comment.content }}</p>
+
+                                <!-- AI Sentiment Warning for Comments -->
+                                {% if comment.toxicity_score and comment.toxicity_score > 0.3 %}
+                                    <div class="ai-warning {% if comment.toxicity_score > 0.7 %}warning-high{% elif comment.toxicity_score > 0.5 %}warning-medium{% else %}warning-low{% endif %}">
+                                        <i class='bx bx-error-circle'></i>
+                                        <strong>AI Detection:</strong>
+                                        {% if comment.toxicity_score > 0.7 %}
+                                            High toxicity detected in this comment
+                                        {% elif comment.toxicity_score > 0.5 %}
+                                            Moderate toxicity detected
+                                        {% else %}
+                                            Mild toxicity detected
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Blocked Comment Notice -->
+                                {% if comment.is_blocked %}
+                                    <div class="blocked-notice">
+                                        <i class='bx bx-block'></i>
+                                        <strong>This comment has been blocked due to policy violations and is under review.</strong>
+                                    </div>
+                                {% endif %}
+
+                                <div class="comment-actions">
+                                    <button class="comment-action {% if comment.user_has_liked %}liked{% endif %}" 
+                                            onclick="likeComment('{{ comment.id }}')">
+                                        <i class='bx {% if comment.user_has_liked %}bxs-heart{% else %}bx-heart{% endif %}'></i>
+                                        <span>{{ comment.likes_count }}</span>
+                                    </button>
+                                    {% if user.is_authenticated %}
+                                        <button class="comment-action" onclick="replyToComment('{{ comment.id }}', '{{ comment.author.username }}')">
+                                            <i class='bx bx-reply'></i>
+                                            <span>Reply</span>
+                                        </button>
+                                    {% endif %}
+                                    {% if comment.author != user %}
+                                        <a href="{% url 'report_comment' comment.id %}" class="comment-action" style="text-decoration: none;">
+                                            <i class='bx bx-flag'></i>
+                                            <span>Report</span>
+                                        </a>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Replies -->
+                                {% if comment.replies.all %}
+                                    <div class="replies">
+                                        {% for reply in comment.replies.all %}
+                                            <div class="comment-item">
+                                                <a href="{% url 'profile' reply.author.username %}">
+                                                    <img src="{{ reply.author.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                                                         alt="{{ reply.author.username }}" 
+                                                         class="comment-avatar">
+                                                </a>
+                                                <div class="comment-content-wrapper">
+                                                    <div class="comment-header">
+                                                        <div class="comment-author-info">
+                                                            <a href="{% url 'profile' reply.author.username %}" class="comment-author">
+                                                                {{ reply.author.username }}
+                                                            </a>
+                                                            {% if reply.author.is_verified %}
+                                                                <i class='bx bxs-badge-check comment-verified' title="Verified"></i>
+                                                            {% endif %}
+                                                            <span class="comment-time">{{ reply.created_at|timesince }} ago</span>
+                                                        </div>
+                                                    </div>
+                                                    <p class="comment-text">{{ reply.content }}</p>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-comments">
+                        <i class='bx bx-comment-x'></i>
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- AI Recommendations -->
+        {% if related_posts %}
+            <section class="recommendations-section">
+                <div class="recommendations-header">
+                    <i class='bx bx-magic'></i>
+                    <h4>More from {{ post.author.get_full_name }}</h4>
+                </div>
+                <div class="recommendations-grid">
+                    {% for rec_post in related_posts %}
+                        <div class="post-card" style="cursor: pointer;" onclick="window.location.href='{% url 'post_detail' rec_post.id %}'">
+                            {% if rec_post.image %}
+                                <div class="post-media">
+                                    <img src="{{ rec_post.image.url }}" alt="Post" style="max-height: 200px;">
+                                </div>
+                            {% endif %}
+                            <div class="post-content" style="padding: 1rem;">
+                                <p class="post-text" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
+                                    {{ rec_post.content|truncatewords:20 }}
+                                </p>
+                                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                                    <span><i class='bx bx-heart'></i> {{ rec_post.likes_count }}</span>
+                                    <span><i class='bx bx-comment'></i> {{ rec_post.comments_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal" id="reportModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class='bx bx-flag'></i> Report Post</h3>
+            <button class="modal-close" onclick="closeReportModal()">
+                <i class='bx bx-x'></i>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'report_post' post.id %}" id="reportForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Help us understand what's wrong with this post:
+                </p>
+                <div class="report-reasons">
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="spam" id="reason_spam" required>
+                        <label for="reason_spam">Spam or Misleading</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="harassment" id="reason_harassment">
+                        <label for="reason_harassment">Harassment or Bullying</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="hate_speech" id="reason_hate_speech">
+                        <label for="reason_hate_speech">Hate Speech</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="violence" id="reason_violence">
+                        <label for="reason_violence">Violence or Dangerous Content</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="nudity" id="reason_nudity">
+                        <label for="reason_nudity">Nudity or Sexual Content</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="false_info" id="reason_false_info">
+                        <label for="reason_false_info">False Information</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="copyright" id="reason_copyright">
+                        <label for="reason_copyright">Copyright Violation</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="self_harm" id="reason_self_harm">
+                        <label for="reason_self_harm">Self-Harm or Suicide</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="scam" id="reason_scam">
+                        <label for="reason_scam">Scam or Fraud</label>
+                    </div>
+                    <div class="reason-option">
+                        <input type="radio" name="reason" value="other" id="reason_other">
+                        <label for="reason_other">Other</label>
+                    </div>
+                </div>
+                <div class="reason-description">
+                    <textarea name="description"
+                              placeholder="Provide additional details (optional)"
+                              maxlength="500"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeReportModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    <i class='bx bx-flag'></i> Submit Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+// Character count for comment input
+function updateCharCount() {
+    const input = document.getElementById('commentInput');
+    const charCount = document.getElementById('charCount');
+    const submitBtn = document.getElementById('submitBtn');
+    const count = input.value.length;
+    
+    charCount.textContent = `${count}/1000`;
+    submitBtn.disabled = count === 0;
+    
+    // Auto-resize textarea
+    input.style.height = 'auto';
+    input.style.height = input.scrollHeight + 'px';
+}
+
+// Toggle Like
+function toggleLike(postId) {
+    fetch(`/posts/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const likeBtn = document.getElementById('likeBtn');
+        const likeCount = document.getElementById('likeCount');
+        
+        if (data.status === 'liked') {
+            likeBtn.classList.add('liked');
+            likeBtn.querySelector('i').className = 'bx bxs-heart';
+        } else {
+            likeBtn.classList.remove('liked');
+            likeBtn.querySelector('i').className = 'bx bx-heart';
+        }
+        
+        likeCount.textContent = data.likes_count;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to like post. Please try again.', 'error');
+    });
+}
+
+// Focus Comment Input
+function focusCommentInput() {
+    const commentInput = document.getElementById('commentInput');
+    commentInput.focus();
+    commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Share Post
+function sharePost(postId) {
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this post on MANTRA',
+            url: shareUrl
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showNotification('Link copied to clipboard!', 'success');
+        });
+    }
+}
+
+// Save Post
+function savePost(postId) {
+    showNotification('Save functionality coming soon!', 'info');
+}
+
+// Like Comment
+function likeComment(commentId) {
+    console.log('Like comment:', commentId);
+    showNotification('Comment like functionality coming soon!', 'info');
+}
+
+// Reply to Comment
+function replyToComment(commentId, username) {
+    const commentInput = document.getElementById('commentInput');
+    commentInput.value = `@${username} `;
+    commentInput.focus();
+    
+    // Add hidden parent_id field
+    let parentField = document.getElementById('parent_id');
+    if (!parentField) {
+        parentField = document.createElement('input');
+        parentField.type = 'hidden';
+        parentField.name = 'parent_id';
+        parentField.id = 'parent_id';
+        document.getElementById('commentForm').appendChild(parentField);
+    }
+    parentField.value = commentId;
+}
+
+// Edit Comment
+function editComment(commentId) {
+    console.log('Edit comment:', commentId);
+    showNotification('Edit functionality coming soon!', 'info');
+}
+
+// Delete Comment
+function deleteComment(commentId) {
+    if (confirm('Are you sure you want to delete this comment?')) {
+        console.log('Delete comment:', commentId);
+        showNotification('Delete functionality coming soon!', 'info');
+    }
+}
+
+// Toggle Post Menu
+function togglePostMenu() {
+    const dropdown = document.getElementById('postDropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Toggle Comment Menu
+function toggleCommentMenu(commentId) {
+    const dropdown = document.getElementById(`commentDropdown-${commentId}`);
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    const menus = document.querySelectorAll('.post-menu');
+    menus.forEach(menu => {
+        const btn = menu.querySelector('.menu-btn');
+        const dropdown = menu.querySelector('.dropdown-menu');
+        
+        if (dropdown && !menu.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+});
+
+// Open Report Modal
+function openReportModal() {
+    const dropdown = document.getElementById('postDropdown');
+    dropdown.classList.remove('show');
+    const modal = document.getElementById('reportModal');
+    modal.classList.add('show');
+}
+
+// Close Report Modal
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    modal.classList.remove('show');
+    document.getElementById('reportForm').reset();
+}
+
+// Delete Post
+function deletePost() {
+    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        fetch(`/posts/{{ post.id }}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'deleted') {
+                showNotification('Post deleted successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard/';
+                }, 1500);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to delete post', 'error');
+        });
+    }
+}
+
+// Block User
+function blockUser() {
+    if (confirm('Are you sure you want to block @{{ post.author.username }}? You will no longer see their content.')) {
+        fetch(`/accounts/{{ post.author.username }}/block/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showNotification('User blocked successfully', 'success');
+            setTimeout(() => {
+                window.location.href = '/dashboard/';
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to block user', 'error');
+        });
+    }
+}
+
+// Copy Link
+function copyLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(function() {
+        showNotification('Link copied to clipboard!', 'success');
+    }, function() {
+        showNotification('Failed to copy link', 'error');
+    });
+    const dropdown = document.getElementById('postDropdown');
+    dropdown.classList.remove('show');
+}
+
+// Sort Comments
+function sortComments(sortType) {
+    console.log('Sort by:', sortType);
+    showNotification('Sort functionality coming soon!', 'info');
+}
+
+// Notification System
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--sage-green)' : type === 'error' ? '#dc3545' : 'var(--brown)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Add CSS for notification animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Close modal on outside click
+document.getElementById('reportModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeReportModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}User Management - Admin Dashboard | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--sage-green);
+}
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--sage-green);
+}
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+.filters-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+.user-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.table-header {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--sage-dark) 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    display: grid;
+    grid-template-columns: 2.5fr 2fr 1fr 1fr 1fr 1fr 1fr 0.8fr;
+    gap: 1rem;
+}
+.table-row {
+    display: grid;
+    grid-template-columns: 2.5fr 2fr 1fr 1fr 1fr 1fr 1fr 0.8fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+    transition: background 0.3s;
+}
+.table-row:hover {
+    background: var(--sage-light);
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e6e6e6;
+    flex-shrink: 0;
+}
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.user-details h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2e2e2e;
+}
+.user-details small {
+    font-size: 0.8rem;
+    color: #666;
+}
+.badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.badge-verified { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.badge-celebrity { background: rgba(111, 66, 193, 0.2); color: #6f42c1; }
+.badge-fan { background: rgba(12, 84, 96, 0.2); color: #0c5460; }
+.badge-admin { background: rgba(114, 28, 36, 0.2); color: #721c24; }
+.badge-subadmin { background: rgba(133, 100, 4, 0.2); color: #856404; }
+.badge-banned { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+.status-active { color: #28a745; font-weight: 600; }
+.status-inactive { color: #dc3545; font-weight: 600; }
+
+.actions-cell {
+    display: flex;
+    justify-content: center;
+}
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--sage-light);
+    color: var(--sage-green);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+.btn-icon:hover {
+    background: var(--sage-green);
+    color: white;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+@media (max-width: 1024px) {
+    .table-header, .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .table-header { display: none; }
+    .table-row > div:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--sage-green);
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class='bx bx-user'></i> User Management</h1>
+            <p style="color: var(--text-muted); margin: 0;">Manage all users across the MANTRA platform</p>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active Users</div>
+            <div class="stat-value">{{ active_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Banned Users</div>
+            <div class="stat-value">{{ banned_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Filtered Results</div>
+            <div class="stat-value">{{ users.paginator.count }}</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <label class="form-label">Search</label>
+                <input type="text" name="q" class="form-control" placeholder="Username, email, name..." value="{{ search_query }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-control">
+                    <option value="">All Types</option>
+                    <option value="fan" {% if type_filter == 'fan' %}selected{% endif %}>Fans</option>
+                    <option value="celebrity" {% if type_filter == 'celebrity' %}selected{% endif %}>Celebrities</option>
+                    <option value="subadmin" {% if type_filter == 'subadmin' %}selected{% endif %}>SubAdmins</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="banned" {% if status_filter == 'banned' %}selected{% endif %}>Banned</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="verified" {% if status_filter == 'verified' %}selected{% endif %}>Verified</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sort By</label>
+                <select name="sort" class="form-control">
+                    <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                    <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                    <option value="username" {% if sort == 'username' %}selected{% endif %}>Username A-Z</option>
+                    <option value="-username" {% if sort == '-username' %}selected{% endif %}>Username Z-A</option>
+                    <option value="-points" {% if sort == '-points' %}selected{% endif %}>Highest Points</option>
+                    <option value="-last_active" {% if sort == '-last_active' %}selected{% endif %}>Recently Active</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class='bx bx-search'></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="user-table">
+        <div class="table-header">
+            <div>User</div>
+            <div>Email</div>
+            <div>Type</div>
+            <div>Status</div>
+            <div>Joined</div>
+            <div>Points</div>
+            <div>Engagement</div>
+            <div>Actions</div>
+        </div>
+
+        {% for user in users %}
+        <div class="table-row">
+            <div class="user-info" data-label="User">
+                <div class="user-avatar">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                    {% else %}
+                        <div style="width:100%;height:100%;background:var(--pink-light);display:flex;align-items:center;justify-content:center;">
+                            <i class='bx bx-user' style="color:var(--pink);font-size:1.5rem;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h4>
+                        {{ user.username }}
+                        {% if user.is_verified %}<span class="badge badge-verified">Verified</span>{% endif %}
+                    </h4>
+                    <small>{{ user.get_full_name|default:"No name set" }}</small>
+                </div>
+            </div>
+            <div data-label="Email">{{ user.email }}</div>
+            <div data-label="Type">
+                <span class="badge badge-{{ user.user_type }}">{{ user.get_user_type_display }}</span>
+            </div>
+            <div data-label="Status">
+                {% if user.is_banned %}
+                    <span class="badge badge-banned">Banned</span>
+                {% elif user.is_active %}
+                    <span class="status-active">Active</span>
+                {% else %}
+                    <span class="status-inactive">Inactive</span>
+                {% endif %}
+            </div>
+            <div data-label="Joined">{{ user.created_at|date:"M d, Y" }}</div>
+            <div data-label="Points">{{ user.points|default:0 }}</div>
+            <div data-label="Engagement">
+                <small>
+                    <div><i class='bx bx-user-plus'></i> {{ user.followers_count|default:0 }} followers</div>
+                    <div><i class='bx bx-user-check'></i> {{ user.following_count|default:0 }} following</div>
+                </small>
+            </div>
+            <div class="actions-cell" data-label="Actions">
+                <a href="{% url 'admin_user_action' user.id %}" class="btn-icon" title="Manage User">
+                    <i class='bx bx-cog'></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class='bx bx-user-x'></i>
+            <h3>No Users Found</h3>
+            <p>No users match your current filters. Try adjusting your search criteria.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if users.has_other_pages %}
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if users.has_previous %}
+        <a href="?page={{ users.previous_page_number }}&q={{ search_query }}&type={{ type_filter }}&status={{ status_filter }}&sort={{ sort }}" class="btn btn-outline-primary">
+            <i class='bx bx-chevron-left'></i> Previous
+        </a>
+        {% endif %}
+        <span style="margin: 0 1rem; color: var(--text-muted);">
+            Page {{ users.number }} of {{ users.paginator.num_pages }}
+        </span>
+        {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}&q={{ search_query }}&type={{ type_filter }}&status={{ status_filter }}&sort={{ sort }}" class="btn btn-outline-primary">
+            Next <i class='bx bx-chevron-right'></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

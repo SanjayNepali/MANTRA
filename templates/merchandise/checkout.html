@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Checkout - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Checkout</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <h4>Shipping Information</h4>
+        {{ form.as_p }}
+        <h4>Payment Method</h4>
+        <select name="payment_method" class="form-select mb-3">
+            <option value="esewa">eSewa</option>
+            <option value="khalti">Khalti</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Place Order</button>
+    </form>
+</div>
+{% endblock %}

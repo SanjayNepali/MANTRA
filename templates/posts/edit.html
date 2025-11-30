@@ -1,0 +1,621 @@
+<!-- templates/posts/edit.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Post - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.edit-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.edit-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.edit-header h4 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-body {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.1);
+}
+
+textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.char-counter.warning {
+    color: var(--pink);
+    font-weight: 600;
+}
+
+.media-preview {
+    margin-top: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-preview img,
+.media-preview video {
+    width: 100%;
+    display: block;
+}
+
+.remove-media {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.remove-media:hover {
+    background: var(--pink);
+    transform: scale(1.1);
+}
+
+.analysis-panel {
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.analysis-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.analysis-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.analysis-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.analysis-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.analysis-value.positive {
+    color: var(--sage-green);
+}
+
+.analysis-value.negative {
+    color: var(--pink);
+}
+
+.analysis-value.neutral {
+    color: var(--brown);
+}
+
+.warning-box {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.warning-box h5 {
+    margin: 0 0 0.5rem 0;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.warning-box ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.error-box {
+    background: #F8D7DA;
+    border-left: 4px solid #DC3545;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #721C24;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btn-analyze {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-analyze:hover {
+    background: var(--sage-dark);
+}
+
+.preview-mode {
+    background: var(--pink-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.preview-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+    .edit-container {
+        margin: 1rem 0.5rem;
+    }
+    
+    .edit-body {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="edit-card">
+        <div class="edit-header">
+            <h4>
+                <i class='bx bx-edit'></i>
+                Edit Post
+            </h4>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="previewBtn">
+                <i class='bx bx-show'></i> Preview
+            </button>
+        </div>
+
+        <div class="edit-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}error-box{% else %}warning-box{% endif %}">
+                        <h5>
+                            <i class='bx {% if message.tags == "error" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+                            {{ message.tags|title }}
+                        </h5>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Content Analysis Results (if available) -->
+            <div id="analysisResults" style="display: none;">
+                <div class="analysis-panel">
+                    <div class="analysis-title">
+                        <i class='bx bx-brain'></i>
+                        AI Content Analysis
+                    </div>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-label">Sentiment</div>
+                            <div class="analysis-value" id="sentimentValue">Analyzing...</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Engagement Score</div>
+                            <div class="analysis-value" id="engagementValue">--</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Predicted Likes</div>
+                            <div class="analysis-value" id="likesValue">--</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Readability</div>
+                            <div class="analysis-value" id="readabilityValue">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Mode -->
+            <div id="previewMode" class="preview-mode" style="display: none;">
+                <div class="preview-header">
+                    <img src="{{ user.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                         alt="{{ user.username }}" 
+                         class="preview-avatar">
+                    <div>
+                        <strong>{{ user.get_full_name }}</strong>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Just now</div>
+                    </div>
+                </div>
+                <div class="preview-content" id="previewContent"></div>
+                <div id="previewMedia"></div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="editForm">
+                {% csrf_token %}
+
+                <!-- Content Field -->
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}" class="form-label">
+                        Content
+                    </label>
+                    {{ form.content }}
+                    <div class="char-counter">
+                        <span id="charCount">0</span> / 5000 characters
+                    </div>
+                    {% if form.content.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.content.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Image Upload -->
+                {% if form.image %}
+                <div class="form-group">
+                    <label for="{{ form.image.id_for_label }}" class="form-label">
+                        Image (Optional)
+                    </label>
+                    {{ form.image }}
+                    
+                    {% if post.image %}
+                    <div class="media-preview" id="currentImage">
+                        <img src="{{ post.image.url }}" alt="Current image">
+                        <button type="button" class="remove-media" onclick="removeCurrentMedia('image')">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                    
+                    <div id="imagePreview" class="media-preview" style="display: none;">
+                        <img src="" alt="Preview">
+                        <button type="button" class="remove-media" onclick="clearImagePreview()">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Video Upload -->
+                {% if form.video %}
+                <div class="form-group">
+                    <label for="{{ form.video.id_for_label }}" class="form-label">
+                        Video (Optional)
+                    </label>
+                    {{ form.video }}
+                    
+                    {% if post.video %}
+                    <div class="media-preview" id="currentVideo">
+                        <video controls>
+                            <source src="{{ post.video.url }}" type="video/mp4">
+                        </video>
+                        <button type="button" class="remove-media" onclick="removeCurrentMedia('video')">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Tags Field -->
+                {% if form.tags %}
+                <div class="form-group">
+                    <label for="{{ form.tags.id_for_label }}" class="form-label">
+                        Tags (Optional)
+                    </label>
+                    {{ form.tags }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem;">
+                        Separate tags with commas (e.g., music, concert, live)
+                    </small>
+                </div>
+                {% endif %}
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-analyze" onclick="analyzeContent()">
+                        <i class='bx bx-brain'></i> Analyze Content
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class='bx bx-save'></i> Update Post
+                    </button>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-secondary">
+                        <i class='bx bx-x'></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const contentField = document.getElementById('{{ form.content.id_for_label }}');
+const charCount = document.getElementById('charCount');
+const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+const imagePreview = document.getElementById('imagePreview');
+
+// Character counter
+contentField.addEventListener('input', function() {
+    const count = this.value.length;
+    charCount.textContent = count;
+    
+    if (count > 4500) {
+        charCount.parentElement.classList.add('warning');
+    } else {
+        charCount.parentElement.classList.remove('warning');
+    }
+    
+    // Auto-save to localStorage
+    localStorage.setItem('post_edit_draft_{{ post.id }}', this.value);
+});
+
+// Initialize character count
+charCount.textContent = contentField.value.length;
+
+// Image preview
+if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.querySelector('img').src = e.target.result;
+                imagePreview.style.display = 'block';
+                
+                // Hide current image if exists
+                const currentImage = document.getElementById('currentImage');
+                if (currentImage) {
+                    currentImage.style.display = 'none';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Clear image preview
+function clearImagePreview() {
+    imagePreview.style.display = 'none';
+    imageInput.value = '';
+    
+    // Show current image if exists
+    const currentImage = document.getElementById('currentImage');
+    if (currentImage) {
+        currentImage.style.display = 'block';
+    }
+}
+
+// Remove current media
+function removeCurrentMedia(type) {
+    const element = document.getElementById(`current${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    if (element) {
+        element.remove();
+        
+        // Add hidden input to mark for deletion
+        const deleteInput = document.createElement('input');
+        deleteInput.type = 'hidden';
+        deleteInput.name = `delete_${type}`;
+        deleteInput.value = 'true';
+        document.getElementById('editForm').appendChild(deleteInput);
+    }
+}
+
+// Analyze content
+function analyzeContent() {
+    const content = contentField.value.trim();
+    
+    if (!content) {
+        alert('Please enter some content to analyze');
+        return;
+    }
+    
+    const analysisResults = document.getElementById('analysisResults');
+    analysisResults.style.display = 'block';
+    
+    fetch('/api/analyze-content/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update sentiment
+        const sentimentValue = document.getElementById('sentimentValue');
+        sentimentValue.textContent = data.sentiment.label;
+        sentimentValue.className = `analysis-value ${data.sentiment.label}`;
+        
+        // Update engagement
+        document.getElementById('engagementValue').textContent = 
+            Math.round(data.engagement.engagement_score);
+        
+        // Update predicted likes
+        document.getElementById('likesValue').textContent = 
+            data.engagement.predicted_likes;
+        
+        // Update readability
+        document.getElementById('readabilityValue').textContent = 
+            data.readability || 'Good';
+        
+        // Show warnings if any
+        if (data.toxicity.is_toxic) {
+            showWarning('Content may contain toxic language. Consider revising.');
+        }
+        if (data.spam.is_spam) {
+            showWarning('Content may be flagged as spam. Consider revising.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to analyze content. Please try again.');
+    });
+}
+
+// Show warning
+function showWarning(message) {
+    const warningBox = document.createElement('div');
+    warningBox.className = 'warning-box';
+    warningBox.innerHTML = `
+        <h5><i class='bx bx-info-circle'></i> Warning</h5>
+        <p>${message}</p>
+    `;
+    document.querySelector('.edit-body').insertBefore(
+        warningBox,
+        document.getElementById('editForm')
+    );
+}
+
+// Preview toggle
+document.getElementById('previewBtn').addEventListener('click', function() {
+    const previewMode = document.getElementById('previewMode');
+    const form = document.getElementById('editForm');
+    
+    if (previewMode.style.display === 'none') {
+        // Show preview
+        const content = contentField.value;
+        document.getElementById('previewContent').textContent = content;
+        
+        // Show image if selected
+        const previewMedia = document.getElementById('previewMedia');
+        if (imagePreview.style.display !== 'none') {
+            previewMedia.innerHTML = imagePreview.innerHTML;
+        }
+        
+        previewMode.style.display = 'block';
+        form.style.display = 'none';
+        this.innerHTML = '<i class="bx bx-edit"></i> Edit';
+    } else {
+        // Hide preview
+        previewMode.style.display = 'none';
+        form.style.display = 'block';
+        this.innerHTML = '<i class="bx bx-show"></i> Preview';
+    }
+});
+
+// Restore draft
+window.addEventListener('load', function() {
+    const draft = localStorage.getItem('post_edit_draft_{{ post.id }}');
+    if (draft && draft !== contentField.value) {
+        if (confirm('Restore unsaved changes?')) {
+            contentField.value = draft;
+            charCount.textContent = draft.length;
+        }
+    }
+});
+
+// Clear draft on submit
+document.getElementById('editForm').addEventListener('submit', function() {
+    localStorage.removeItem('post_edit_draft_{{ post.id }}');
+});
+
+// Auto-save interval
+setInterval(function() {
+    const content = contentField.value;
+    if (content) {
+        localStorage.setItem('post_edit_draft_{{ post.id }}', content);
+        console.log('Draft auto-saved');
+    }
+}, 30000); // Every 30 seconds
+</script>
+{% endblock %}

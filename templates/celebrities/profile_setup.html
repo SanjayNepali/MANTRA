@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Profile Setup - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Complete Your Celebrity Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Stage Name</label>
+                            <input type="text" class="form-control" name="stage_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="actor">Actor</option>
+                                <option value="singer">Singer</option>
+                                <option value="athlete">Athlete</option>
+                                <option value="influencer">Influencer</option>
+                                <option value="comedian">Comedian</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Bio</label>
+                            <textarea class="form-control" name="bio" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Social Media Links</label>
+                            <input type="url" class="form-control mb-2" name="instagram" placeholder="Instagram URL">
+                            <input type="url" class="form-control mb-2" name="twitter" placeholder="Twitter URL">
+                            <input type="url" class="form-control mb-2" name="facebook" placeholder="Facebook URL">
+                            <input type="url" class="form-control mb-2" name="youtube" placeholder="YouTube URL">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Save Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+<!-- templates/about.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    {% load static %}
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --pink-dark: #FF91AC;
+            --pink-light: #FFF0F5;
+            --sage-green: #87A96B;
+            --sage-light: #E8F5E9;
+            --sage-dark: #73915A;
+            --brown: #964B00;
+            --brown-dark: #7A3D00;
+            --white: #FFFFFF;
+            --dark-text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+            --light-gray: #F8F9FA;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .content-section h3 {
+            font-size: 1.8rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-section h3 i {
+            color: var(--pink);
+        }
+
+        .content-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-section ul li {
+            padding: 0.75rem 0;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section ul li i {
+            color: var(--sage-green);
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            color: var(--brown);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .content-container {
+                padding: 2rem 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/landing_navbar.html' %}
+
+    <div class="content-container">
+        <div class="page-header">
+            <h1>About MANTRA</h1>
+            <p>Revolutionizing celebrity-fan connections worldwide</p>
+        </div>
+
+        <div class="content-section">
+            <p>MANTRA is a revolutionary platform connecting celebrities with their fans worldwide. We provide a secure, innovative, and engaging space where authentic connections flourish.</p>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-target-lock'></i> Our Mission</h3>
+            <p>To create authentic connections between celebrities and fans through innovative technology, fostering a community built on trust, engagement, and mutual respect.</p>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-star'></i> Features</h3>
+            <ul>
+                <li><i class='bx bxs-check-circle'></i> Direct interaction with verified celebrities</li>
+                <li><i class='bx bxs-check-circle'></i> Exclusive content and events</li>
+                <li><i class='bx bxs-check-circle'></i> Official merchandise store</li>
+                <li><i class='bx bxs-check-circle'></i> Active fan communities</li>
+                <li><i class='bx bxs-check-circle'></i> Secure payment system</li>
+                <li><i class='bx bxs-check-circle'></i> Real-time messaging and updates</li>
+                <li><i class='bx bxs-check-circle'></i> Virtual meet & greet events</li>
+            </ul>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>50K+</h3>
+                <p>Active Users</p>
+            </div>
+            <div class="stat-card">
+                <h3>1000+</h3>
+                <p>Verified Celebrities</p>
+            </div>
+            <div class="stat-card">
+                <h3>500+</h3>
+                <p>Fan Clubs</p>
+            </div>
+            <div class="stat-card">
+                <h3>10K+</h3>
+                <p>Daily Posts</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

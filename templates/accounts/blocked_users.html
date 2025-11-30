@@ -1,0 +1,46 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Blocked Users - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-block'></i> Blocked Users</h2>
+
+    <div class="card">
+        <div class="card-body">
+            {% if blocked_users %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Blocked On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for block in blocked_users %}
+                    <tr>
+                        <td>
+                            <img src="{{ block.blocked_user.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+                                 width="32" height="32" class="rounded-circle me-2">
+                            {{ block.blocked_user.get_full_name }}
+                        </td>
+                        <td>{{ block.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'unblock_user' block.blocked_user.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Unblock</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            {% include 'components/empty_state.html' with icon="bx-block" title="No Blocked Users" message="You haven't blocked anyone yet" %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

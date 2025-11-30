@@ -1,0 +1,772 @@
+{% load static %}
+<!-- templates/components/navbar.html -->
+
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container-fluid px-4">
+        <!-- Logo/Brand -->
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <i class='bx bx-star' style="font-size: 2rem; color: var(--pink);"></i>
+            <span class="ms-2 fw-bold" style="color: var(--brown); font-size: 1.5rem;">MANTRA</span>
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav" aria-controls="navbarNav" 
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navigation Items -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Main Navigation Links -->
+            <ul class="navbar-nav me-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link nav-link-main" href="{% url 'celebrity_list' %}">
+                        <i class='bx bxs-star'></i>
+                        <span>Celebrities</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-main" href="{% url 'event_list' %}">
+                        <i class='bx bxs-calendar-event'></i>
+                        <span>Events</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-main" href="{% url 'merchandise_list' %}">
+                        <i class='bx bxs-shopping-bag'></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-main" href="{% url 'fanclub_list' %}">
+                        <i class='bx bxs-group'></i>
+                        <span>Fanclubs</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Search Bar (Center) -->
+            <div class="mx-auto d-none d-lg-block">
+                <form class="search-form" action="{% url 'search' %}" method="GET" id="searchForm">
+                    <i class='bx bx-search search-icon-inline'></i>
+                    <input type="text"
+                           class="search-input"
+                           id="globalSearch"
+                           name="q"
+                           placeholder="Search celebrities, posts, events..."
+                           value="{{ request.GET.q }}"
+                           autocomplete="off">
+                    {% if request.GET.q %}
+                        <a href="{% url 'search' %}" class="clear-search">
+                            <i class='bx bx-x'></i>
+                        </a>
+                    {% endif %}
+                </form>
+                <!-- Live Search Results Dropdown -->
+                <div id="searchResults" class="search-results-dropdown"></div>
+            </div>
+
+            <!-- Right Menu -->
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if user.is_authenticated %}
+                    <!-- Feed/Discover Button (For Fans) -->
+                    {% if user.user_type == 'fan' or not user.is_celebrity %}
+                    <li class="nav-item">
+                        <a class="nav-link nav-icon" href="{% url 'discover' %}" title="Discover">
+                            <i class='bx bxs-compass'></i>
+                            <span class="d-lg-none ms-2">Discover</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link nav-icon" href="{% url 'feed' %}" title="Feed">
+                            <i class='bx bxs-news'></i>
+                            <span class="d-lg-none ms-2">Feed</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Create Button (dropdown) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" id="createDropdownNav"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Create">
+                            <i class='bx bx-plus-circle'></i>
+                            <span class="d-lg-none ms-2">Create</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createDropdownNav">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'create_post' %}">
+                                    <i class='bx bxs-edit me-2'></i> New Post
+                                </a>
+                            </li>
+                            {% if user.is_celebrity %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'create_event' %}">
+                                        <i class='bx bx-calendar-plus me-2'></i> New Event
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'create_merchandise' %}">
+                                        <i class='bx bx-shopping-bag me-2'></i> New Product
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Messages (with unread count) -->
+                    <li class="nav-item position-relative">
+                        <a class="nav-link" href="{% url 'inbox' %}" title="Messages">
+                            <i class='bx bx-message-square-dots'></i>
+                            {% if unread_messages_count > 0 %}
+                                <span class="notification-badge">{{ unread_messages_count }}</span>
+                            {% endif %}
+                            <span class="d-lg-none ms-2">Messages</span>
+                        </a>
+                    </li>
+
+                    <!-- Notifications -->
+                    <li class="nav-item position-relative dropdown">
+                        <a class="nav-link" href="#" id="notificationsDropdown" 
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class='bx bx-bell'></i>
+                            {% if notifications_count > 0 %}
+                                <span class="notification-badge">{{ notifications_count }}</span>
+                            {% endif %}
+                            <span class="d-lg-none ms-2">Notifications</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown" 
+                             aria-labelledby="notificationsDropdown">
+                            <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Notifications</h6>
+                                <a href="{% url 'notifications' %}" class="text-decoration-none small">View All</a>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="notification-list" class="notification-list">
+                                <!-- Notifications will be loaded here via AJAX -->
+                                <div class="text-center p-3">
+                                    <div class="spinner-border spinner-border-sm text-muted" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- User Menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center"
+                           href="#" id="userDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ user.get_profile_picture_url }}"
+                                 alt="{{ user.username }}"
+                                 class="rounded-circle user-avatar">
+                            <span class="d-lg-none ms-2">{{ user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown" 
+                            aria-labelledby="userDropdown">
+                            <!-- User Info -->
+                            <li class="dropdown-header">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ user.get_profile_picture_url }}"
+                                         alt="{{ user.username }}"
+                                         class="rounded-circle me-2"
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
+                                        <div class="small text-muted">@{{ user.username }}</div>
+                                        <div class="small">
+                                            <span class="badge bg-gradient-primary">{{ user.get_user_type_display }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- Dashboard -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class='bx bx-grid-alt me-2'></i> Dashboard
+                                </a>
+                            </li>
+                            
+                            <!-- Profile -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' username=user.username %}">
+                                    <i class='bx bx-user me-2'></i> My Profile
+                                </a>
+                            </li>
+
+                            <!-- Edit Profile -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'edit_profile' %}">
+                                    <i class='bx bx-edit me-2'></i> Edit Profile
+                                </a>
+                            </li>
+
+                            <!-- User Type Specific Options -->
+                            {% if user.is_celebrity %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'celebrity_analytics' %}">
+                                        <i class='bx bx-line-chart me-2'></i> Analytics
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'celebrity_earnings' %}">
+                                        <i class='bx bx-wallet me-2'></i> Earnings
+                                    </a>
+                                </li>
+                            {% elif user.is_fan %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'my_subscriptions' %}">
+                                        <i class='bx bx-crown me-2'></i> Subscriptions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'points_history' %}">
+                                        <i class='bx bx-coin-stack me-2'></i> Points
+                                    </a>
+                                </li>
+                            {% elif user.is_admin_user %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'admin_dashboard' %}">
+                                        <i class='bx bx-shield me-2'></i> Admin Panel
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- Settings -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'settings' %}">
+                                    <i class='bx bx-cog me-2'></i> Settings
+                                </a>
+                            </li>
+                            
+                            <!-- Logout -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class='bx bx-log-out me-2'></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                {% else %}
+                    <!-- Not Authenticated -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-primary" href="{% url 'signup_choice' %}">Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+/* Navbar Styles */
+.navbar-custom {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 0;
+    z-index: 1030;
+}
+
+.navbar-brand {
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+/* Main Nav Links */
+.nav-link-main {
+    color: var(--brown) !important;
+    font-size: 0.95rem !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link-main i {
+    font-size: 1.2rem;
+}
+
+.nav-link-main:hover {
+    color: var(--pink) !important;
+}
+
+.nav-link-main::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, var(--pink), var(--sage-green));
+    transition: width 0.3s ease;
+}
+
+.nav-link-main:hover::after {
+    width: 80%;
+}
+
+/* Search Form */
+.search-form {
+    position: relative;
+    width: 400px;
+    display: flex;
+    align-items: center;
+    background: #F5F5F5;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-form:focus-within {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon-inline {
+    color: var(--text-secondary);
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 0.9rem;
+    min-width: 0;
+    padding: 0;
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.clear-search {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.clear-search:hover {
+    color: var(--pink);
+}
+
+/* Search Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.search-results-dropdown.active {
+    display: block;
+}
+
+.search-results-dropdown .result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    color: var(--dark-text);
+    text-decoration: none;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #F5F5F5;
+}
+
+.search-results-dropdown .result-item:last-child {
+    border-bottom: none;
+}
+
+.search-results-dropdown .result-item:hover {
+    background: var(--light-pink);
+}
+
+/* Icon Nav Links */
+.nav-icon {
+    font-size: 1.4rem !important;
+    padding: 0.5rem !important;
+    color: var(--brown) !important;
+    transition: all 0.3s ease;
+}
+
+.nav-icon:hover {
+    color: var(--pink) !important;
+    transform: scale(1.1);
+}
+
+/* Nav Links */
+.navbar-nav .nav-link {
+    color: var(--brown);
+    font-size: 1.25rem;
+    padding: 0.5rem 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--sage-green);
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--pink);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border: 2px solid var(--sage-green);
+}
+
+.avatar-placeholder {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, var(--sage-green), var(--pink));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 0.5rem;
+    min-width: 250px;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: var(--brown);
+}
+
+.dropdown-item:hover {
+    background-color: var(--light-bg);
+    color: var(--sage-green);
+    transform: translateX(5px);
+}
+
+.dropdown-item i {
+    color: var(--sage-green);
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+    width: 350px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+    .search-form {
+        width: 100%;
+        margin: 1rem 0;
+    }
+    
+    .navbar-nav {
+        padding: 1rem 0;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+}
+
+/* Custom Toggler */
+.custom-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.custom-toggler:focus {
+    box-shadow: none;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%238B7355' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load notifications when dropdown is opened
+    const notificationsDropdown = document.getElementById('notificationsDropdown');
+    
+    if (notificationsDropdown) {
+        notificationsDropdown.addEventListener('click', function() {
+            loadNotifications();
+        });
+    }
+    
+    function loadNotifications() {
+        fetch('/api/notifications/recent/')
+            .then(response => response.json())
+            .then(data => {
+                const notificationList = document.getElementById('notification-list');
+                
+                if (data.notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="text-center p-4 text-muted">
+                            <i class='bx bx-bell-off' style="font-size: 2rem;"></i>
+                            <p class="mb-0 mt-2">No new notifications</p>
+                        </div>
+                    `;
+                } else {
+                    notificationList.innerHTML = data.notifications.map(notification => `
+                        <div class="notification-item p-3 ${!notification.is_read ? 'unread' : ''}" 
+                             data-id="${notification.id}">
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon me-3">
+                                    <i class='bx ${getNotificationIcon(notification.type)}'></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${notification.title}</h6>
+                                    <p class="mb-1 small">${notification.message}</p>
+                                    <span class="text-muted small">${notification.time_ago}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+            });
+    }
+    
+    function getNotificationIcon(type) {
+        const icons = {
+            'follow': 'bx-user-plus',
+            'like': 'bx-heart',
+            'comment': 'bx-comment',
+            'mention': 'bx-at',
+            'event_reminder': 'bx-calendar-event',
+            'subscription': 'bx-crown',
+            'order': 'bx-shopping-bag',
+            'points_earned': 'bx-coin-stack',
+            'points_deducted': 'bx-coin',
+            'default': 'bx-bell'
+        };
+        
+        return icons[type] || icons['default'];
+    }
+    
+    // Mark notification as read when clicked
+    document.addEventListener('click', function(e) {
+        const notificationItem = e.target.closest('.notification-item');
+        if (notificationItem && notificationItem.classList.contains('unread')) {
+            const notificationId = notificationItem.dataset.id;
+            
+            fetch(`/api/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            notificationItem.classList.remove('unread');
+            updateNotificationCount(-1);
+        }
+    });
+    
+    function updateNotificationCount(change) {
+        const badge = document.querySelector('.notification-badge');
+        if (badge) {
+            const currentCount = parseInt(badge.textContent);
+            const newCount = currentCount + change;
+            
+            if (newCount > 0) {
+                badge.textContent = newCount;
+            } else {
+                badge.remove();
+            }
+        }
+    }
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Live Search Functionality
+    const searchInput = document.getElementById('globalSearch');
+    const searchResults = document.getElementById('searchResults');
+    let searchTimeout;
+
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        searchResults.innerHTML = '<div class="text-center p-3 text-muted">Search unavailable</div>';
+                        searchResults.classList.add('active');
+                    });
+            }, 300);
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+    }
+
+    function displaySearchResults(data) {
+        if (!data.celebrities && !data.events && !data.fanclubs && !data.posts) {
+            searchResults.innerHTML = '<div class="text-center p-3 text-muted">No results found</div>';
+            searchResults.classList.add('active');
+            return;
+        }
+
+        let html = '';
+
+        // Celebrities
+        if (data.celebrities && data.celebrities.length) {
+            html += '<div style="padding: 10px 15px; font-weight: 600; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Celebrities</div>';
+            data.celebrities.forEach(celebrity => {
+                html += `
+                    <a href="/celebrities/${celebrity.username}/" class="result-item">
+                        <img src="${celebrity.profile_picture || '/static/images/default-avatar.png'}"
+                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; font-size: 14px;">${celebrity.name || celebrity.username}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">@${celebrity.username}</div>
+                        </div>
+                        ${celebrity.is_verified ? '<i class="bx bxs-badge-check" style="color: var(--pink);"></i>' : ''}
+                    </a>
+                `;
+            });
+        }
+
+        // Events
+        if (data.events && data.events.length) {
+            html += '<div style="padding: 10px 15px; font-weight: 600; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #f0f0f0; margin-top: 5px;">Events</div>';
+            data.events.forEach(event => {
+                html += `
+                    <a href="/events/${event.slug}/" class="result-item">
+                        <i class='bx bxs-calendar-event' style="font-size: 28px; color: var(--pink);"></i>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; font-size: 14px;">${event.title}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">${event.date || event.start_datetime}</div>
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        // Fan Clubs
+        if (data.fanclubs && data.fanclubs.length) {
+            html += '<div style="padding: 10px 15px; font-weight: 600; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #f0f0f0; margin-top: 5px;">Fan Clubs</div>';
+            data.fanclubs.forEach(club => {
+                html += `
+                    <a href="/fanclubs/${club.slug}/" class="result-item">
+                        <i class='bx bxs-group' style="font-size: 28px; color: var(--sage-green);"></i>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; font-size: 14px;">${club.name}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">${club.members_count || 0} members</div>
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        // View All Results link
+        html += `
+            <div style="border-top: 1px solid #f0f0f0; padding: 10px 15px; text-align: center;">
+                <a href="/search/?q=${encodeURIComponent(searchInput.value)}" style="color: var(--pink); text-decoration: none; font-size: 13px; font-weight: 500;">
+                    View all results →
+                </a>
+            </div>
+        `;
+
+        searchResults.innerHTML = html;
+        searchResults.classList.add('active');
+    }
+});
+</script>

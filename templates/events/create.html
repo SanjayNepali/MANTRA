@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Create Event - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Create New Event</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Create Event</button>
+    </form>
+</div>
+{% endblock %}

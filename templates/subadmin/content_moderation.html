@@ -1,0 +1,892 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Content Moderation - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.moderation-container {
+    max-width: 1600px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ai-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--sage-green);
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card.critical {
+    border-left-color: #dc3545;
+}
+
+.stat-card.warning {
+    border-left-color: #ffc107;
+}
+
+.stat-card.success {
+    border-left-color: #28a745;
+}
+
+.stat-card.info {
+    border-left-color: #17a2b8;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.stat-trend {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--bg-light);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flagged-item {
+    padding: 1.25rem;
+    border: 2px solid var(--bg-light);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.flagged-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--pink);
+}
+
+.flagged-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-details h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.user-details p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.severity-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge.critical {
+    background: #dc3545;
+    color: white;
+}
+
+.badge.high {
+    background: #ff9800;
+    color: white;
+}
+
+.badge.medium {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge.low {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.content-preview {
+    background: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #ffc107;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.content-preview.critical {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.ai-analysis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.analysis-metric {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--bg-light);
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.metric-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-light);
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.metric-bar-fill {
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.metric-bar-fill.critical {
+    background: #dc3545;
+}
+
+.metric-bar-fill.warning {
+    background: #ffc107;
+}
+
+.metric-bar-fill.success {
+    background: #28a745;
+}
+
+.emotions-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.emotion-chip {
+    background: var(--sage-light);
+    color: var(--sage-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.toxic-words {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.toxic-word {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--sage-dark);
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e0e0e0;
+    color: var(--brown);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+.suggestion-item {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.suggestion-action {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+.confidence-badge {
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.suggestion-reasons {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.suggestion-reasons li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+}
+
+.suggestion-reasons li i {
+    color: #667eea;
+}
+
+.risk-factors {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.risk-chip {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.25rem;
+}
+
+.sentiment-insights {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.insight-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-light);
+    border-radius: 12px;
+}
+
+.insight-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.insight-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 0.25rem;
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.toxicity-meter {
+    width: 100%;
+    height: 80px;
+    position: relative;
+    background: linear-gradient(to right, #28a745, #ffc107, #ff9800, #dc3545);
+    border-radius: 12px;
+    margin: 1rem 0;
+    overflow: hidden;
+}
+
+.toxicity-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 968px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moderation-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class='bx bx-shield-alt-2'></i>
+            AI Content Moderation Dashboard
+        </h1>
+        <span class="ai-badge">
+            <i class='bx bx-brain'></i> AI Powered
+        </span>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-grid">
+        <div class="stat-card warning">
+            <div class="stat-label">
+                <i class='bx bx-error-circle'></i>
+                Pending Alerts
+            </div>
+            <div class="stat-value">{{ moderation_stats.total_pending }}</div>
+            <div class="stat-trend">Requires immediate attention</div>
+        </div>
+
+        <div class="stat-card critical">
+            <div class="stat-label">
+                <i class='bx bx-shield-x'></i>
+                Critical Alerts
+            </div>
+            <div class="stat-value">{{ moderation_stats.critical_alerts }}</div>
+            <div class="stat-trend">High toxicity detected</div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-label">
+                <i class='bx bx-check-circle'></i>
+                Resolved This Week
+            </div>
+            <div class="stat-value">{{ moderation_stats.resolved_this_week }}</div>
+            <div class="stat-trend">{{ moderation_stats.sentiment_trend|title }} trend</div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-label">
+                <i class='bx bx-time'></i>
+                Avg Resolution Time
+            </div>
+            <div class="stat-value">{{ moderation_stats.avg_resolution_time|floatformat:0 }}<small style="font-size: 1rem;">min</small></div>
+            <div class="stat-trend">Response efficiency</div>
+        </div>
+    </div>
+
+    <!-- Regional Sentiment Insights -->
+    <div class="sentiment-insights">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class='bx bx-bar-chart-alt-2'></i>
+                Regional Content Health
+            </h2>
+        </div>
+        <div class="insights-grid">
+            <div class="insight-card">
+                <div class="insight-icon">📊</div>
+                <div class="insight-value">{{ sentiment_insights.total_posts_analyzed }}</div>
+                <div class="insight-label">Posts Analyzed</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-icon">😊</div>
+                <div class="insight-value">{{ sentiment_insights.sentiment_distribution.positive }}</div>
+                <div class="insight-label">Positive Content</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-icon">😔</div>
+                <div class="insight-value">{{ sentiment_insights.sentiment_distribution.negative }}</div>
+                <div class="insight-label">Negative Content</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-icon">💯</div>
+                <div class="insight-value">{{ sentiment_insights.avg_engagement_score }}%</div>
+                <div class="insight-label">Engagement Score</div>
+            </div>
+        </div>
+
+        <!-- Toxicity Level Indicator -->
+        <div style="margin-top: 1.5rem;">
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">
+                Average Toxicity: <span style="color: {% if moderation_stats.avg_toxicity > 0.7 %}#dc3545{% elif moderation_stats.avg_toxicity > 0.4 %}#ff9800{% else %}#28a745{% endif %}">{{ moderation_stats.avg_toxicity|floatformat:2 }}</span>
+            </p>
+            <div class="metric-bar">
+                <div class="metric-bar-fill {% if moderation_stats.avg_toxicity > 0.7 %}critical{% elif moderation_stats.avg_toxicity > 0.4 %}warning{% else %}success{% endif %}"
+                     style="width: {{ moderation_stats.avg_toxicity|floatformat:0 }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Flagged Content with AI Analysis -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class='bx bx-flag'></i>
+                    AI-Flagged Content
+                </h2>
+                <span class="badge high">{{ flagged_content|length }} items</span>
+            </div>
+
+            {% if flagged_content %}
+                {% for alert in flagged_content %}
+                <div class="flagged-item">
+                    <!-- Header -->
+                    <div class="flagged-header">
+                        <div class="user-info">
+                            {% if alert.content_author.profile_picture %}
+                            <img src="{{ alert.content_author.profile_picture.url }}" class="user-avatar" alt="{{ alert.content_author.username }}">
+                            {% else %}
+                            <div class="user-avatar" style="background: var(--bg-light); display: flex; align-items: center; justify-content: center;">
+                                <i class='bx bx-user' style="font-size: 1.25rem;"></i>
+                            </div>
+                            {% endif %}
+                            <div class="user-details">
+                                <h4>@{{ alert.content_author.username }}</h4>
+                                <p>{{ alert.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        <div class="severity-badges">
+                            <span class="badge {% if alert.sentiment_score < -0.5 %}critical{% elif alert.sentiment_score < 0 %}high{% else %}medium{% endif %}">
+                                {{ alert.sentiment_label|upper }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Content Preview -->
+                    <div class="content-preview {% if alert.toxicity_breakdown.severity == 'critical' %}critical{% endif %}">
+                        {{ alert.content_preview|truncatewords:50 }}
+                    </div>
+
+                    <!-- AI Analysis Metrics -->
+                    <div class="ai-analysis">
+                        <div class="analysis-metric">
+                            <div class="metric-label">Toxicity</div>
+                            <div class="metric-value" style="color: {% if alert.toxicity_breakdown.toxicity_score > 0.7 %}#dc3545{% elif alert.toxicity_breakdown.toxicity_score > 0.4 %}#ff9800{% else %}#28a745{% endif %}">
+                                {{ alert.toxicity_breakdown.toxicity_score|floatformat:2 }}
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill {% if alert.toxicity_breakdown.toxicity_score > 0.7 %}critical{% elif alert.toxicity_breakdown.toxicity_score > 0.4 %}warning{% else %}success{% endif %}"
+                                     style="width: {{ alert.toxicity_breakdown.toxicity_score|floatformat:2 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-metric">
+                            <div class="metric-label">Sentiment</div>
+                            <div class="metric-value" style="color: {% if alert.sentiment_score < -0.3 %}#dc3545{% elif alert.sentiment_score > 0.3 %}#28a745{% else %}#ffc107{% endif %}">
+                                {{ alert.sentiment_score|floatformat:2 }}
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill {% if alert.sentiment_score < -0.3 %}critical{% elif alert.sentiment_score > 0.3 %}success{% else %}warning{% endif %}"
+                                     style="width: {% widthratio alert.sentiment_score 1 50 %}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-metric">
+                            <div class="metric-label">Spam Risk</div>
+                            <div class="metric-value" style="color: {% if alert.spam_analysis.spam_score > 0.7 %}#dc3545{% elif alert.spam_analysis.spam_score > 0.4 %}#ff9800{% else %}#28a745{% endif %}">
+                                {{ alert.spam_analysis.spam_score|floatformat:2 }}
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill {% if alert.spam_analysis.spam_score > 0.7 %}critical{% elif alert.spam_analysis.spam_score > 0.4 %}warning{% else %}success{% endif %}"
+                                     style="width: {{ alert.spam_analysis.spam_score|floatformat:2 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-metric">
+                            <div class="metric-label">Viral Potential</div>
+                            <div class="metric-value" style="color: var(--sage-green);">
+                                {{ alert.viral_potential|floatformat:0 }}%
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill success" style="width: {{ alert.viral_potential }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emotions -->
+                    {% if alert.emotion_analysis.primary_emotion != 'neutral' %}
+                    <div style="margin-top: 1rem;">
+                        <strong style="font-size: 0.85rem; color: var(--text-secondary);">Detected Emotions:</strong>
+                        <div class="emotions-grid">
+                            <span class="emotion-chip">{{ alert.emotion_analysis.primary_emotion|title }}</span>
+                            {% if alert.emotion_analysis.secondary_emotions %}
+                                {% for emotion in alert.emotion_analysis.secondary_emotions %}
+                                <span class="emotion-chip">{{ emotion|title }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Toxic Words -->
+                    {% if alert.toxicity_breakdown.toxic_words %}
+                    <div style="margin-top: 1rem;">
+                        <strong style="font-size: 0.85rem; color: var(--text-secondary);">Flagged Terms:</strong>
+                        <div class="toxic-words">
+                            {% for word in alert.toxicity_breakdown.toxic_words %}
+                            <span class="toxic-word">{{ word }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="{% url 'review_alert' alert.id %}" class="btn btn-primary">
+                            <i class='bx bx-search-alt'></i> Review in Detail
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <a href="{% url 'moderation_queue' %}" class="btn btn-secondary">
+                        <i class='bx bx-list-ul'></i> View All Alerts
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class='bx bx-check-circle'></i>
+                    <h3>No Flagged Content</h3>
+                    <p>All content is within community guidelines</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- AI Moderation Suggestions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class='bx bx-brain'></i>
+                    AI Suggestions
+                </h2>
+                <span class="ai-badge" style="animation: none; padding: 0.25rem 0.75rem;">BETA</span>
+            </div>
+
+            {% if ai_recommendations %}
+                {% for suggestion in ai_recommendations %}
+                <div class="suggestion-item">
+                    <div class="suggestion-header">
+                        <div class="suggestion-action">
+                            <i class='bx bx-chevron-right'></i>
+                            {{ suggestion.suggestion.recommended_action|title|replace:"_":" " }}
+                        </div>
+                        <span class="confidence-badge">
+                            {{ suggestion.confidence|floatformat:0 }}% confidence
+                        </span>
+                    </div>
+
+                    <div class="user-info" style="margin-bottom: 1rem;">
+                        <div class="user-avatar" style="background: var(--bg-light); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                            <i class='bx bx-user' style="font-size: 1rem;"></i>
+                        </div>
+                        <div class="user-details">
+                            <h4 style="font-size: 0.9rem;">@{{ suggestion.alert.content_author.username }}</h4>
+                        </div>
+                    </div>
+
+                    <div class="content-preview" style="font-size: 0.85rem;">
+                        {{ suggestion.alert.content_preview|truncatewords:30 }}
+                    </div>
+
+                    {% if suggestion.suggestion.reasons %}
+                    <ul class="suggestion-reasons">
+                        {% for reason in suggestion.suggestion.reasons %}
+                        <li>
+                            <i class='bx bx-check-circle'></i>
+                            {{ reason }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    {% if suggestion.suggestion.risk_factors %}
+                    <div class="risk-factors">
+                        <strong style="font-size: 0.85rem; color: var(--text-secondary);">Risk Factors:</strong>
+                        {% for factor in suggestion.suggestion.risk_factors %}
+                        <span class="risk-chip">
+                            <i class='bx bx-error-circle'></i>
+                            {{ factor }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="action-buttons" style="margin-top: 1rem;">
+                        <a href="{% url 'review_alert' suggestion.alert.id %}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                            Review
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state" style="padding: 2rem 1rem;">
+                    <i class='bx bx-brain' style="font-size: 3rem;"></i>
+                    <h3 style="font-size: 1rem;">No AI Suggestions</h3>
+                    <p style="font-size: 0.85rem;">All alerts are being reviewed</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Moderation Queue Preview -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class='bx bx-list-ul'></i>
+                Priority Moderation Queue
+            </h2>
+            <a href="{% url 'moderation_queue' %}" class="btn btn-secondary">View All</a>
+        </div>
+
+        {% if moderation_queue %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--bg-light);">
+                            <th style="padding: 1rem; text-align: left;">User</th>
+                            <th style="padding: 1rem; text-align: left;">Content</th>
+                            <th style="padding: 1rem; text-align: center;">Priority</th>
+                            <th style="padding: 1rem; text-align: center;">Toxicity</th>
+                            <th style="padding: 1rem; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in moderation_queue %}
+                        <tr style="border-bottom: 1px solid var(--bg-light);">
+                            <td style="padding: 1rem;">
+                                <div class="user-info">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; background: var(--bg-light); display: flex; align-items: center; justify-content: center;">
+                                        <i class='bx bx-user'></i>
+                                    </div>
+                                    <span>@{{ alert.content_author.username }}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ alert.content_preview|truncatewords:15 }}
+                                </div>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <span class="badge {% if alert.priority_score > 70 %}critical{% elif alert.priority_score > 50 %}high{% else %}medium{% endif %}">
+                                    {{ alert.priority_score|floatformat:0 }}
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <span style="font-weight: 600; color: {% if alert.priority_score > 70 %}#dc3545{% elif alert.priority_score > 50 %}#ff9800{% else %}#28a745{% endif %}">
+                                    {{ alert.priority_score|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <a href="{% url 'review_alert' alert.id %}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class='bx bx-check-circle'></i>
+                <h3>Queue is Clear</h3>
+                <p>No pending moderation actions</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

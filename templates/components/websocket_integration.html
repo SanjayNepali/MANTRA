@@ -1,0 +1,375 @@
+{% load static %}
+<!-- WebSocket Integration Component -->
+<!-- Include this in base.html to enable real-time features site-wide -->
+
+<script src="{% static 'js/websocket-client.js' %}"></script>
+
+<script>
+// Global WebSocket instances
+let notificationWs = null;
+let statusWs = null;
+let toastManager = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    {% if user.is_authenticated %}
+    // Initialize Toast Manager
+    toastManager = new NotificationToast();
+
+    // Initialize Notification WebSocket
+    notificationWs = new NotificationWebSocket({
+        onConnectionEstablished: (unreadCount, recentNotifications) => {
+            console.log('Notifications connected. Unread:', unreadCount);
+            WebSocketUtils.updateUnreadBadge(unreadCount);
+
+            if (recentNotifications) {
+                updateNotificationDropdown(recentNotifications);
+            }
+        },
+
+        onNewNotification: (notification) => {
+            console.log('New notification:', notification);
+
+            // Update badge
+            const currentCount = parseInt(document.querySelector('.unread-badge')?.textContent || '0');
+            WebSocketUtils.updateUnreadBadge(currentCount + 1);
+
+            // Show toast
+            toastManager.show(notification);
+
+            // Add to dropdown
+            prependNotificationToDropdown(notification);
+
+            // Update page title
+            updatePageTitle(currentCount + 1);
+        },
+
+        onUnreadCountUpdate: (count) => {
+            WebSocketUtils.updateUnreadBadge(count);
+            updatePageTitle(count);
+        },
+
+        onRecentNotifications: (notifications) => {
+            updateNotificationDropdown(notifications);
+        }
+    });
+
+    // Initialize Online Status WebSocket
+    statusWs = new OnlineStatusWebSocket({
+        onStatusUpdate: (status, lastSeen) => {
+            console.log('Status updated:', status);
+            updateUserStatus(status);
+        },
+
+        onFriendStatusUpdate: (userId, status) => {
+            console.log(`Friend ${userId} is now ${status}`);
+            updateFriendStatus(userId, status);
+        }
+    });
+
+    // Connect WebSockets
+    notificationWs.connect();
+    statusWs.connect();
+
+    // Set up notification click handlers
+    document.addEventListener('click', function(e) {
+        // Mark notification as read
+        if (e.target.closest('.notification-item')) {
+            const notificationId = e.target.closest('.notification-item').dataset.notificationId;
+            if (notificationId) {
+                notificationWs.markAsRead(notificationId);
+                e.target.closest('.notification-item').classList.add('read');
+            }
+        }
+
+        // Mark all as read
+        if (e.target.closest('.mark-all-read-btn')) {
+            notificationWs.markAllAsRead();
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.add('read');
+            });
+            WebSocketUtils.updateUnreadBadge(0);
+        }
+
+        // Delete notification
+        if (e.target.closest('.delete-notification-btn')) {
+            const notificationId = e.target.closest('[data-notification-id]').dataset.notificationId;
+            if (notificationId && confirm('Delete this notification?')) {
+                notificationWs.deleteNotification(notificationId);
+                e.target.closest('.notification-item').remove();
+            }
+        }
+    });
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (notificationWs) notificationWs.close();
+        if (statusWs) statusWs.close();
+    });
+
+    // Helper Functions
+    function updatePageTitle(unreadCount) {
+        const baseTitle = document.title.replace(/^\(\d+\) /, '');
+        document.title = unreadCount > 0 ? `(${unreadCount}) ${baseTitle}` : baseTitle;
+    }
+
+    function updateUserStatus(status) {
+        // Update user status indicator if exists
+        const statusIndicator = document.querySelector('.user-status-indicator');
+        if (statusIndicator) {
+            statusIndicator.className = `user-status-indicator ${status}`;
+        }
+    }
+
+    function updateFriendStatus(userId, status) {
+        // Update friend status in UI
+        const friendElements = document.querySelectorAll(`[data-user-id="${userId}"]`);
+        friendElements.forEach(el => {
+            const statusEl = el.querySelector('.online-status');
+            if (statusEl) {
+                statusEl.className = `online-status ${status}`;
+                statusEl.textContent = status === 'online' ? 'Online' : 'Offline';
+            }
+        });
+    }
+
+    function updateNotificationDropdown(notifications) {
+        const dropdown = document.querySelector('.notification-dropdown-menu');
+        if (!dropdown) return;
+
+        const list = dropdown.querySelector('.notification-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+
+        if (notifications.length === 0) {
+            list.innerHTML = '<div class="empty-notifications">No notifications</div>';
+            return;
+        }
+
+        notifications.forEach(notification => {
+            list.appendChild(createNotificationElement(notification));
+        });
+    }
+
+    function prependNotificationToDropdown(notification) {
+        const dropdown = document.querySelector('.notification-dropdown-menu');
+        if (!dropdown) return;
+
+        const list = dropdown.querySelector('.notification-list');
+        if (!list) return;
+
+        // Remove empty state if present
+        const empty = list.querySelector('.empty-notifications');
+        if (empty) empty.remove();
+
+        // Prepend new notification
+        list.insertBefore(createNotificationElement(notification), list.firstChild);
+
+        // Limit to 20 notifications
+        while (list.children.length > 20) {
+            list.removeChild(list.lastChild);
+        }
+    }
+
+    function createNotificationElement(notification) {
+        const div = document.createElement('div');
+        div.className = `notification-item ${notification.is_read ? 'read' : 'unread'}`;
+        div.dataset.notificationId = notification.id;
+
+        div.innerHTML = `
+            <div class="notification-icon">
+                <i class='bx ${notification.icon || 'bx-bell'}' style='color: ${notification.color || '#FFB6C1'};'></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-message">${notification.message}</div>
+                <div class="notification-time">${getTimeAgo(notification.created_at)}</div>
+            </div>
+            <div class="notification-actions">
+                <button class="btn-icon delete-notification-btn" title="Delete">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+        `;
+
+        if (notification.target_url) {
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', (e) => {
+                if (!e.target.closest('.delete-notification-btn')) {
+                    window.location.href = notification.target_url;
+                }
+            });
+        }
+
+        return div;
+    }
+
+    function getTimeAgo(dateStr) {
+        const date = new Date(dateStr);
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        return `${Math.floor(hours / 24)}d ago`;
+    }
+
+    {% endif %}
+});
+</script>
+
+<style>
+/* Toast Container Styles */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 300px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast.show {
+    display: block;
+}
+
+.toast-header {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-body {
+    padding: 12px 16px;
+    color: var(--brown);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Notification Dropdown Styles */
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.notification-item.unread {
+    background: #fff9f9;
+}
+
+.notification-item:hover {
+    background: #fafafa;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.notification-icon i {
+    font-size: 1.25rem;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-message {
+    font-size: 0.9rem;
+    color: var(--brown);
+    margin-bottom: 4px;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.notification-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.empty-notifications {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* Online Status Indicator */
+.online-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.online-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9ca3af;
+}
+
+.online-status.online::before {
+    background: #10b981;
+}
+
+.online-status.offline::before {
+    background: #9ca3af;
+}
+
+/* Unread Badge */
+.unread-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+</style>

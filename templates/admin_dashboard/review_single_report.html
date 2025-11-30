@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review SubAdmin Report - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.review-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.review-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px 16px 0 0;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-item {
+    background: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.metric-card {
+    background: var(--sage-light);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sage-green);
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+.section h3 {
+    font-size: 1.2rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.content-box {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    line-height: 1.6;
+}
+
+.feedback-form {
+    background: var(--pink-light);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--sage-green);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.rating-inputs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.rating-input {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 700;
+}
+
+.rating-input input {
+    display: none;
+}
+
+.rating-input:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.rating-input.selected {
+    border-color: var(--pink);
+    background: var(--pink);
+    color: white;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e0e0e0;
+    color: var(--brown);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+@media (max-width: 768px) {
+    .review-container {
+        padding: 0 1rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <!-- Back Link -->
+    <a href="{% url 'review_activity_reports' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); text-decoration: none; margin-bottom: 1.5rem;">
+        <i class='bx bx-arrow-back'></i> Back to Reports
+    </a>
+
+    <!-- Report Header -->
+    <div class="review-card">
+        <div class="card-header">
+            <h2><i class='bx bx-file-blank'></i> SubAdmin Activity Report</h2>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">
+                {{ report.subadmin.get_full_name|default:report.subadmin.username }} - {{ report.region }}
+            </p>
+        </div>
+
+        <div class="card-body">
+            <!-- Basic Info -->
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Period</div>
+                    <div class="info-value" style="font-size: 1rem;">
+                        {{ report.period_start|date:"M d" }} - {{ report.period_end|date:"M d, Y" }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Submitted</div>
+                    <div class="info-value" style="font-size: 1rem;">
+                        {{ report.submitted_at|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" style="font-size: 1rem;">
+                        {{ report.get_status_display }}
+                    </div>
+                </div>
+                {% if report.reviewed_by %}
+                <div class="info-item">
+                    <div class="info-label">Reviewed By</div>
+                    <div class="info-value" style="font-size: 1rem;">
+                        {{ report.reviewed_by.username }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="section">
+                <h3><i class='bx bx-chart'></i> Performance Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.reports_resolved }}</div>
+                        <div class="metric-label">Reports Resolved</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.kyc_processed }}</div>
+                        <div class="metric-label">KYC Processed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.warnings_issued }}</div>
+                        <div class="metric-label">Warnings Issued</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.suspensions_issued }}</div>
+                        <div class="metric-label">Suspensions</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.bans_issued }}</div>
+                        <div class="metric-label">Bans Issued</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ report.avg_toxicity_score|floatformat:2 }}</div>
+                        <div class="metric-label">Avg Toxicity</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            {% if report.reports_data.summary %}
+            <div class="section">
+                <h3><i class='bx bx-edit'></i> Work Summary</h3>
+                <div class="content-box">{{ report.reports_data.summary }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Achievements -->
+            {% if report.reports_data.achievements %}
+            <div class="section">
+                <h3><i class='bx bx-trophy'></i> Achievements</h3>
+                <div class="content-box">{{ report.reports_data.achievements }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Challenges -->
+            {% if report.reports_data.challenges %}
+            <div class="section">
+                <h3><i class='bx bx-error-circle'></i> Challenges</h3>
+                <div class="content-box">{{ report.reports_data.challenges }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Admin Feedback Section -->
+            <div class="feedback-form">
+                <h3 style="margin-top: 0;"><i class='bx bx-message-square-edit'></i> Admin Review</h3>
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label class="form-label">Performance Rating (1-5)</label>
+                        <div class="rating-inputs">
+                            {% for i in "12345" %}
+                            <label class="rating-input" onclick="selectRating({{ i }})">
+                                <input type="radio" name="rating" value="{{ i }}" {% if report.performance_rating == i|add:"0" %}checked{% endif %}>
+                                <span>{{ i }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Detailed Feedback</label>
+                        <textarea name="feedback" class="form-control" placeholder="Provide constructive feedback on performance, areas for improvement, and commendations..." required>{{ report.admin_feedback }}</textarea>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <i class='bx bx-check'></i> Approve
+                        </button>
+                        <button type="submit" name="action" value="needs_improvement" class="btn btn-warning">
+                            <i class='bx bx-error'></i> Needs Improvement
+                        </button>
+                        <button type="submit" name="action" value="under_review" class="btn btn-info">
+                            <i class='bx bx-time'></i> Mark Under Review
+                        </button>
+                        <a href="{% url 'review_activity_reports' %}" class="btn btn-secondary">
+                            <i class='bx bx-x'></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectRating(value) {
+    // Remove selected class from all
+    document.querySelectorAll('.rating-input').forEach(input => {
+        input.classList.remove('selected');
+    });
+    // Add to clicked one and all before it
+    for (let i = 1; i <= value; i++) {
+        document.querySelectorAll('.rating-input')[i-1].classList.add('selected');
+    }
+}
+
+// Initialize selected ratings on load
+document.addEventListener('DOMContentLoaded', function() {
+    const checked = document.querySelector('input[name="rating"]:checked');
+    if (checked) {
+        selectRating(parseInt(checked.value));
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,341 @@
+<!-- templates/subadmin/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SubAdmin Dashboard | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--brown);
+    }
+    
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .report-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.3s;
+    }
+    
+    .report-item:hover {
+        background: var(--light-gray);
+    }
+    
+    .severity-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .severity-high {
+        background: #FFE4E1;
+        color: var(--danger);
+    }
+    
+    .severity-medium {
+        background: #FFF3CD;
+        color: #856404;
+    }
+    
+    .severity-low {
+        background: var(--sage-light);
+        color: var(--sage-dark);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .kyc-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--pink);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class='bx bx-shield-alt'></i> SubAdmin Dashboard</h1>
+    <p>Managing Countries: <strong>{{ assigned_areas|join:", "|default:"None assigned" }}</strong></p>
+    <p>Total Users in Your Countries: <strong>{{ total_users_region }}</strong> ({{ celebrities_region }} Celebrities, {{ fans_region }} Fans)</p>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-4 mb-3">
+    <div class="stat-card">
+        <i class='bx bx-flag stat-icon' style="color: var(--pink);"></i>
+        <div class="stat-number">{{ pending_reports }}</div>
+        <div class="stat-label">Pending Reports</div>
+        <a href="{% url 'subadmin_reports' %}" class="btn btn-primary btn-sm mt-2">Review</a>
+    </div>
+    
+    <div class="stat-card">
+        <i class='bx bx-search-alt stat-icon' style="color: var(--brown);"></i>
+        <div class="stat-number">{{ reviewing_reports }}</div>
+        <div class="stat-label">Under Review</div>
+        <a href="{% url 'subadmin_reports' %}?status=reviewing" class="btn btn-secondary btn-sm mt-2">Continue</a>
+    </div>
+    
+    <div class="stat-card">
+        <i class='bx bx-id-card stat-icon' style="color: var(--sage-green);"></i>
+        <div class="stat-number">{{ pending_kyc }}</div>
+        <div class="stat-label">Pending KYC</div>
+        <a href="{% url 'subadmin_kyc' %}" class="btn btn-primary btn-sm mt-2">Verify</a>
+    </div>
+    
+    <div class="stat-card">
+        <i class='bx bx-check-circle stat-icon' style="color: #28A745;"></i>
+        <div class="stat-number">{{ today_reports_resolved }}</div>
+        <div class="stat-label">Resolved Today</div>
+    </div>
+
+    <div class="stat-card">
+        <i class='bx bx-shield-alt-2 stat-icon' style="color: #dc3545;"></i>
+        <div class="stat-number">{{ pending_alerts|default:0 }}</div>
+        <div class="stat-label">AI Alerts Pending</div>
+        <a href="{% url 'moderation_queue' %}" class="btn btn-primary btn-sm mt-2">Review</a>
+    </div>
+
+    {% if critical_alerts > 0 %}
+    <div class="stat-card" style="border: 2px solid #dc3545;">
+        <i class='bx bx-error-circle stat-icon' style="color: #dc3545;"></i>
+        <div class="stat-number" style="color: #dc3545;">{{ critical_alerts }}</div>
+        <div class="stat-label">Critical Alerts</div>
+        <a href="{% url 'moderation_queue' %}?severity=critical" class="btn btn-danger btn-sm mt-2">Urgent</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-2" style="gap: 2rem;">
+    <!-- Recent Reports Section -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3><i class='bx bx-flag'></i> Recent Reports</h3>
+            <a href="{% url 'subadmin_reports' %}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        
+        {% if recent_reports %}
+            {% for report in recent_reports %}
+            <div class="report-item">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <strong>{{ report.get_report_type_display }}</strong>
+                        <span class="severity-badge severity-{{ report.severity|default:'low' }}">
+                            {{ report.get_reason_display }}
+                        </span>
+                        <p class="text-muted" style="margin: 0.5rem 0;">
+                            Reported by: {{ report.reported_by.username }} 
+                            {% if report.target_user %}| Target: {{ report.target_user.username }}{% endif %}
+                        </p>
+                        <small class="text-muted">{{ report.created_at|timesince }} ago</small>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{% url 'subadmin_review_report' report.id %}" class="btn btn-primary btn-sm">
+                            <i class='bx bx-search-alt'></i> Review
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted text-center">No pending reports</p>
+        {% endif %}
+    </div>
+    
+    <!-- KYC Verification Queue -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3><i class='bx bx-id-card'></i> KYC Verification Queue</h3>
+            <a href="{% url 'subadmin_kyc' %}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        
+        {% if kyc_queue %}
+            {% for celebrity in kyc_queue %}
+            <div class="kyc-card">
+                <div class="user-info">
+                    {% if celebrity.user.profile_picture %}
+                        <img src="{{ celebrity.user.profile_picture.url }}" alt="{{ celebrity.user.username }}" class="user-avatar">
+                    {% else %}
+                        <div class="user-avatar" style="background: var(--pink-light); display: flex; align-items: center; justify-content: center;">
+                            <i class='bx bx-user' style="font-size: 1.5rem; color: var(--pink);"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <strong>{{ celebrity.user.get_full_name|default:celebrity.user.username }}</strong>
+                        <p class="text-muted" style="margin: 0; font-size: 0.85rem;">
+                            {{ celebrity.categories|join:", "|default:"No categories" }}
+                        </p>
+                        <small class="text-muted">Submitted {{ celebrity.created_at|timesince }} ago</small>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <a href="{% url 'subadmin_verify_celebrity' celebrity.id %}" class="btn btn-primary btn-sm">
+                        Verify
+                    </a>
+                    <button class="btn btn-success btn-sm quick-approve" data-id="{{ celebrity.id }}">
+                        <i class='bx bx-check'></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted text-center">No pending KYC verifications</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Moderation Actions -->
+<div class="card mt-3">
+    <h3><i class='bx bx-history'></i> Your Recent Actions</h3>
+    <table style="width: 100%;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border);">
+                <th style="padding: 0.75rem; text-align: left;">Action</th>
+                <th style="padding: 0.75rem; text-align: left;">Target User</th>
+                <th style="padding: 0.75rem; text-align: left;">Reason</th>
+                <th style="padding: 0.75rem; text-align: left;">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for action in recent_actions %}
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 0.75rem;">
+                    <span class="badge" style="background: 
+                        {% if action.action_type == 'warning' %}var(--warning)
+                        {% elif 'ban' in action.action_type %}var(--danger)
+                        {% else %}var(--info){% endif %}; color: white;">
+                        {{ action.get_action_type_display }}
+                    </span>
+                </td>
+                <td style="padding: 0.75rem;">{{ action.target_user.username }}</td>
+                <td style="padding: 0.75rem;">{{ action.reason|truncatewords:10 }}</td>
+                <td style="padding: 0.75rem;">{{ action.created_at|date:"M d, H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                    No recent actions
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quick Actions Panel -->
+<div class="card mt-3" style="background: var(--pink-light);">
+    <h4>Quick Actions</h4>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'moderation_queue' %}" class="btn btn-primary">
+            <i class='bx bx-shield-alt-2'></i> AI Moderation Queue
+        </a>
+        <a href="{% url 'subadmin_reports' %}" class="btn btn-primary">
+            <i class='bx bx-flag'></i> Manage Reports
+        </a>
+        <a href="{% url 'subadmin_kyc' %}" class="btn btn-secondary">
+            <i class='bx bx-id-card'></i> KYC Verification
+        </a>
+        <a href="{% url 'subadmin_users' %}" class="btn btn-outline">
+            <i class='bx bx-user'></i> User Management
+        </a>
+        <a href="{% url 'subadmin_analytics' %}" class="btn btn-primary">
+            <i class='bx bx-bar-chart'></i> Country Analytics
+        </a>
+        <a href="{% url 'submit_activity_report' %}" class="btn btn-success">
+            <i class='bx bx-file-blank'></i> Submit Activity Report
+        </a>
+        <a href="{% url 'subadmin_activity_reports' %}" class="btn btn-secondary">
+            <i class='bx bx-file'></i> Activity Reports
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick approve KYC
+    document.querySelectorAll('.quick-approve').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('Quick approve this KYC verification?')) return;
+            
+            const celebrityId = this.dataset.id;
+            
+            fetch('{% url "subadmin_quick_action" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `action=approve_kyc&target_id=${celebrityId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

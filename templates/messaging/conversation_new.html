@@ -1,0 +1,202 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Chat - {{ conversation.get_other_participant.get_full_name }} - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container {
+    height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.chat-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chat-header-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.chat-header-info h5 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.chat-header-status {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.chat-header-status.online::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+.typing-indicator {
+    padding: 1rem 2rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    display: none;
+}
+
+.typing-indicator.active {
+    display: block;
+}
+
+.chat-input-area {
+    padding: 1.5rem;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+}
+
+.chat-input-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.chat-input-wrapper {
+    flex: 1;
+}
+
+.chat-input {
+    width: 100%;
+    border: 2px solid #e0e0e0;
+    border-radius: 24px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    resize: none;
+    max-height: 120px;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+.chat-send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.chat-send-btn:hover {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="{{ conversation.get_other_participant.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+                 alt="{{ conversation.get_other_participant.get_full_name }}"
+                 class="chat-header-avatar">
+            <div class="chat-header-info flex-grow-1">
+                <h5>{{ conversation.get_other_participant.get_full_name }}</h5>
+                <div id="userStatus" class="chat-header-status">Online</div>
+            </div>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            {% for message in messages %}
+                {% include 'components/message_bubble.html' with message=message %}
+            {% endfor %}
+        </div>
+
+        <div id="typingIndicator" class="typing-indicator">
+            <span id="typingUser"></span> is typing...
+        </div>
+
+        <div class="chat-input-area">
+            <form id="chatForm" class="chat-input-form">
+                {% csrf_token %}
+                <div class="chat-input-wrapper">
+                    <textarea id="chatInput" class="chat-input" placeholder="Type a message..." rows="1"></textarea>
+                </div>
+                <button type="submit" class="chat-send-btn">
+                    <i class='bx bx-send'></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/websocket-client.js' %}"></script>
+<script>
+const chatWs = new ChatWebSocket('{{ conversation.id }}', {
+    onNewMessage: (message) => {
+        const messageEl = WebSocketUtils.createMessageElement(message, message.sender.id === '{{ user.id }}');
+        document.getElementById('chatMessages').appendChild(messageEl);
+        WebSocketUtils.scrollToBottom(document.getElementById('chatMessages'));
+    },
+    onTypingIndicator: (user, isTyping) => {
+        const indicator = document.getElementById('typingIndicator');
+        if (isTyping) {
+            document.getElementById('typingUser').textContent = user.full_name;
+            indicator.classList.add('active');
+        } else {
+            indicator.classList.remove('active');
+        }
+    },
+    onUserStatus: (userId, status) => {
+        document.getElementById('userStatus').className = `chat-header-status ${status}`;
+        document.getElementById('userStatus').textContent = status === 'online' ? 'Online' : 'Offline';
+    }
+});
+
+chatWs.connect();
+
+document.getElementById('chatForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (message) {
+        chatWs.sendMessage(message);
+        input.value = '';
+    }
+});
+
+document.getElementById('chatInput').addEventListener('input', () => {
+    chatWs.handleTypingInput();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,184 @@
+<!-- templates/merchandise/my_orders.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders - MANTRA{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Orders</h2>
+        <a href="{% url 'merchandise_list' %}" class="btn btn-outline-primary">
+            <i class='bx bx-shopping-bag'></i> Continue Shopping
+        </a>
+    </div>
+    
+    <!-- Order Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="?status=" class="btn btn-outline-secondary {% if not status_filter %}active{% endif %}">
+                    All Orders
+                </a>
+                <a href="?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">
+                    Pending
+                </a>
+                <a href="?status=processing" class="btn btn-outline-info {% if status_filter == 'processing' %}active{% endif %}">
+                    Processing
+                </a>
+                <a href="?status=shipped" class="btn btn-outline-primary {% if status_filter == 'shipped' %}active{% endif %}">
+                    Shipped
+                </a>
+                <a href="?status=delivered" class="btn btn-outline-success {% if status_filter == 'delivered' %}active{% endif %}">
+                    Delivered
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders List -->
+    {% if orders %}
+        {% for order in orders %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Order #{{ order.order_number }}</h5>
+                        <p class="text-muted mb-2">
+                            Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"g:i A" }}
+                        </p>
+                        
+                        <!-- Order Items Preview -->
+                        <div class="d-flex gap-2 mb-2">
+                            {% for item in order.items.all|slice:":3" %}
+                            <img src="{{ item.merchandise.primary_image.url }}" 
+                                 alt="{{ item.merchandise.name }}"
+                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                            {% endfor %}
+                            {% if order.items.count > 3 %}
+                            <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--light-bg); border-radius: 4px;">
+                                +{{ order.items.count|add:"-3" }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="mb-0">
+                            <strong>Total Items:</strong> {{ order.items.count }} |
+                            <strong>Total Amount:</strong> NPR {{ order.total_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        <!-- Order Status -->
+                        <div class="mb-3">
+                            {% if order.order_status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif order.order_status == 'processing' %}
+                                <span class="badge bg-info">Processing</span>
+                            {% elif order.order_status == 'shipped' %}
+                                <span class="badge bg-primary">Shipped</span>
+                                {% if order.tracking_number %}
+                                    <p class="small mt-1">Tracking: {{ order.tracking_number }}</p>
+                                {% endif %}
+                            {% elif order.order_status == 'delivered' %}
+                                <span class="badge bg-success">Delivered</span>
+                                <p class="small mt-1">on {{ order.delivered_at|date:"M d, Y" }}</p>
+                            {% elif order.order_status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                            {% if order.order_status == 'delivered' %}
+                            <a href="{% url 'leave_review' order.id %}" class="btn btn-sm btn-outline-success">
+                                Leave Review
+                            </a>
+                            {% elif order.order_status == 'pending' %}
+                            <button class="btn btn-sm btn-outline-danger" onclick="cancelOrder('{{ order.id }}')">
+                                Cancel Order
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if orders.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if orders.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ orders.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in orders.paginator.page_range %}
+                    {% if orders.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if orders.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ orders.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class='bx bx-package' style="font-size: 4rem; color: var(--text-muted);"></i>
+                <h4 class="mt-3">No Orders Yet</h4>
+                <p class="text-muted">Start shopping to see your orders here</p>
+                <a href="{% url 'merchandise_list' %}" class="btn btn-primary mt-3">
+                    Browse Merchandise
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        fetch(`/merchandise/order/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to cancel order');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

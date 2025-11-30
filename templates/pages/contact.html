@@ -1,0 +1,311 @@
+<!-- templates/contact.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    {% load static %}
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --pink-dark: #FF91AC;
+            --pink-light: #FFF0F5;
+            --sage-green: #87A96B;
+            --sage-light: #E8F5E9;
+            --sage-dark: #73915A;
+            --brown: #964B00;
+            --brown-dark: #7A3D00;
+            --white: #FFFFFF;
+            --dark-text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+            --light-gray: #F8F9FA;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .contact-form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .contact-form-section h2 {
+            font-size: 1.8rem;
+            color: var(--brown);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-text);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-submit {
+            background: var(--pink);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--pink-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+        }
+
+        .contact-info-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .contact-info-section h3 {
+            font-size: 1.8rem;
+            color: var(--brown);
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .contact-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .contact-info-item i {
+            font-size: 1.8rem;
+            color: var(--pink);
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        .contact-info-content h4 {
+            font-size: 1.1rem;
+            color: var(--dark-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .contact-info-content p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .content-container {
+                padding: 2rem 1rem;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .contact-form-section,
+            .contact-info-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/landing_navbar.html' %}
+
+    <div class="content-container">
+        <div class="page-header">
+            <h1>Contact Us</h1>
+            <p>We'd love to hear from you</p>
+        </div>
+
+        <div class="contact-grid">
+            <div class="contact-form-section">
+                <h2>Send us a Message</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" placeholder="your.email@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control" name="subject" placeholder="What is this regarding?" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" name="message" placeholder="Tell us more..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class='bx bx-send'></i> Send Message
+                    </button>
+                </form>
+            </div>
+
+            <div class="contact-info-section">
+                <h3>Get in Touch</h3>
+                
+                <div class="contact-info-item">
+                    <i class='bx bx-envelope'></i>
+                    <div class="contact-info-content">
+                        <h4>Email</h4>
+                        <p>support@mantra.com</p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <i class='bx bx-phone'></i>
+                    <div class="contact-info-content">
+                        <h4>Phone</h4>
+                        <p>+1 234 567 8900</p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <i class='bx bx-map'></i>
+                    <div class="contact-info-content">
+                        <h4>Address</h4>
+                        <p>Kathmandu, Nepal</p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <i class='bx bx-time'></i>
+                    <div class="contact-info-content">
+                        <h4>Business Hours</h4>
+                        <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--brown);">Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class='bx bxl-facebook'></i></a>
+                        <a href="#" class="social-link"><i class='bx bxl-twitter'></i></a>
+                        <a href="#" class="social-link"><i class='bx bxl-instagram'></i></a>
+                        <a href="#" class="social-link"><i class='bx bxl-linkedin'></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

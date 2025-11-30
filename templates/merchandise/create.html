@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+{% block title %}Create Merchandise - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.form-control.error,
+.form-select.error {
+    border-color: #dc3545;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.alert-error.show {
+    display: block;
+}
+
+.image-preview {
+    max-width: 300px;
+    max-height: 300px;
+    margin-top: 10px;
+    display: none;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.image-preview.show {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Create New Merchandise</h2>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div id="form-error-alert" class="alert-error">
+                <strong>Please fix the following errors:</strong>
+                <ul id="error-list"></ul>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="merchandise-form">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Product Name *</label>
+                    {{ form.name }}
+                    <div id="name-error" class="error-message"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Description *</label>
+                    {{ form.description }}
+                    <div id="description-error" class="error-message"></div>
+                    <small class="form-text text-muted">Describe your merchandise in detail</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_category" class="form-label">Category *</label>
+                    {{ form.category }}
+                    <div id="category-error" class="error-message"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_price" class="form-label">Price *</label>
+                        {{ form.price }}
+                        <div id="price-error" class="error-message"></div>
+                        <small class="form-text text-muted">Enter price in your currency</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="id_stock_quantity" class="form-label">Stock Quantity *</label>
+                        {{ form.stock_quantity }}
+                        <div id="stock_quantity-error" class="error-message"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_discount_percentage" class="form-label">Discount Percentage</label>
+                        {{ form.discount_percentage }}
+                        <div id="discount_percentage-error" class="error-message"></div>
+                        <small class="form-text text-muted">Optional: 0-100</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="id_subscriber_discount" class="form-label">Subscriber Discount</label>
+                        {{ form.subscriber_discount }}
+                        <div id="subscriber_discount-error" class="error-message"></div>
+                        <small class="form-text text-muted">Optional: 0-100</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_primary_image" class="form-label">Product Image *</label>
+                    {{ form.primary_image }}
+                    <div id="primary_image-error" class="error-message"></div>
+                    <img id="image-preview" class="image-preview" alt="Image preview">
+                    <small class="form-text text-muted">Upload a high-quality image (max 10MB)</small>
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.is_exclusive }}
+                    <label class="form-check-label" for="id_is_exclusive">
+                        Exclusive for Subscribers Only
+                    </label>
+                    <div id="is_exclusive-error" class="error-message"></div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.is_featured }}
+                    <label class="form-check-label" for="id_is_featured">
+                        Featured Product
+                    </label>
+                    <div id="is_featured-error" class="error-message"></div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Create Merchandise</button>
+                    <a href="{% url 'merchandise_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('merchandise-form');
+    const nameField = document.getElementById('id_name');
+    const descriptionField = document.getElementById('id_description');
+    const categoryField = document.getElementById('id_category');
+    const priceField = document.getElementById('id_price');
+    const stockField = document.getElementById('id_stock_quantity');
+    const imageField = document.getElementById('id_primary_image');
+    const discountField = document.getElementById('id_discount_percentage');
+    const subscriberDiscountField = document.getElementById('id_subscriber_discount');
+    const errorAlert = document.getElementById('form-error-alert');
+    const errorList = document.getElementById('error-list');
+    const imagePreview = document.getElementById('image-preview');
+
+    // Add Bootstrap classes to form fields
+    const formControls = ['id_name', 'id_description', 'id_category', 'id_price',
+                          'id_stock_quantity', 'id_discount_percentage', 'id_subscriber_discount'];
+    formControls.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            if (field.tagName === 'SELECT') {
+                field.classList.add('form-select');
+            } else {
+                field.classList.add('form-control');
+            }
+        }
+    });
+
+    // Add Bootstrap class to image field
+    if (imageField) {
+        imageField.classList.add('form-control');
+    }
+
+    // Add Bootstrap classes to checkboxes
+    const checkboxes = ['id_is_exclusive', 'id_is_featured'];
+    checkboxes.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.classList.add('form-check-input');
+        }
+    });
+
+    // Image preview
+    imageField.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.add('show');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.classList.remove('show');
+        }
+    });
+
+    // Clear all errors
+    function clearErrors() {
+        errorAlert.classList.remove('show');
+        errorList.innerHTML = '';
+
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+
+        document.querySelectorAll('.form-control, .form-select').forEach(el => {
+            el.classList.remove('error');
+        });
+    }
+
+    // Show error for a field
+    function showFieldError(fieldName, message) {
+        const errorDiv = document.getElementById(fieldName + '-error');
+        const field = document.getElementById('id_' + fieldName);
+
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        if (field) {
+            field.classList.add('error');
+        }
+
+        const li = document.createElement('li');
+        li.textContent = message;
+        errorList.appendChild(li);
+    }
+
+    // Validate form
+    function validateForm(e) {
+        clearErrors();
+        let hasErrors = false;
+
+        // Name validation
+        const name = nameField.value.trim();
+        if (!name) {
+            showFieldError('name', 'Product name is required.');
+            hasErrors = true;
+        } else if (name.length < 3) {
+            showFieldError('name', 'Product name must be at least 3 characters long.');
+            hasErrors = true;
+        }
+
+        // Description validation
+        const description = descriptionField.value.trim();
+        if (!description) {
+            showFieldError('description', 'Product description is required.');
+            hasErrors = true;
+        } else if (description.length < 10) {
+            showFieldError('description', 'Description must be at least 10 characters long.');
+            hasErrors = true;
+        }
+
+        // Category validation
+        if (!categoryField.value) {
+            showFieldError('category', 'Please select a category.');
+            hasErrors = true;
+        }
+
+        // Price validation
+        const price = parseFloat(priceField.value);
+        if (!priceField.value || isNaN(price)) {
+            showFieldError('price', 'Price is required.');
+            hasErrors = true;
+        } else if (price <= 0) {
+            showFieldError('price', 'Price must be greater than 0.');
+            hasErrors = true;
+        }
+
+        // Stock validation
+        const stock = parseInt(stockField.value);
+        if (!stockField.value || isNaN(stock)) {
+            showFieldError('stock_quantity', 'Stock quantity is required.');
+            hasErrors = true;
+        } else if (stock < 0) {
+            showFieldError('stock_quantity', 'Stock quantity cannot be negative.');
+            hasErrors = true;
+        }
+
+        // Discount validation
+        if (discountField.value) {
+            const discount = parseFloat(discountField.value);
+            if (discount < 0 || discount > 100) {
+                showFieldError('discount_percentage', 'Discount must be between 0 and 100.');
+                hasErrors = true;
+            }
+        }
+
+        // Subscriber discount validation
+        if (subscriberDiscountField.value) {
+            const subDiscount = parseFloat(subscriberDiscountField.value);
+            if (subDiscount < 0 || subDiscount > 100) {
+                showFieldError('subscriber_discount', 'Subscriber discount must be between 0 and 100.');
+                hasErrors = true;
+            }
+        }
+
+        // Image validation
+        if (imageField.files.length > 0) {
+            const imageFile = imageField.files[0];
+            const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+            if (!validImageTypes.includes(imageFile.type)) {
+                showFieldError('primary_image', 'Please upload a valid image file (JPEG, PNG, GIF, or WebP).');
+                hasErrors = true;
+            }
+
+            if (imageFile.size > 10 * 1024 * 1024) {
+                showFieldError('primary_image', 'Image file size must not exceed 10MB.');
+                hasErrors = true;
+            }
+        } else {
+            showFieldError('primary_image', 'Product image is required.');
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            errorAlert.classList.add('show');
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
+        return true;
+    }
+
+    // Add submit event listener
+    form.addEventListener('submit', validateForm);
+
+    // Real-time validation
+    nameField.addEventListener('blur', function() {
+        const name = this.value.trim();
+        const errorDiv = document.getElementById('name-error');
+
+        if (!name) {
+            errorDiv.textContent = 'Product name is required.';
+            errorDiv.classList.add('show');
+            this.classList.add('error');
+        } else if (name.length < 3) {
+            errorDiv.textContent = 'Product name must be at least 3 characters long.';
+            errorDiv.classList.add('show');
+            this.classList.add('error');
+        } else {
+            errorDiv.classList.remove('show');
+            this.classList.remove('error');
+        }
+    });
+
+    priceField.addEventListener('blur', function() {
+        const price = parseFloat(this.value);
+        const errorDiv = document.getElementById('price-error');
+
+        if (!this.value || isNaN(price)) {
+            errorDiv.textContent = 'Price is required.';
+            errorDiv.classList.add('show');
+            this.classList.add('error');
+        } else if (price <= 0) {
+            errorDiv.textContent = 'Price must be greater than 0.';
+            errorDiv.classList.add('show');
+            this.classList.add('error');
+        } else {
+            errorDiv.classList.remove('show');
+            this.classList.remove('error');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Actions - {{ user.username }} - MANTRA Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-action-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--brown);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--brown);
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+}
+
+.back-link:hover {
+    color: var(--pink);
+}
+
+.user-profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.user-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--brown);
+}
+
+.user-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: rgba(150, 75, 0, 0.1);
+    color: var(--brown);
+}
+
+.badge-celebrity {
+    background: rgba(255, 182, 193, 0.2);
+    color: var(--pink);
+}
+
+.badge-fan {
+    background: rgba(135, 169, 107, 0.2);
+    color: var(--sage-green);
+}
+
+.badge-verified {
+    background: rgba(23, 162, 184, 0.2);
+    color: #17a2b8;
+}
+
+.badge-active {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.badge-banned {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.user-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.actions-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.action-card {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.action-card:hover {
+    border-color: var(--pink);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-card h4 {
+    color: var(--brown);
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.danger-zone {
+    background: #fff5f5;
+    border: 2px solid #dc3545;
+}
+
+.recent-activity {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--brown);
+}
+
+.activity-item.report {
+    border-left-color: #dc3545;
+}
+
+.activity-item.action {
+    border-left-color: #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-action-container">
+    <!-- Back Link -->
+    <a href="{% url 'admin_user_management' %}" class="back-link">
+        <i class='bx bx-arrow-back'></i> Back to User Management
+    </a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>User Management: {{ user.username }}</h1>
+    </div>
+
+    <!-- User Profile Card -->
+    <div class="user-profile-card">
+        <div class="user-header">
+            <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/static/images/default-avatar.png{% endif %}"
+                 alt="{{ user.username }}"
+                 class="user-avatar">
+            <div class="user-info">
+                <h2>{{ user.get_full_name|default:user.username }}</h2>
+                <p style="margin: 0; color: var(--text-secondary);">@{{ user.username }}</p>
+                <p style="margin: 0.25rem 0 0 0; color: var(--text-muted);">{{ user.email }}</p>
+
+                <div class="user-badges">
+                    {% if user.is_superuser %}
+                    <span class="badge badge-admin">SUPERUSER</span>
+                    {% endif %}
+
+                    {% if user.user_type == 'admin' %}
+                    <span class="badge badge-admin">Admin</span>
+                    {% elif user.user_type == 'celebrity' %}
+                    <span class="badge badge-celebrity">Celebrity</span>
+                    {% elif user.user_type == 'subadmin' %}
+                    <span class="badge badge-admin">SubAdmin</span>
+                    {% else %}
+                    <span class="badge badge-fan">Fan</span>
+                    {% endif %}
+
+                    {% if user.is_verified %}
+                    <span class="badge badge-verified">
+                        <i class='bx bx-badge-check'></i> Verified
+                    </span>
+                    {% endif %}
+
+                    {% if user.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-banned">Inactive</span>
+                    {% endif %}
+
+                    {% if user.is_banned %}
+                    <span class="badge badge-banned">
+                        <i class='bx bx-block'></i> Banned
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="user-stats">
+            <div class="stat-box">
+                <div class="stat-value">{{ followers_count }}</div>
+                <div class="stat-label">Followers</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ following_count }}</div>
+                <div class="stat-label">Following</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ posts_count }}</div>
+                <div class="stat-label">Posts</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ user.points|default:0 }}</div>
+                <div class="stat-label">Points</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ influence_score|floatformat:1 }}</div>
+                <div class="stat-label">Influence Score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="actions-section">
+        <h3 style="margin: 0 0 1.5rem 0;">Quick Actions</h3>
+
+        <div class="actions-grid">
+            <!-- Account Status -->
+            <div class="action-card">
+                <h4><i class='bx bx-power-off'></i> Account Status</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    {% if user.is_active %}
+                    <button type="submit" name="action" value="deactivate" class="btn btn-warning">
+                        <i class='bx bx-power-off'></i> Deactivate Account
+                    </button>
+                    {% else %}
+                    <button type="submit" name="action" value="activate" class="btn btn-success">
+                        <i class='bx bx-power-off'></i> Activate Account
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Verification -->
+            {% if not user.is_verified %}
+            <div class="action-card">
+                <h4><i class='bx bx-badge-check'></i> Verification</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="verify" class="btn btn-primary">
+                        <i class='bx bx-check'></i> Verify User
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Points Management -->
+            <div class="action-card">
+                <h4><i class='bx bx-coin'></i> Points Management</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="number" name="points" class="form-control" placeholder="Amount" required>
+                    <input type="text" name="reason" class="form-control" placeholder="Reason">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" name="action" value="add_points" class="btn btn-success" style="flex: 1;">
+                            <i class='bx bx-plus'></i> Add
+                        </button>
+                        <button type="submit" name="action" value="remove_points" class="btn btn-warning" style="flex: 1;">
+                            <i class='bx bx-minus'></i> Remove
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Password Reset -->
+            <div class="action-card">
+                <h4><i class='bx bx-key'></i> Password Reset</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="reset_password" class="btn btn-info">
+                        <i class='bx bx-refresh'></i> Send Password Reset
+                    </button>
+                </form>
+            </div>
+
+            <!-- Ban/Unban User -->
+            <div class="action-card danger-zone">
+                <h4><i class='bx bx-block'></i> Ban Management</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    {% if not user.is_banned %}
+                    <input type="text" name="reason" class="form-control" placeholder="Ban reason" required>
+                    <select name="duration" class="form-control">
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="permanent">Permanent</option>
+                    </select>
+                    <button type="submit" name="action" value="ban" class="btn btn-danger">
+                        <i class='bx bx-block'></i> Ban User
+                    </button>
+                    {% else %}
+                    <button type="submit" name="action" value="unban" class="btn btn-success">
+                        <i class='bx bx-check'></i> Unban User
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <h3 style="margin: 0 0 1.5rem 0;">Recent Activity</h3>
+
+        <div class="activity-list">
+            <h4>Reports</h4>
+            {% for report in user_reports %}
+            <div class="activity-item report">
+                <strong>{{ report.get_report_type_display }}</strong> - {{ report.reason }}
+                <br>
+                <small style="color: var(--text-muted);">{{ report.created_at|timesince }} ago</small>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-muted);">No reports</p>
+            {% endfor %}
+
+            <h4 style="margin-top: 1.5rem;">Moderation Actions</h4>
+            {% for action in user_actions %}
+            <div class="activity-item action">
+                <strong>{{ action.get_action_type_display }}</strong>
+                {% if action.reason %}- {{ action.reason }}{% endif %}
+                <br>
+                <small style="color: var(--text-muted);">
+                    By {{ action.performed_by.username }} - {{ action.created_at|timesince }} ago
+                </small>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-muted);">No moderation actions</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

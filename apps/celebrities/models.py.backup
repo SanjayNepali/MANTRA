@@ -1,0 +1,665 @@
+# apps/celebrities/models.py
+
+from django.db import models
+from django.utils import timezone
+from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.text import slugify
+import uuid
+
+
+class CelebrityCategory(models.Model):
+    """Categories for celebrities (Actor, Singer, Athlete, etc.)"""
+
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, blank=True)  # Boxicon class (e.g., 'bx-movie', 'bx-music')
+
+    is_active = models.BooleanField(default=True)
+    display_order = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Celebrity Category'
+        verbose_name_plural = 'Celebrity Categories'
+        ordering = ['display_order', 'name']
+        indexes = [
+            models.Index(fields=['is_active', 'display_order']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+class CelebrityProfile(models.Model):
+    """Extended profile for celebrity users"""
+    
+    VERIFICATION_STATUS = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+    
+    MODERATION_LEVELS = (
+        ('low', 'Low'),
+        ('medium', 'Medium'), 
+        ('high', 'High')
+    )
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='celebrity_profile'
+    )
+
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/',
+        null=True,
+        blank=True,
+        default='defaults/default-avatar.png'
+    )
+    
+    # Professional info
+    stage_name = models.CharField(max_length=100, blank=True)
+    category = models.CharField(
+        max_length=50,
+        choices=settings.MANTRA_SETTINGS['CELEBRITY_CATEGORIES']
+    )
+    categories = models.ManyToManyField(
+        CelebrityCategory,
+        related_name='celebrity_profiles',
+        blank=True
+    )
+    bio_extended = models.TextField(max_length=2000, blank=True)
+    
+    # Verification
+    verification_status = models.CharField(
+        max_length=20,
+        choices=VERIFICATION_STATUS,
+        default='pending'
+    )
+    verification_documents = models.JSONField(default=list)  # Store multiple doc paths
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_celebrities'
+    )
+    verification_date = models.DateTimeField(null=True, blank=True)
+    verification_notes = models.TextField(blank=True)
+    document_submitted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Subscription settings
+    subscription_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    subscription_tiers = models.JSONField(default=dict)  # {tier_name: {price, benefits}}
+    subscription_description = models.TextField(max_length=1000, blank=True)
+    subscribers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through='Subscription',
+        related_name='subscribed_celebrities'
+    )
+    
+    # Payment info
+    payment_methods = models.JSONField(default=dict)  # {"esewa": "QR_path", "khalti": "QR_path"}
+    total_earnings = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=15.0)
+    
+    # E-commerce settings
+    auto_approve_products = models.BooleanField(default=False)
+    product_categories = models.JSONField(default=list)
+    
+    # Content settings
+    exclusive_content_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    allow_fan_posts = models.BooleanField(default=True)
+    moderation_level = models.CharField(
+        max_length=20, 
+        choices=MODERATION_LEVELS, 
+        default='medium'
+    )
+    
+    # Customization
+    custom_theme = models.JSONField(default=dict)  # {primary_color, secondary_color, etc.}
+    
+    # Social links
+    website = models.URLField(blank=True)
+    instagram = models.CharField(max_length=100, blank=True)
+    twitter = models.CharField(max_length=100, blank=True)
+    facebook = models.CharField(max_length=100, blank=True)
+    youtube = models.CharField(max_length=100, blank=True)
+    tiktok = models.CharField(max_length=100, blank=True)
+    
+    # Statistics
+    total_views = models.IntegerField(default=0)
+    total_likes = models.IntegerField(default=0)
+    total_posts = models.IntegerField(default=0)
+    engagement_rate = models.FloatField(default=0)
+    
+    # Timestamps
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-user__points']
+        indexes = [
+            models.Index(fields=['category', 'verification_status']),
+            models.Index(fields=['-total_earnings']),
+            models.Index(fields=['moderation_level']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_category_display()}"
+    
+    def approve_verification(self, approved_by):
+        """Approve celebrity verification"""
+        self.verification_status = 'approved'
+        self.verified_by = approved_by
+        self.verification_date = timezone.now()
+        self.user.is_verified = True
+        self.user.save()
+        self.save()
+        
+        # Award points for verification
+        self.user.add_points(100, "Profile verified")
+    
+    def reject_verification(self, rejected_by, reason):
+        """Reject celebrity verification"""
+        self.verification_status = 'rejected'
+        self.verified_by = rejected_by
+        self.verification_notes = reason
+        self.save()
+    
+    def calculate_engagement_rate(self):
+        """Calculate engagement rate"""
+        if self.total_views > 0:
+            self.engagement_rate = (self.total_likes / self.total_views) * 100
+            self.save(update_fields=['engagement_rate'])
+    
+    def add_earnings(self, amount, description):
+        """Add earnings to celebrity account"""
+        self.total_earnings += amount
+        self.save(update_fields=['total_earnings'])
+        
+        # Create earning record
+        CelebrityEarning.objects.create(
+            celebrity=self,
+            amount=amount,
+            description=description
+        )
+    
+    def get_subscription_tiers(self):
+        """Get available subscription tiers"""
+        default_tiers = {
+            'basic': {
+                'price': float(self.subscription_fee),
+                'benefits': ['Access to basic content', 'Fan community access']
+            },
+            'premium': {
+                'price': float(self.subscription_fee) * 1.5,
+                'benefits': ['Exclusive content', 'Direct messaging', 'Early access']
+            }
+        }
+        return {**default_tiers, **self.subscription_tiers}
+    
+    def update_custom_theme(self, primary_color=None, secondary_color=None, **kwargs):
+        """Update custom theme settings"""
+        if primary_color:
+            self.custom_theme['primary_color'] = primary_color
+        if secondary_color:
+            self.custom_theme['secondary_color'] = secondary_color
+        
+        # Add any additional theme properties
+        self.custom_theme.update(kwargs)
+        self.save(update_fields=['custom_theme'])
+    
+    def can_auto_approve_products(self):
+        """Check if products can be auto-approved based on moderation level"""
+        return self.auto_approve_products and self.moderation_level != 'high'
+    
+    def get_effective_commission_rate(self, product_category=None):
+        """Get commission rate, considering category-specific overrides"""
+        base_rate = float(self.commission_rate)
+        
+        # Check for category-specific commission rates
+        if product_category and 'category_commissions' in self.custom_theme:
+            category_rate = self.custom_theme['category_commissions'].get(product_category)
+            if category_rate:
+                return float(category_rate)
+        
+        return base_rate
+    
+class Subscription(models.Model):
+    """Subscription model for celebrity content"""
+    
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    subscriber = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='celebrity_subscriptions'
+    )
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='subscription_records'
+    )
+    
+    # Subscription details
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    # Payment info
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=100, blank=True)
+    
+    # Features
+    auto_renew = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('subscriber', 'celebrity')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'end_date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.subscriber.username} -> {self.celebrity.user.username}"
+    
+    def is_active(self):
+        """Check if subscription is active"""
+        if self.status != 'active':
+            return False
+        
+        if timezone.now() > self.end_date:
+            self.status = 'expired'
+            self.save()
+            return False
+        
+        return True
+    
+    def cancel(self):
+        """Cancel subscription"""
+        self.status = 'cancelled'
+        self.auto_renew = False
+        self.save()
+    
+    def renew(self, duration_days=30):
+        """Renew subscription"""
+        from datetime import timedelta
+        
+        self.end_date = timezone.now() + timedelta(days=duration_days)
+        self.status = 'active'
+        self.save()
+
+
+class KYCDocument(models.Model):
+    """KYC document storage for celebrities"""
+    
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='kyc_documents'
+    )
+    
+    document_type = models.CharField(max_length=50, choices=[
+        ('id_card', 'ID Card'),
+        ('passport', 'Passport'),
+        ('license', 'License'),
+        ('certificate', 'Certificate'),
+        ('other', 'Other'),
+    ])
+    
+    document_file = models.FileField(upload_to='kyc/')
+    document_number = models.CharField(max_length=100, blank=True)
+    
+    # Verification
+    is_verified = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_kyc_documents'
+    )
+    verification_notes = models.TextField(blank=True)
+    
+    uploaded_at = models.DateTimeField(default=timezone.now)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+    
+    def __str__(self):
+        return f"{self.celebrity.user.username} - {self.get_document_type_display()}"
+
+
+class CelebrityEarning(models.Model):
+    """Track celebrity earnings"""
+    
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='earnings'
+    )
+    
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=200)
+    
+    # Source of earning
+    source_type = models.CharField(max_length=50, choices=[
+        ('subscription', 'Subscription'),
+        ('event', 'Event'),
+        ('merchandise', 'Merchandise'),
+        ('donation', 'Donation'),
+        ('other', 'Other'),
+    ])
+    source_id = models.CharField(max_length=100, blank=True)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['celebrity', '-created_at']),
+            models.Index(fields=['source_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.celebrity.user.username} - ${self.amount}"
+
+
+class CelebrityAnalytics(models.Model):
+    """Daily analytics for celebrities"""
+    
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='analytics'
+    )
+    
+    date = models.DateField(default=timezone.now)
+    
+    # Metrics
+    profile_views = models.IntegerField(default=0)
+    post_views = models.IntegerField(default=0)
+    new_followers = models.IntegerField(default=0)
+    lost_followers = models.IntegerField(default=0)
+    likes_received = models.IntegerField(default=0)
+    comments_received = models.IntegerField(default=0)
+    shares = models.IntegerField(default=0)
+    
+    # Engagement
+    engagement_rate = models.FloatField(default=0)
+    
+    # Financial
+    earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    new_subscribers = models.IntegerField(default=0)
+    lost_subscribers = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        unique_together = ('celebrity', 'date')
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['celebrity', '-date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.celebrity.user.username} - {self.date}"
+    
+    def calculate_engagement_rate(self):
+        """Calculate daily engagement rate"""
+        total_interactions = self.likes_received + self.comments_received + self.shares
+        if self.post_views > 0:
+            self.engagement_rate = (total_interactions / self.post_views) * 100
+            self.save(update_fields=['engagement_rate'])
+
+
+class CelebrityAchievement(models.Model):
+    """Achievements and milestones for celebrities"""
+    
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='achievements'
+    )
+    
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    icon = models.CharField(max_length=50)  # Boxicon class name
+    
+    # Achievement criteria
+    achievement_type = models.CharField(max_length=50, choices=[
+        ('followers', 'Followers Milestone'),
+        ('posts', 'Posts Milestone'),
+        ('earnings', 'Earnings Milestone'),
+        ('engagement', 'Engagement Milestone'),
+        ('special', 'Special Achievement'),
+    ])
+    threshold = models.IntegerField()  # Required value to unlock
+    
+    # Status
+    is_unlocked = models.BooleanField(default=False)
+    unlocked_at = models.DateTimeField(null=True, blank=True)
+    
+    # Rewards
+    points_reward = models.IntegerField(default=0)
+    badge_color = models.CharField(max_length=20, default='gold')
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        unique_together = ('celebrity', 'achievement_type', 'threshold')
+        ordering = ['threshold']
+    
+    def __str__(self):
+        return f"{self.celebrity.user.username} - {self.title}"
+    
+    def check_and_unlock(self):
+        """Check if achievement should be unlocked"""
+        if self.is_unlocked:
+            return False
+        
+        value = 0
+        if self.achievement_type == 'followers':
+            value = self.celebrity.user.followers.count()
+        elif self.achievement_type == 'posts':
+            value = self.celebrity.total_posts
+        elif self.achievement_type == 'earnings':
+            value = self.celebrity.total_earnings
+        elif self.achievement_type == 'engagement':
+            value = self.celebrity.engagement_rate
+        
+        if value >= self.threshold:
+            self.is_unlocked = True
+            self.unlocked_at = timezone.now()
+            self.save()
+            
+            # Award points
+            if self.points_reward > 0:
+                self.celebrity.user.add_points(
+                    self.points_reward,
+                    f"Achievement unlocked: {self.title}"
+                )
+            
+            return True
+
+        return False
+
+
+class CelebrityContent(models.Model):
+    """Premium content from celebrities (videos, images, articles, etc.)"""
+
+    CONTENT_TYPES = (
+        ('video', 'Video'),
+        ('image', 'Image'),
+        ('audio', 'Audio'),
+        ('article', 'Article'),
+        ('livestream', 'Live Stream'),
+        ('document', 'Document'),
+    )
+
+    ACCESS_LEVELS = (
+        ('free', 'Free'),
+        ('followers', 'Followers Only'),
+        ('subscribers', 'Subscribers Only'),
+        ('premium', 'Premium Subscribers'),
+        ('vip', 'VIP Only'),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    celebrity = models.ForeignKey(
+        CelebrityProfile,
+        on_delete=models.CASCADE,
+        related_name='premium_content'
+    )
+
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
+    access_level = models.CharField(max_length=20, choices=ACCESS_LEVELS, default='free')
+
+    # Media files
+    content_file = models.FileField(upload_to='celebrity_content/', blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='celebrity_content/thumbnails/', blank=True, null=True)
+    external_url = models.URLField(blank=True)  # For external videos (YouTube, Vimeo)
+    duration = models.IntegerField(null=True, blank=True)  # For video/audio in seconds
+
+    # Article content (if content_type is 'article')
+    article_content = models.TextField(blank=True)
+
+    # Engagement metrics
+    views_count = models.IntegerField(default=0)
+    likes_count = models.IntegerField(default=0)
+    comments_count = models.IntegerField(default=0)
+    shares_count = models.IntegerField(default=0)
+
+    # Monetization
+    is_paid = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_free_preview = models.BooleanField(default=False)
+    preview_duration = models.IntegerField(null=True, blank=True)  # Preview length in seconds
+
+    # Publishing
+    is_published = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
+    scheduled_for = models.DateTimeField(null=True, blank=True)
+
+    # SEO
+    tags = models.JSONField(default=list, blank=True)  # ['music', 'dance', 'tutorial']
+
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['celebrity', 'is_published']),
+            models.Index(fields=['content_type', 'access_level']),
+            models.Index(fields=['-published_at']),
+            models.Index(fields=['is_featured', '-views_count']),
+        ]
+        verbose_name = 'Celebrity Content'
+        verbose_name_plural = 'Celebrity Content'
+
+    def __str__(self):
+        return f"{self.celebrity.user.username} - {self.title}"
+
+    def publish(self):
+        """Publish the content"""
+        if not self.is_published:
+            self.is_published = True
+            self.published_at = timezone.now()
+            self.save()
+
+    def increment_views(self):
+        """Increment view count"""
+        self.views_count += 1
+        self.save(update_fields=['views_count'])
+
+    def can_access(self, user):
+        """Check if user can access this content"""
+        if not self.is_published:
+            return self.celebrity.user == user  # Only celebrity can see unpublished
+
+        if self.access_level == 'free':
+            return True
+
+        if not user or not user.is_authenticated:
+            return False
+
+        if self.celebrity.user == user:
+            return True  # Celebrity can always access own content
+
+        if self.access_level == 'followers':
+            from apps.accounts.models import UserFollowing
+            return UserFollowing.objects.filter(
+                follower=user,
+                following=self.celebrity.user
+            ).exists()
+
+        if self.access_level in ['subscribers', 'premium', 'vip']:
+            # Check if user has active subscription
+            subscription = Subscription.objects.filter(
+                subscriber=user,
+                celebrity=self.celebrity,
+                status='active'
+            ).first()
+
+            if subscription and subscription.is_active():
+                return True
+
+        return False
+
+    verification_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('unverified', 'Unverified'),
+            ('pending', 'Pending Verification'),
+            ('verified', 'Verified'),
+            ('rejected', 'Rejected'),
+        ],
+        default='unverified'
+    )
+    
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_celebrity_content'
+    )
+    verification_notes = models.TextField(blank=True)
+
+    # Additional verification fields
+    verification_attempts = models.IntegerField(default=0)
+    last_verification_attempt = models.DateTimeField(null=True, blank=True)
+    verification_rejection_reasons = models.JSONField(default=list)

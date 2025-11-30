@@ -1,0 +1,34 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Archived Messages - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-archive'></i> Archived Conversations</h2>
+
+    <div class="card">
+        <div class="card-body">
+            {% if conversations %}
+            <div class="list-group">
+                {% for conversation in conversations %}
+                <a href="{% url 'conversation_detail' conversation.id %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ conversation.get_other_participant.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+                             width="48" height="48" class="rounded-circle me-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ conversation.get_other_participant.get_full_name }}</h6>
+                            <p class="mb-0 text-muted">{{ conversation.last_message|truncatewords:10 }}</p>
+                        </div>
+                        <small class="text-muted">{{ conversation.updated_at|timesince }} ago</small>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            {% include 'components/empty_state.html' with icon="bx-archive" title="No Archived Conversations" %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

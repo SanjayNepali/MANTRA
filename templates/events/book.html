@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Book Event - {{ event.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.book-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.book-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.book-header h1 {
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.book-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.event-summary {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.summary-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.summary-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.summary-section:last-child {
+    border-bottom: none;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.booking-form {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 1.25rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.quantity-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--pink);
+    background: white;
+    color: var(--pink);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quantity-btn:hover {
+    background: var(--pink);
+    color: white;
+}
+
+.quantity-display {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+    min-width: 60px;
+    text-align: center;
+}
+
+.payment-methods {
+    display: grid;
+    gap: 1rem;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.payment-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 1rem;
+}
+
+.payment-option.selected {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.points-discount {
+    background: linear-gradient(135deg, var(--sage-light) 0%, var(--pink-light) 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.points-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.points-slider {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.price-breakdown {
+    background: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.price-row.total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown);
+    padding-top: 1rem;
+    border-top: 2px solid var(--border);
+    margin-top: 1rem;
+}
+
+.discount-amount {
+    color: var(--success);
+}
+
+@media (max-width: 968px) {
+    .book-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="book-container">
+    <div class="book-header">
+        <h1><i class='bx bx-ticket'></i> Book Tickets</h1>
+        <p>Complete your booking for {{ event.title }}</p>
+    </div>
+
+    <div class="book-content">
+        <!-- Event Summary -->
+        <div class="event-summary">
+            <h3 style="color: var(--brown); margin-bottom: 1.5rem;">Event Summary</h3>
+            
+            {% if event.banner or event.cover_image %}
+            <img src="{{ event.banner.url|default:event.cover_image.url }}" alt="{{ event.title }}" class="summary-image">
+            {% endif %}
+
+            <div class="summary-section">
+                <h4>{{ event.title }}</h4>
+                <p style="color: var(--text-secondary);">Hosted by {{ event.celebrity.get_full_name }}</p>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-row">
+                    <span><i class='bx bx-calendar'></i> Date</span>
+                    <strong>{{ event.start_datetime|date:"F d, Y" }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span><i class='bx bx-time'></i> Time</span>
+                    <strong>{{ event.start_datetime|date:"g:i A" }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span><i class='bx bx-map'></i> Location</span>
+                    <strong>{{ event.venue_name|default:event.city }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span><i class='bx bx-time-five'></i> Duration</span>
+                    <strong>{{ event.duration_hours }} hours</strong>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-row">
+                    <span>Price per Ticket</span>
+                    <strong>NPR {{ current_price|floatformat:2 }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Available</span>
+                    <strong style="color: var(--success);">{{ event.available_tickets }} tickets</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="booking-form">
+            <form method="POST" id="booking-form">
+                {% csrf_token %}
+
+                <!-- Quantity Selection -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class='bx bx-group'></i> Number of Tickets
+                    </h4>
+                    <div class="quantity-selector">
+                        <button type="button" class="quantity-btn" onclick="decreaseQuantity()">
+                            <i class='bx bx-minus'></i>
+                        </button>
+                        <span class="quantity-display" id="quantity-display">1</span>
+                        <button type="button" class="quantity-btn" onclick="increaseQuantity()">
+                            <i class='bx bx-plus'></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="ticket_quantity" id="ticket_quantity" value="1">
+                    <p style="text-align: center; color: var(--text-secondary);">
+                        Maximum {{ event.available_tickets|default:10 }} tickets per booking
+                    </p>
+                </div>
+
+                <!-- Points Discount (if user has points) -->
+                {% if user.points > 0 %}
+                <div class="form-section">
+                    <div class="points-discount">
+                        <h4 class="form-section-title">
+                            <i class='bx bx-gift'></i> Use Your Points
+                        </h4>
+                        <div class="points-info">
+                            <span>Available Points:</span>
+                            <strong style="color: var(--sage-green);">{{ user.points }} points</strong>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                            1 point = NPR 1 discount (max 50% of total)
+                        </p>
+                        <input type="range" class="points-slider" id="points-slider" 
+                               min="0" max="{{ user.points }}" value="0" 
+                               oninput="updatePointsDiscount()">
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                            <span id="points-used">0 points</span>
+                            <span id="discount-amount" style="color: var(--success);">NPR 0 off</span>
+                        </div>
+                        <input type="hidden" name="points_to_use" id="points_to_use" value="0">
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Payment Method -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class='bx bx-wallet'></i> Payment Method
+                    </h4>
+                    <div class="payment-methods">
+                        <label class="payment-option" onclick="selectPayment(this, 'esewa')">
+                            <input type="radio" name="payment_method" value="esewa" required>
+                            <div>
+                                <strong>eSewa</strong>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                                    Digital wallet payment
+                                </p>
+                            </div>
+                        </label>
+                        <label class="payment-option" onclick="selectPayment(this, 'khalti')">
+                            <input type="radio" name="payment_method" value="khalti" required>
+                            <div>
+                                <strong>Khalti</strong>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                                    Mobile wallet payment
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class='bx bx-receipt'></i> Price Breakdown
+                    </h4>
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Ticket Price × <span id="quantity-text">1</span></span>
+                            <span id="subtotal">NPR {{ current_price|floatformat:2 }}</span>
+                        </div>
+                        {% if user.points > 0 %}
+                        <div class="price-row discount-amount" id="discount-row" style="display: none;">
+                            <span>Points Discount</span>
+                            <span id="discount-display">- NPR 0.00</span>
+                        </div>
+                        {% endif %}
+                        <div class="price-row total">
+                            <span>Total Amount</span>
+                            <span id="total-amount">NPR {{ current_price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                        <i class='bx bx-check'></i> Proceed to Payment
+                    </button>
+                    <a href="{% url 'event_detail' event.slug %}" class="btn btn-secondary btn-lg">
+                        <i class='bx bx-x'></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const ticketPrice = {{ current_price }};
+const maxTickets = {{ event.available_tickets|default:10 }};
+const userPoints = {{ user.points|default:0 }};
+let currentQuantity = 1;
+let pointsUsed = 0;
+
+function updatePrices() {
+    const subtotal = ticketPrice * currentQuantity;
+    const maxDiscount = subtotal * 0.5; // 50% max
+    const maxPoints = Math.min(userPoints, maxDiscount);
+    
+    // Update points slider max
+    const slider = document.getElementById('points-slider');
+    if (slider) {
+        slider.max = Math.floor(maxPoints);
+        if (pointsUsed > maxPoints) {
+            pointsUsed = Math.floor(maxPoints);
+            slider.value = pointsUsed;
+        }
+    }
+    
+    const discount = pointsUsed;
+    const total = subtotal - discount;
+    
+    document.getElementById('quantity-text').textContent = currentQuantity;
+    document.getElementById('subtotal').textContent = `NPR ${subtotal.toFixed(2)}`;
+    document.getElementById('total-amount').textContent = `NPR ${total.toFixed(2)}`;
+    
+    if (discount > 0) {
+        document.getElementById('discount-row').style.display = 'flex';
+        document.getElementById('discount-display').textContent = `- NPR ${discount.toFixed(2)}`;
+    } else {
+        document.getElementById('discount-row').style.display = 'none';
+    }
+}
+
+function increaseQuantity() {
+    if (currentQuantity < maxTickets) {
+        currentQuantity++;
+        document.getElementById('quantity-display').textContent = currentQuantity;
+        document.getElementById('ticket_quantity').value = currentQuantity;
+        updatePrices();
+    }
+}
+
+function decreaseQuantity() {
+    if (currentQuantity > 1) {
+        currentQuantity--;
+        document.getElementById('quantity-display').textContent = currentQuantity;
+        document.getElementById('ticket_quantity').value = currentQuantity;
+        updatePrices();
+    }
+}
+
+function updatePointsDiscount() {
+    const slider = document.getElementById('points-slider');
+    pointsUsed = parseInt(slider.value);
+    
+    document.getElementById('points-used').textContent = `${pointsUsed} points`;
+    document.getElementById('discount-amount').textContent = `NPR ${pointsUsed} off`;
+    document.getElementById('points_to_use').value = pointsUsed;
+    
+    updatePrices();
+}
+
+function selectPayment(element, method) {
+    document.querySelectorAll('.payment-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    element.classList.add('selected');
+}
+
+// Form submission
+document.getElementById('booking-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    
+    // Submit the form
+    this.submit();
+});
+</script>
+{% endblock %}

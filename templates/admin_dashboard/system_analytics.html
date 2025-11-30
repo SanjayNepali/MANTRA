@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Analytics - Admin Dashboard | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .time-filter {
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .time-filter select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .time-filter button {
+        padding: 0.75rem 1.5rem;
+        background: var(--sage-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .time-filter button:hover {
+        background: var(--pink);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid var(--sage-green);
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--brown);
+    }
+
+    .stat-card p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .stat-card .trend {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .trend.up {
+        color: #28a745;
+    }
+
+    .trend.down {
+        color: #dc3545;
+    }
+
+    .chart-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .chart-section h2 {
+        margin-top: 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    .health-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .health-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .health-item h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+    }
+
+    .top-content {
+        margin-top: 1rem;
+    }
+
+    .content-item {
+        padding: 1rem;
+        border-left: 3px solid var(--pink);
+        background: #f8f9fa;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+    }
+
+    .content-item strong {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .geographic-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .geographic-table th,
+    .geographic-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .geographic-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .predictions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .prediction-card {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .prediction-card h4 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .prediction-card .value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <div class="page-header">
+        <h1><i class='bx bx-line-chart'></i> System Analytics</h1>
+        <p>Advanced insights and AI-powered predictions for platform performance</p>
+    </div>
+
+    <!-- Time Filter -->
+    <div class="time-filter">
+        <label><strong>Time Range:</strong></label>
+        <form method="get" style="display: flex; gap: 1rem; align-items: center;">
+            <select name="days">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 Days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 Days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 Days</option>
+                <option value="365" {% if days == 365 %}selected{% endif %}>Last Year</option>
+            </select>
+            <button type="submit"><i class='bx bx-refresh'></i> Update</button>
+        </form>
+    </div>
+
+    <!-- User Growth Metrics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ user_growth.total_new }}</h3>
+            <p>New Users</p>
+            <div class="trend up">
+                <i class='bx bx-trending-up'></i> Growing
+            </div>
+        </div>
+        <div class="stat-card">
+            <h3>{{ user_growth.celebrities }}</h3>
+            <p>New Celebrities</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ user_growth.fans }}</h3>
+            <p>New Fans</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ user_growth.retention_rate|floatformat:1 }}%</h3>
+            <p>Retention Rate</p>
+        </div>
+    </div>
+
+    <!-- Content Performance -->
+    <div class="chart-section">
+        <h2><i class='bx bx-bar-chart'></i> Content Performance</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>{{ content_analytics.total_posts }}</h3>
+                <p>Total Posts</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ content_analytics.avg_likes|floatformat:1 }}</h3>
+                <p>Avg. Likes per Post</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ content_analytics.avg_comments|floatformat:1 }}</h3>
+                <p>Avg. Comments per Post</p>
+            </div>
+        </div>
+
+        {% if content_analytics.top_posts %}
+        <div class="top-content">
+            <h3>Top Performing Posts</h3>
+            {% for post in content_analytics.top_posts %}
+            <div class="content-item">
+                <strong>{{ post.title|default:"Untitled Post" }}</strong>
+                <small>by {{ post.author.username }} - {{ post.likes_count }} likes, {{ post.comments_count }} comments</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Engagement Patterns -->
+    <div class="chart-section">
+        <h2><i class='bx bx-pulse'></i> Engagement Patterns</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>{{ engagement_patterns.active_users }}</h3>
+                <p>Active Users</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ engagement_patterns.engagement_rate|floatformat:1 }}%</h3>
+                <p>Engagement Rate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Analytics -->
+    <div class="chart-section">
+        <h2><i class='bx bx-money'></i> Revenue Analytics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Rs. {{ revenue_analytics.total_revenue|floatformat:2 }}</h3>
+                <p>Total Revenue</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ revenue_analytics.transactions }}</h3>
+                <p>Transactions</p>
+            </div>
+            <div class="stat-card">
+                <h3>Rs. {{ revenue_analytics.avg_transaction|floatformat:2 }}</h3>
+                <p>Avg. Transaction Value</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geographic Distribution -->
+    <div class="chart-section">
+        <h2>Geographic Distribution</h2>
+
+        {% if geographic_data %}
+        <table class="geographic-table">
+            <thead>
+                <tr>
+                    <th>Country</th>
+                    <th>Users</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loc in geographic_data %}
+                <tr>
+                    <td><strong>{{ loc.country }}</strong></td>
+                    <td>{{ loc.count }}</td>
+                    <td>
+                        <div style="background:#f0f0f0;height:20px;border-radius:10px;overflow:hidden;position:relative;">
+                            <div style="background:var(--sage-green);height:100%;width:{{ loc.percentage }}%;transition:width .6s ease;"></div>
+                            <small style="position:absolute;left:8px;top:1px;color:#333;font-weight:600;">
+                                {{ loc.percentage }}%
+                            </small>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align:center;padding:3rem;color:#888;background:#fafafa;border-radius:12px;">
+            No country data available yet.<br>
+            <small>Users haven’t filled their country in their profile.</small>
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Platform Health -->
+    <div class="chart-section">
+        <h2><i class='bx bx-heart'></i> Platform Health</h2>
+        <div class="health-metrics">
+            <div class="health-item">
+                <h4>{{ health_scores.activity_rate|floatformat:1 }}%</h4>
+                <p>Activity Rate</p>
+            </div>
+            <div class="health-item">
+                <h4>{{ health_scores.content_quality|floatformat:1 }}</h4>
+                <p>Content Quality</p>
+            </div>
+            <div class="health-item">
+                <h4>{{ health_scores.user_satisfaction|floatformat:1 }}</h4>
+                <p>User Satisfaction</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Predictions -->
+    <div class="chart-section">
+        <h2><i class='bx bx-brain'></i> AI-Powered Predictions</h2>
+        <div class="predictions-grid">
+            <div class="prediction-card">
+                <h4>Churn Prediction</h4>
+                <div class="value">{{ predictions.churn_prediction|floatformat:1 }}%</div>
+                <p>Estimated churn rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Add charts here if needed
+</script>
+{% endblock %}

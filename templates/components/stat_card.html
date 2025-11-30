@@ -1,0 +1,354 @@
+{% load static %}
+
+<!-- Statistics Card Component -->
+<div class="stat-card {% if card_color %}stat-card-{{ card_color }}{% endif %} {% if clickable %}clickable{% endif %}"
+     {% if link %}onclick="window.location.href='{{ link }}'"{% endif %}>
+
+    <div class="stat-card-icon">
+        <i class='bx {{ icon|default:"bx-trending-up" }}'></i>
+    </div>
+
+    <div class="stat-card-content">
+        <div class="stat-value">
+            {% if prefix %}{{ prefix }}{% endif %}
+            {{ value|default:"0" }}
+            {% if suffix %}{{ suffix }}{% endif %}
+        </div>
+
+        <div class="stat-label">{{ label|default:"Statistic" }}</div>
+
+        {% if change_percentage %}
+        <div class="stat-change {% if change_percentage > 0 %}positive{% elif change_percentage < 0 %}negative{% else %}neutral{% endif %}">
+            {% if change_percentage > 0 %}
+                <i class='bx bx-trending-up'></i> +{{ change_percentage }}%
+            {% elif change_percentage < 0 %}
+                <i class='bx bx-trending-down'></i> {{ change_percentage }}%
+            {% else %}
+                <i class='bx bx-minus'></i> {{ change_percentage }}%
+            {% endif %}
+            {% if change_period %}
+            <span class="change-period">{{ change_period }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if description %}
+        <div class="stat-description">{{ description }}</div>
+        {% endif %}
+    </div>
+
+    {% if show_chart %}
+    <div class="stat-chart">
+        <canvas id="chart-{{ chart_id|default:'stat' }}" height="60"></canvas>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+/* Stat Card Container */
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--pink), #ff9fb0);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.clickable {
+    cursor: pointer;
+}
+
+/* Color Variants */
+.stat-card-pink::before {
+    background: linear-gradient(180deg, var(--pink), #ff9fb0);
+}
+
+.stat-card-pink .stat-card-icon {
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+}
+
+.stat-card-green::before {
+    background: linear-gradient(180deg, var(--sage-green), #729956);
+}
+
+.stat-card-green .stat-card-icon {
+    background: linear-gradient(135deg, var(--sage-green), #729956);
+}
+
+.stat-card-blue::before {
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
+}
+
+.stat-card-blue .stat-card-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.stat-card-orange::before {
+    background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.stat-card-orange .stat-card-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-card-purple::before {
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+.stat-card-purple .stat-card-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+/* Icon Container */
+.stat-card-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
+}
+
+/* Content */
+.stat-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+/* Change Indicator */
+.stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+
+.stat-change.positive {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.stat-change.negative {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stat-change.neutral {
+    background: #f3f4f6;
+    color: var(--text-secondary);
+}
+
+.change-period {
+    opacity: 0.7;
+    margin-left: 0.25rem;
+}
+
+/* Chart Container */
+.stat-chart {
+    width: 100px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+/* Compact Variant */
+.stat-card.compact {
+    padding: 1rem;
+}
+
+.stat-card.compact .stat-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+}
+
+.stat-card.compact .stat-value {
+    font-size: 1.5rem;
+}
+
+.stat-card.compact .stat-label {
+    font-size: 0.85rem;
+}
+
+/* Grid Layout Helper */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Loading State */
+.stat-card.loading {
+    pointer-events: none;
+}
+
+.stat-card.loading .stat-value,
+.stat-card.loading .stat-label {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    color: transparent;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .stat-card-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.75rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .stat-chart {
+        width: 100%;
+        margin-top: 1rem;
+    }
+}
+</style>
+
+<script>
+// Stat Card Animation (Count Up)
+document.addEventListener('DOMContentLoaded', function() {
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statCard = entry.target;
+                const valueElement = statCard.querySelector('.stat-value');
+
+                if (valueElement && !valueElement.classList.contains('animated')) {
+                    animateValue(valueElement);
+                    valueElement.classList.add('animated');
+                }
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.stat-card').forEach(card => {
+        observer.observe(card);
+    });
+
+    function animateValue(element) {
+        const text = element.textContent;
+        const numberMatch = text.match(/[\d,]+/);
+
+        if (numberMatch) {
+            const targetValue = parseInt(numberMatch[0].replace(/,/g, ''));
+            const prefix = text.split(numberMatch[0])[0];
+            const suffix = text.split(numberMatch[0])[1];
+            const duration = 1000;
+            const startTime = Date.now();
+
+            function update() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValue = Math.floor(targetValue * easeOutQuad(progress));
+
+                element.textContent = prefix + currentValue.toLocaleString() + suffix;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            function easeOutQuad(t) {
+                return t * (2 - t);
+            }
+
+            update();
+        }
+    }
+});
+</script>

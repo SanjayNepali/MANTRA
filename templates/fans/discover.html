@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Discover - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-recommendations {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ai-recommendations::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(45deg);
+    }
+    
+    .ai-recommendations h2 {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 1.5rem;
+    }
+    
+    .ai-recommendations h2 i {
+        color: #ffd700;
+        margin-right: 10px;
+    }
+    
+    .recommendation-section {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+        color: #333;
+    }
+    
+    .recommendation-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .recommendation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .event-carousel {
+        display: flex;
+        overflow-x: auto;
+        gap: 1rem;
+        padding: 1rem 0;
+        scrollbar-width: thin;
+        scrollbar-color: #667eea transparent;
+    }
+    
+    .event-carousel::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .event-carousel::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .event-carousel::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+    
+    .recommendation-badge {
+        position: absolute;
+        top: -8px;
+        right: 15px;
+        background: #e74c3c;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .match-score {
+        background: #27ae60;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    
+    .recommendation-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: white;
+        color: #667eea;
+    }
+    
+    .refresh-recommendations {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .refresh-recommendations:hover {
+        background: white;
+        color: #667eea;
+    }
+    
+    .ai-insights {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid #667eea;
+    }
+    
+    .insight-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .insight-item i {
+        color: #27ae60;
+        margin-right: 8px;
+    }
+    
+    @media (max-width: 768px) {
+        .recommendation-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .ai-recommendations {
+            padding: 1rem;
+        }
+        
+        .recommendation-section {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- AI-Powered Discovery Section -->
+    <section class="ai-recommendations">
+        <h2><i class='bx bx-magic'></i> Personalized for You</h2>
+        
+        <!-- Recommendation Filters -->
+        <div class="recommendation-filters">
+            <button class="filter-btn active" data-filter="all">All Recommendations</button>
+            <button class="filter-btn" data-filter="celebrities">Celebrities</button>
+            <button class="filter-btn" data-filter="events">Events</button>
+            <button class="filter-btn" data-filter="content">Content</button>
+            <button class="refresh-recommendations" id="refreshRecs">
+                <i class='bx bx-refresh'></i> Refresh
+            </button>
+        </div>
+        
+        <!-- AI Insights -->
+        <div class="ai-insights">
+            <h6><i class='bx bx-brain'></i> AI Insights</h6>
+            <div class="insight-item">
+                <i class='bx bx-trending-up'></i>
+                <span>Based on your interests in {{ user_insights.top_categories|join:", " }}</span>
+            </div>
+            <div class="insight-item">
+                <i class='bx bx-time'></i>
+                <span>Updated {{ recommendations.last_updated|timesince }} ago</span>
+            </div>
+            <div class="insight-item">
+                <i class='bx bx-stats'></i>
+                <span>{{ recommendations.match_accuracy }}% match accuracy</span>
+            </div>
+        </div>
+        
+        <!-- Celebrity Recommendations -->
+        <div class="recommendation-section" data-type="celebrities">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Recommended Celebrities</h3>
+                <span class="badge bg-primary">{{ recommendations.celebrities|length }} matches</span>
+            </div>
+            <div class="recommendation-grid">
+                {% for celeb in recommendations.celebrities %}
+                    <div class="card celebrity-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="recommendation-badge">AI Pick</span>
+                                {% if celeb.match_score %}
+                                <span class="match-score">{{ celeb.match_score }}% match</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-center">
+                                <img src="{{ celeb.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                                     class="rounded-circle mb-3" width="100" height="100" 
+                                     alt="{{ celeb.get_full_name }}">
+                                <h5 class="card-title">{{ celeb.get_full_name }}</h5>
+                                <p class="text-muted mb-2">{{ celeb.celebrity_profile.get_category_display }}</p>
+                                <p class="small text-muted">
+                                    <i class='bx bx-user'></i> {{ celeb.total_followers }} followers
+                                    {% if celeb.engagement_rate %}
+                                    • <i class='bx bx-trending-up'></i> {{ celeb.engagement_rate }}% engagement
+                                    {% endif %}
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'profile' celeb.username %}" class="btn btn-primary btn-sm">
+                                        View Profile
+                                    </a>
+                                    <form method="POST" action="{% url 'follow_user' celeb.username %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                            <i class='bx bx-plus'></i> Follow
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <i class='bx bx-user-x' style="font-size: 3rem; color: #6c757d;"></i>
+                        <p class="text-muted mt-2">No celebrity recommendations yet. Complete your profile to get personalized suggestions.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Event Recommendations -->
+        <div class="recommendation-section" data-type="events">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Events You Might Like</h3>
+                <span class="badge bg-success">{{ recommendations.events|length }} upcoming</span>
+            </div>
+            <div class="event-carousel">
+                {% for event in recommendations.events %}
+                    <div class="card event-card" style="min-width: 300px;">
+                        <div class="card-body">
+                            <span class="recommendation-badge" style="background: #e67e22;">Featured</span>
+                            <h6 class="card-title">{{ event.title }}</h6>
+                            <p class="small text-muted mb-2">
+                                <i class='bx bx-calendar'></i> {{ event.date|date:"M d, Y" }}
+                                <br>
+                                <i class='bx bx-time'></i> {{ event.time|time:"g:i A" }}
+                            </p>
+                            <p class="small">{{ event.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-info">{{ event.event_type }}</span>
+                                <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-outline-primary">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4" style="min-width: 300px;">
+                        <i class='bx bx-calendar-event' style="font-size: 2rem; color: #6c757d;"></i>
+                        <p class="text-muted mt-2">No event recommendations available</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Content Recommendations -->
+        <div class="recommendation-section" data-type="content">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Trending Content</h3>
+                <span class="badge bg-warning text-dark">Hot</span>
+            </div>
+            <div class="row">
+                {% for content in recommendations.content %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ content.title }}</h6>
+                                <p class="small text-muted">{{ content.description|truncatewords:20 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class='bx bx-like'></i> {{ content.likes_count }}
+                                    </small>
+                                    <a href="{% url 'content_detail' content.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-3">
+                        <p class="text-muted">No content recommendations available</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Browse Categories</h5>
+            <div class="btn-group flex-wrap" role="group">
+                <a href="?category=" class="btn btn-outline-primary {% if not selected_category %}active{% endif %}">
+                    All Categories
+                </a>
+                {% for cat_key, cat_name in categories %}
+                    <a href="?category={{ cat_key }}" 
+                       class="btn btn-outline-primary {% if selected_category == cat_key %}active{% endif %}">
+                        {{ cat_name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recommended Celebrities Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class='bx bx-star'></i> Top Picks</h6>
+                </div>
+                <div class="card-body">
+                    {% for celeb in recommended_celebrities|slice:":5" %}
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ celeb.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                                 class="rounded-circle me-3" width="40" height="40" 
+                                 alt="{{ celeb.get_full_name }}">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 small">{{ celeb.get_full_name }}</h6>
+                                <small class="text-muted">{{ celeb.celebrity_profile.category }}</small>
+                            </div>
+                            <form method="POST" action="{% url 'follow_user' celeb.username %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class='bx bx-plus'></i>
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small">Complete your profile for recommendations</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- All Celebrities Main Content -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% if selected_category %}
+                            {{ selected_category|title }} Celebrities
+                        {% else %}
+                            All Celebrities
+                        {% endif %}
+                        <span class="badge bg-secondary ms-2">{{ celebrities.paginator.count }}</span>
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown">
+                            Sort By
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?sort=popular">Most Popular</a></li>
+                            <li><a class="dropdown-item" href="?sort=recent">Recently Added</a></li>
+                            <li><a class="dropdown-item" href="?sort=engagement">Highest Engagement</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for celeb in celebrities %}
+                            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <img src="{{ celeb.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                                             class="rounded-circle mb-3" width="100" height="100"
+                                             alt="{{ celeb.get_full_name }}">
+                                        <h6 class="card-title">{{ celeb.get_full_name }}</h6>
+                                        <p class="small text-muted mb-2">
+                                            {{ celeb.celebrity_profile.get_category_display }}
+                                        </p>
+                                        <p class="small text-muted mb-3">
+                                            <i class='bx bx-user'></i> {{ celeb.total_followers }} followers
+                                            {% if celeb.celebrity_profile.engagement_rate %}
+                                            <br>
+                                            <i class='bx bx-trending-up'></i> {{ celeb.celebrity_profile.engagement_rate }}% engagement
+                                            {% endif %}
+                                        </p>
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'profile' celeb.username %}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                View Profile
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12 text-center py-5">
+                                <i class='bx bx-user-voice' style="font-size: 4rem; color: #6c757d;"></i>
+                                <h5 class="text-muted mt-3">No celebrities found</h5>
+                                <p class="text-muted">Try adjusting your filters or check back later.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if celebrities.has_other_pages %}
+                    <nav aria-label="Celebrity pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if celebrities.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ celebrities.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in celebrities.paginator.page_range %}
+                                {% if celebrities.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if celebrities.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ celebrities.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter recommendations
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const recommendationSections = document.querySelectorAll('.recommendation-section');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Update active button
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show/hide sections
+                recommendationSections.forEach(section => {
+                    if (filter === 'all' || section.getAttribute('data-type') === filter) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Refresh recommendations
+        document.getElementById('refreshRecs').addEventListener('click', function() {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="bx bx-loader bx-spin"></i> Refreshing...';
+            btn.disabled = true;
+            
+            // Simulate API call to refresh recommendations
+            fetch('{% url "refresh_recommendations" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to refresh recommendations');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error refreshing recommendations');
+            })
+            .finally(() => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+        });
+        
+        // Smooth scrolling for event carousel
+        const eventCarousel = document.querySelector('.event-carousel');
+        if (eventCarousel) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            
+            eventCarousel.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - eventCarousel.offsetLeft;
+                scrollLeft = eventCarousel.scrollLeft;
+            });
+            
+            eventCarousel.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+            
+            eventCarousel.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+            
+            eventCarousel.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - eventCarousel.offsetLeft;
+                const walk = (x - startX) * 2;
+                eventCarousel.scrollLeft = scrollLeft - walk;
+            });
+        }
+    });
+</script>
+{% endblock %}

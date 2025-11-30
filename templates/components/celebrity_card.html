@@ -1,0 +1,266 @@
+{% load static %}
+
+<!-- Celebrity Card Component -->
+<div class="celebrity-card" data-celebrity-id="{{ celebrity.id }}">
+    <div class="celebrity-card-header">
+        <div class="celebrity-cover" style="background-image: url('{{ celebrity.cover_image.url|default:'/static/images/default-cover.jpg' }}');">
+            {% if celebrity.is_verified %}
+            <span class="verified-badge-overlay">
+                <i class='bx bxs-badge-check'></i> Verified
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="celebrity-avatar-wrapper">
+            <img src="{{ celebrity.user.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+                 alt="{{ celebrity.user.get_full_name }}"
+                 class="celebrity-avatar">
+        </div>
+    </div>
+
+    <div class="celebrity-card-body">
+        <h3 class="celebrity-name">
+            <a href="{% url 'celebrity_detail' celebrity.slug %}">
+                {{ celebrity.user.get_full_name }}
+            </a>
+        </h3>
+
+        {% if celebrity.stage_name %}
+        <p class="celebrity-stage-name">{{ celebrity.stage_name }}</p>
+        {% endif %}
+
+        <p class="celebrity-category">
+            <i class='bx bx-category'></i> {{ celebrity.category|title }}
+        </p>
+
+        {% if celebrity.bio %}
+        <p class="celebrity-bio">{{ celebrity.bio|truncatewords:20 }}</p>
+        {% endif %}
+
+        <div class="celebrity-stats">
+            <div class="stat-item">
+                <i class='bx bx-user'></i>
+                <span class="stat-value">{{ celebrity.followers_count|default:0 }}</span>
+                <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat-item">
+                <i class='bx bx-news'></i>
+                <span class="stat-value">{{ celebrity.posts_count|default:0 }}</span>
+                <span class="stat-label">Posts</span>
+            </div>
+            {% if celebrity.subscription_price %}
+            <div class="stat-item">
+                <i class='bx bx-money'></i>
+                <span class="stat-value">Rs. {{ celebrity.subscription_price }}</span>
+                <span class="stat-label">/ month</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="celebrity-card-footer">
+        {% if user.is_authenticated %}
+            {% if user.id != celebrity.user.id %}
+                {% if is_following %}
+                <button class="btn btn-outline-secondary btn-sm follow-btn" data-action="unfollow" data-celebrity-id="{{ celebrity.id }}">
+                    <i class='bx bx-user-check'></i> Following
+                </button>
+                {% else %}
+                <button class="btn btn-primary btn-sm follow-btn" data-action="follow" data-celebrity-id="{{ celebrity.id }}">
+                    <i class='bx bx-user-plus'></i> Follow
+                </button>
+                {% endif %}
+
+                {% if celebrity.subscription_price %}
+                    {% if is_subscribed %}
+                    <a href="{% url 'celebrity_detail' celebrity.slug %}" class="btn btn-sage btn-sm">
+                        <i class='bx bx-crown'></i> Subscribed
+                    </a>
+                    {% else %}
+                    <a href="{% url 'celebrity_subscribe' celebrity.slug %}" class="btn btn-pink btn-sm">
+                        <i class='bx bx-star'></i> Subscribe
+                    </a>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <a href="{% url 'celebrity_dashboard' %}" class="btn btn-outline-primary btn-sm">
+                    <i class='bx bx-cog'></i> Manage
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+                <i class='bx bx-user-plus'></i> Follow
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.celebrity-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.celebrity-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.celebrity-card-header {
+    position: relative;
+}
+
+.celebrity-cover {
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.verified-badge-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sage-green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.celebrity-avatar-wrapper {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.celebrity-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid white;
+    object-fit: cover;
+    background: white;
+}
+
+.celebrity-card-body {
+    padding: 50px 20px 20px;
+    text-align: center;
+    flex: 1;
+}
+
+.celebrity-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 0.25rem;
+}
+
+.celebrity-name a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.celebrity-name a:hover {
+    color: var(--pink);
+}
+
+.celebrity-stage-name {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.celebrity-category {
+    font-size: 0.9rem;
+    color: var(--sage-green);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.celebrity-bio {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.celebrity-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 1rem 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-item i {
+    font-size: 1.25rem;
+    color: var(--pink);
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.celebrity-card-footer {
+    padding: 0 20px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.celebrity-card-footer .btn {
+    flex: 1;
+    max-width: 150px;
+}
+
+.btn-pink {
+    background: var(--pink);
+    color: white;
+    border: none;
+}
+
+.btn-pink:hover {
+    background: #ff9fb0;
+    color: white;
+}
+
+.btn-sage {
+    background: var(--sage-green);
+    color: white;
+    border: none;
+}
+
+.btn-sage:hover {
+    background: #729956;
+    color: white;
+}
+</style>

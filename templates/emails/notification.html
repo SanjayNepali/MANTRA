@@ -1,0 +1,47 @@
+<!-- templates/emails/notification.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #8b7355; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: white; padding: 30px; border: 1px solid #eee; border-radius: 0 0 10px 10px; }
+        .notification-box { background: #f9f9f9; padding: 20px; border-left: 4px solid #d4a5a5; margin: 20px 0; }
+        .button { display: inline-block; padding: 10px 25px; background: #d4a5a5; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>New Notification from MANTRA</h2>
+        </div>
+        
+        <div class="content">
+            <h3>Hi {{ user.username }},</h3>
+            
+            <div class="notification-box">
+                <h4>{{ notification.get_notification_type_display }}</h4>
+                <p>{{ notification.message }}</p>
+                {% if notification.description %}
+                <p>{{ notification.description }}</p>
+                {% endif %}
+            </div>
+            
+            <center>
+                <a href="http://127.0.0.1:8000/notifications/" class="button">View All Notifications</a>
+            </center>
+            
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                You can manage your notification preferences in your account settings.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 MANTRA. All rights reserved.</p>
+            <p>Don't want to receive these emails? <a href="http://127.0.0.1:8000/settings/">Update your preferences</a></p>
+        </div>
+    </div>
+</body>
+</html>

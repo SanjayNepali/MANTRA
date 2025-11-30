@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Events - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.events-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 10px;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: var(--brown);
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Filters */
+.filters-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filters-row input,
+.filters-row select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    font-size: 1rem;
+}
+
+.filters-row input:focus,
+.filters-row select:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+/* Scroll Section */
+.scroll-container {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--pink);
+    border-radius: 10px;
+}
+
+/* Event Card */
+.event-card {
+    flex: 0 0 260px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .3s ease, box-shadow .3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.event-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.event-title {
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.event-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a, .pagination span {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--brown);
+    text-decoration: none;
+    transition: all .3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+.pagination .current {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .events-page {
+        padding: 1rem;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="events-page">
+
+    <!-- Filters & Search -->
+    <div class="filters-section">
+        <form method="get" class="filters-row" id="event-filter-form">
+            <input type="text" name="q" placeholder="Search events..." value="{{ search_query|default:'' }}" onkeypress="if(event.key === 'Enter') this.form.submit();">
+
+            <select name="type" onchange="this.form.submit()">
+                <option value="">All Types</option>
+                {% for type_code, type_name in event_types %}
+                    <option value="{{ type_code }}" {% if current_type == type_code %}selected{% endif %}>
+                        {{ type_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="city" onchange="this.form.submit()">
+                <option value="">All Cities</option>
+                {% for city in cities %}
+                    <option value="{{ city }}" {% if current_city == city %}selected{% endif %}>
+                        {{ city }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="sort" onchange="this.form.submit()">
+                <option value="date" {% if current_sort == 'date' or not current_sort %}selected{% endif %}>Date</option>
+                <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+            </select>
+
+            <button type="submit" style="padding: 0.75rem 2rem; background: var(--pink); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600;">Search</button>
+        </form>
+    </div>
+
+    <!-- Recommended For You -->
+    {% if user.is_authenticated and recommended_events %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-star'></i> Recommended For You</h2>
+        </div>
+        <div class="scroll-container">
+            {% for event in recommended_events %}
+                <a href="{% url 'event_detail' event.slug %}" class="event-card">
+                    {% if event.banner %}
+                        <img src="{{ event.banner.url }}" alt="{{ event.title }}">
+                    {% elif event.cover_image %}
+                        <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="event-title">{{ event.title }}</div>
+                    <div class="event-meta">
+                        <i class='bx bx-map'></i> {{ event.venue_name|default:event.city }}
+                    </div>
+                    <div class="event-meta">
+                        <i class='bx bx-calendar'></i> {{ event.start_datetime|date:"M d, Y" }}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Featured Events -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class="bx bx-star"></i> Featured Events</h2>
+        </div>
+        {% if featured_events %}
+            <div class="scroll-container">
+                {% for event in featured_events %}
+                    <a href="{% url 'event_detail' event.slug %}" class="event-card">
+                        {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}">
+                        {% elif event.cover_image %}
+                            <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ event.title }}">
+                        {% endif %}
+                        <div class="event-info">
+                            <h3>{{ event.title }}</h3>
+                            <p>{{ event.venue_name }}</p>
+                            <p class="event-date">{{ event.start_datetime|date:"M d, Y" }}</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No featured events at the moment.</p>
+        {% endif %}
+    </div>
+
+    <!-- Top Events -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class="bx bx-crown"></i> Top Events</h2>
+        </div>
+        {% if top_events %}
+            <div class="scroll-container">
+                {% for event in top_events %}
+                    <a href="{% url 'event_detail' event.slug %}" class="event-card">
+                        {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}">
+                        {% elif event.cover_image %}
+                            <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ event.title }}">
+                        {% endif %}
+                        <div class="event-info">
+                            <h3>{{ event.title }}</h3>
+                            <p>{{ event.venue_name }}</p>
+                            <p class="event-date">{{ event.start_datetime|date:"M d, Y" }}</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No top events found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class="bx bx-calendar-event"></i> Upcoming Events</h2>
+        </div>
+        {% if upcoming_events %}
+            <div class="event-grid">
+                {% for event in upcoming_events %}
+                    <div class="event-card">
+                        <a href="{% url 'event_detail' event.slug %}">
+                            {% if event.banner %}
+                                <img src="{{ event.banner.url }}" alt="{{ event.title }}">
+                            {% elif event.cover_image %}
+                                <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+                            {% else %}
+                                <img src="{% static 'images/placeholder.png' %}" alt="{{ event.title }}">
+                            {% endif %}
+                        </a>
+                        <div class="event-info">
+                            <h3>{{ event.title }}</h3>
+                            <p>{{ event.venue_name }}</p>
+                            <p class="event-date">{{ event.start_datetime|date:"M d, Y" }}</p>
+                            {% if event.available_tickets %}
+                                <p class="available-tickets">{{ event.available_tickets }} tickets left</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No upcoming events.</p>
+        {% endif %}
+    </div>
+
+    <!-- Trending Events -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class="bx bx-trending-up"></i> Trending Events</h2>
+        </div>
+        {% if trending_events %}
+            <div class="scroll-container">
+                {% for event in trending_events %}
+                    <a href="{% url 'event_detail' event.slug %}" class="event-card">
+                        {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}">
+                        {% elif event.cover_image %}
+                            <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ event.title }}">
+                        {% endif %}
+                        <div class="event-info">
+                            <h3>{{ event.title }}</h3>
+                            <p>{{ event.venue_name }}</p>
+                            <p class="event-date">{{ event.start_datetime|date:"M d, Y" }}</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No trending events right now.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

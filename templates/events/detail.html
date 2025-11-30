@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ event.title }} - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+/* [Previous CSS from detail.html remains the same] */
+.event-detail-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.event-banner {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.event-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.event-main {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.event-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.booking-widget {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.event-title {
+    font-size: 2.5rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+}
+
+.event-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.meta-item i {
+    font-size: 1.25rem;
+    color: var(--pink);
+}
+
+.event-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1rem;
+    background: var(--light-gray);
+    border-radius: 12px;
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--pink);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.interest-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.interest-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.interest-btn:hover:not(:disabled) {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.interest-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.interest-btn.active {
+    border-color: var(--pink);
+    background: var(--pink);
+    color: white;
+}
+
+.price-box {
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.price-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.price-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.old-price {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    margin-left: 0.5rem;
+}
+
+.tickets-left {
+    background: rgba(255, 193, 7, 0.2);
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #856404;
+}
+
+.section {
+    margin: 2rem 0;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+}
+
+.similar-events {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.similar-event-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.similar-event-card:hover {
+    transform: translateY(-5px);
+}
+
+.similar-event-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.similar-event-info {
+    padding: 1rem;
+}
+
+.similar-event-title {
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.similar-event-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 968px) {
+    .event-content {
+        grid-template-columns: 1fr;
+    }
+
+    .event-sidebar {
+        position: static;
+    }
+
+    .event-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="event-detail-container">
+    {% if event.banner %}
+    <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="event-banner">
+    {% elif event.cover_image %}
+    <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="event-banner">
+    {% endif %}
+
+    <div class="event-content">
+        <!-- Main Content -->
+        <div class="event-main">
+            <h1 class="event-title">{{ event.title }}</h1>
+
+            <div class="event-meta">
+                <div class="meta-item">
+                    <i class='bx bx-user'></i>
+                    <span>Hosted by <strong>{{ event.celebrity.get_full_name }}</strong></span>
+                </div>
+                <div class="meta-item">
+                    <i class='bx bx-calendar'></i>
+                    <span>{{ event.start_datetime|date:"F d, Y" }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class='bx bx-time'></i>
+                    <span>{{ event.start_datetime|date:"g:i A" }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class='bx bx-map'></i>
+                    <span>{{ event.venue_name|default:event.city }}</span>
+                </div>
+            </div>
+
+            <!-- Event Stats -->
+            <div class="event-stats">
+                <div class="stat-box">
+                    <div class="stat-number">{{ total_interested|default:event.interested_count }}</div>
+                    <div class="stat-label">Interested</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">{{ total_going|default:event.going_count }}</div>
+                    <div class="stat-label">Going</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">{{ total_booked|default:event.tickets_sold }}</div>
+                    <div class="stat-label">Booked</div>
+                </div>
+            </div>
+
+            <!-- Interest Buttons - Hide "Going" if already booked -->
+            {% if user.is_authenticated and not has_booked %}
+            <div class="interest-buttons">
+                <button class="interest-btn {% if user_interest.interest_type == 'interested' %}active{% endif %}" 
+                        onclick="toggleInterest('interested')">
+                    <i class='bx bx-star'></i> Interested
+                </button>
+                <!-- Only show Going button if not booked -->
+                <button class="interest-btn {% if user_interest.interest_type == 'going' %}active{% endif %}" 
+                        onclick="toggleInterest('going')">
+                    <i class='bx bx-calendar-check'></i> Going
+                </button>
+            </div>
+            {% elif has_booked %}
+            <!-- Show that user is already going since they booked -->
+            <div style="background: var(--sage-light); padding: 1rem; border-radius: 12px; text-align: center; margin-bottom: 2rem;">
+                <i class='bx bx-check-circle' style="font-size: 2rem; color: var(--sage-green);"></i>
+                <p style="margin: 0.5rem 0 0 0; color: var(--sage-dark); font-weight: 600;">
+                    You're attending this event!
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Description -->
+            <div class="section">
+                <h3 class="section-title"><i class='bx bx-info-circle'></i> About This Event</h3>
+                <p style="line-height: 1.8; color: var(--text-secondary);">{{ event.description|linebreaks }}</p>
+            </div>
+
+            <!-- Location Details -->
+            <div class="section">
+                <h3 class="section-title"><i class='bx bx-map'></i> Location</h3>
+                {% if event.is_virtual or event.is_online %}
+                    <div style="background: var(--sage-light); padding: 1.5rem; border-radius: 12px;">
+                        <p><strong><i class='bx bx-video'></i> This is a virtual event</strong></p>
+                        <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                            Join link will be sent to your email after booking
+                        </p>
+                    </div>
+                {% else %}
+                    <p><strong>{{ event.venue_name }}</strong></p>
+                    <p style="color: var(--text-secondary);">{{ event.address }}</p>
+                    <p style="color: var(--text-secondary);">{{ event.city }}, {{ event.country }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar / Booking Widget -->
+        <div class="event-sidebar">
+            <div class="booking-widget">
+                {% if event.status == 'cancelled' %}
+                    <div style="text-align: center; color: var(--danger); padding: 2rem;">
+                        <i class='bx bx-x-circle' style="font-size: 4rem;"></i>
+                        <h3>Event Cancelled</h3>
+                        <p>This event has been cancelled by the organizer</p>
+                    </div>
+                {% elif has_booked %}
+                    <div style="text-align: center; color: var(--success); padding: 2rem;">
+                        <i class='bx bx-check-circle' style="font-size: 4rem;"></i>
+                        <h3>You're Booked!</h3>
+                        <p>You have a confirmed booking for this event</p>
+                        <a href="{% url 'my_bookings' %}" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+                            View My Bookings
+                        </a>
+                    </div>
+                {% elif not tickets_available %}
+                    <div style="text-align: center; color: var(--danger); padding: 2rem;">
+                        <i class='bx bx-error-circle' style="font-size: 4rem;"></i>
+                        <h3>Sold Out</h3>
+                        <p>All tickets for this event have been sold</p>
+                    </div>
+                {% else %}
+                    <!-- Price -->
+                    <div class="price-box">
+                        <div class="price-label">Ticket Price</div>
+                        <div class="price-amount">
+                            NPR {{ current_price|floatformat:2 }}
+                            {% if event.early_bird_price and current_price != event.ticket_price %}
+                                <span class="old-price">{{ event.ticket_price|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                        {% if event.early_bird_deadline and event.early_bird_deadline > now %}
+                        <p style="color: var(--success); font-size: 0.85rem; margin-top: 0.5rem;">
+                            <i class='bx bx-time'></i> Early bird pricing ends {{ event.early_bird_deadline|date:"M d" }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tickets Left -->
+                    {% if event.available_tickets < 50 %}
+                    <div class="tickets-left">
+                        <i class='bx bx-error'></i> Only {{ event.available_tickets }} tickets left!
+                    </div>
+                    {% endif %}
+
+                    <!-- Book Button -->
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'book_event' event.slug %}" class="btn btn-primary btn-block btn-lg">
+                            <i class='bx bx-ticket'></i> Book Now
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={% url 'event_detail' event.slug %}" class="btn btn-primary btn-block btn-lg">
+                            <i class='bx bx-log-in'></i> Login to Book
+                        </a>
+                    {% endif %}
+
+                    <!-- Event Info -->
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                            <span style="color: var(--text-secondary);">Duration</span>
+                            <strong>{{ event.duration_hours }} hours</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                            <span style="color: var(--text-secondary);">Event Type</span>
+                            <strong>{{ event.get_event_type_display }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary);">Available</span>
+                            <strong>{{ event.available_tickets }} / {{ event.total_capacity }}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar/Recommended Events -->
+    {% if similar_events %}
+    <div class="section">
+        <h2 class="section-title">
+            <i class='bx bx-star'></i> 
+            {% if user.is_authenticated %}Recommended For You{% else %}Similar Events{% endif %}
+        </h2>
+        <div class="similar-events">
+            {% for similar in similar_events %}
+            <a href="{% url 'event_detail' similar.slug %}" class="similar-event-card">
+                {% if similar.banner and similar.banner.url %}
+                    <img src="{{ similar.banner.url }}" alt="{{ similar.title }}" class="similar-event-image">
+                {% elif similar.cover_image and similar.cover_image.url %}
+                    <img src="{{ similar.cover_image.url }}" alt="{{ similar.title }}" class="similar-event-image">
+                {% else %}
+                    <img src="{% static 'images/event-placeholder.png' %}" alt="{{ similar.title }}" class="similar-event-image">
+                {% endif %}
+
+                <div class="similar-event-info">
+                    <div class="similar-event-title">{{ similar.title }}</div>
+                    <div class="similar-event-meta">
+                        <i class='bx bx-calendar'></i> {{ similar.start_datetime|date:"M d" }}<br>
+                        <i class='bx bx-map'></i> {{ similar.city }}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleInterest(type) {
+    fetch('{% url "toggle_event_interest" event.slug %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `type=${type}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        // Update UI
+        document.querySelectorAll('.interest-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        if (data.status === 'added') {
+            event.target.closest('.interest-btn').classList.add('active');
+        }
+        
+        // Update counters
+        document.querySelector('.event-stats').innerHTML = `
+            <div class="stat-box">
+                <div class="stat-number">${data.interested_count}</div>
+                <div class="stat-label">Interested</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">${data.going_count}</div>
+                <div class="stat-label">Going</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ event.tickets_sold }}</div>
+                <div class="stat-label">Booked</div>
+            </div>
+        `;
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

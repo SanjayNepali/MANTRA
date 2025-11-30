@@ -1,0 +1,35 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Subscribers - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-user-check'></i> My Subscribers</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Subscriber</th>
+                        <th>Tier</th>
+                        <th>Since</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subscription in subscriptions %}
+                    <tr>
+                        <td>{{ subscription.subscriber.get_full_name }}</td>
+                        <td>{{ subscription.tier }}</td>
+                        <td>{{ subscription.start_date|date:"M d, Y" }}</td>
+                        <td><span class="badge bg-success">{{ subscription.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

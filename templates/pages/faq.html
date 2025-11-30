@@ -1,0 +1,291 @@
+<!-- templates/faq.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --pink-dark: #FF91AC;
+            --pink-light: #FFF0F5;
+            --sage-green: #87A96B;
+            --sage-light: #E8F5E9;
+            --sage-dark: #73915A;
+            --brown: #964B00;
+            --brown-dark: #7A3D00;
+            --white: #FFFFFF;
+            --dark-text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+            --light-gray: #F8F9FA;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .accordion {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .accordion-item {
+            border: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+
+        .accordion-button {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--brown);
+            padding: 1.5rem;
+            background: white;
+            border: none;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: var(--pink-light);
+            color: var(--brown);
+            box-shadow: none;
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+            border: none;
+        }
+
+        .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23FFB6C1'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        }
+
+        .accordion-body {
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+            border-radius: 15px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .contact-section h3 {
+            color: var(--brown);
+            margin-bottom: 1rem;
+        }
+
+        .contact-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--pink);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--pink-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .content-container {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/landing_navbar.html' with is_hero=False %}
+
+    <div class="content-container">
+        <div class="page-header">
+            <h1>Frequently Asked Questions</h1>
+            <p>Find answers to common questions about MANTRA</p>
+        </div>
+
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        <i class='bx bx-help-circle' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        What is MANTRA?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        MANTRA is a revolutionary celebrity fan portal connecting fans with their favorite celebrities through exclusive content, direct messaging, virtual events, and special experiences. We provide a secure and innovative platform for authentic connections.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        <i class='bx bx-crown' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        How do subscriptions work?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Subscriptions give you exclusive access to celebrity content, direct messaging privileges, and special perks. Each celebrity sets their own subscription tiers with different benefits. Choose a tier that fits your needs and get instant access to exclusive content!
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        <i class='bx bx-credit-card' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        What payment methods are accepted?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        We accept esewa payment method.
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        <i class='bx bx-user-plus' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        How do I create an account?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Click on "Sign Up" and choose whether you want to join as a Fan or Celebrity. Fill in your details, verify your email, and you're ready to start exploring MANTRA! Celebrities go through an additional KYC verification process for authenticity.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        <i class='bx bx-calendar-event' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        How do virtual events work?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Virtual events allow you to attend meet & greets, concerts, and exclusive experiences hosted by celebrities. Browse upcoming events, purchase tickets, and receive access details via email. On event day, simply join from your dashboard or the event page.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                        <i class='bx bx-shopping-bag' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        Can I buy celebrity merchandise?
+                    </button>
+                </h2>
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes! Many celebrities sell official merchandise through their MANTRA stores. Browse the Shop section to find exclusive merchandise from your favorite stars. All purchases support the celebrities directly.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                        <i class='bx bx-shield-alt-2' style="margin-right: 0.5rem; color: var(--pink);"></i>
+                        Is my data secure?
+                    </button>
+                </h2>
+                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Absolutely! We take security seriously. All data is encrypted, payments are processed through secure gateways, and we never share your personal information with third parties without your consent. Read our Privacy Policy for more details.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h3>Still have questions?</h3>
+            <p>Our support team is here to help you with anything you need.</p>
+            <a href="{% url 'contact' %}" class="btn btn-primary">
+                <i class='bx bx-envelope'></i>
+                Contact Support
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

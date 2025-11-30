@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Booking Confirmed - {{ booking.event.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.booking-page {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.success-banner {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+    color: white;
+    padding: 3rem;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.success-banner::before {
+    content: '✓';
+    position: absolute;
+    font-size: 20rem;
+    opacity: 0.1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin: 0 auto 1rem;
+    animation: scaleIn 0.5s ease;
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+.booking-reference {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50px;
+    display: inline-block;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.status-confirmed {
+    background: rgba(135, 169, 107, 0.3);
+    border: 2px solid white;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.3);
+    border: 2px solid white;
+}
+
+.booking-content {
+    background: white;
+    border-radius: 0 0 20px 20px;
+    padding: 2.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.info-card {
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+    padding: 2rem;
+    border-radius: 16px;
+    border-left: 4px solid var(--pink);
+}
+
+.info-card h3 {
+    color: var(--brown);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ticket-section {
+    background: var(--light-gray);
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.qr-wrapper {
+    background: white;
+    width: 250px;
+    height: 250px;
+    margin: 1.5rem auto;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.qr-placeholder {
+    text-align: center;
+}
+
+.qr-placeholder i {
+    font-size: 5rem;
+    color: var(--brown);
+    opacity: 0.3;
+}
+
+.ticket-code {
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-top: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    letter-spacing: 2px;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2.5rem;
+}
+
+.action-btn {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary-action {
+    background: var(--pink);
+    color: white;
+}
+
+.btn-primary-action:hover {
+    background: var(--pink-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+}
+
+.btn-secondary-action {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-secondary-action:hover {
+    background: var(--sage-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(135, 169, 107, 0.4);
+}
+
+.btn-outline-action {
+    background: white;
+    color: var(--brown);
+    border: 2px solid var(--brown);
+}
+
+.btn-outline-action:hover {
+    background: var(--brown);
+    color: white;
+}
+
+.btn-danger-action {
+    background: var(--danger);
+    color: white;
+}
+
+.alert-box {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #FFC107;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 2rem 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.alert-icon {
+    font-size: 2rem;
+    color: #FFC107;
+}
+
+.info-box {
+    background: var(--sage-light);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-top: 2rem;
+}
+
+.info-box h3 {
+    color: var(--brown);
+    margin-bottom: 1rem;
+}
+
+.info-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-box li {
+    padding: 0.75rem 0;
+    padding-left: 2rem;
+    position: relative;
+    color: var(--text-secondary);
+}
+
+.info-box li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--sage-green);
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .info-grid, .action-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .success-banner {
+        padding: 2rem 1rem;
+    }
+    
+    .booking-content {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-page">
+    <div class="booking-card">
+        <!-- Success Banner -->
+        <div class="success-banner">
+            <div class="success-icon">
+                {% if booking.status == 'confirmed' %}
+                    <i class='bx bx-check'></i>
+                {% elif booking.status == 'pending' %}
+                    <i class='bx bx-time-five'></i>
+                {% else %}
+                    <i class='bx bx-x'></i>
+                {% endif %}
+            </div>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">
+                {% if booking.status == 'confirmed' %}
+                    Booking Confirmed!
+                {% elif booking.status == 'pending' %}
+                    Booking Reserved
+                {% else %}
+                    Booking Cancelled
+                {% endif %}
+            </h1>
+            <p style="font-size: 1.1rem; opacity: 0.9;">{{ booking.event.title }}</p>
+            <div class="booking-reference">{{ booking.booking_reference }}</div>
+            <div class="status-badge status-{{ booking.status }}">
+                {% if booking.status == 'confirmed' %}
+                    <i class='bx bx-check-circle'></i> Confirmed & Paid
+                {% elif booking.status == 'pending' %}
+                    <i class='bx bx-time'></i> Payment Pending
+                {% else %}
+                    <i class='bx bx-x-circle'></i> {{ booking.get_status_display }}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Booking Content -->
+        <div class="booking-content">
+            <!-- Event & Booking Info Grid -->
+            <div class="info-grid">
+                <!-- Event Details -->
+                <div class="info-card">
+                    <h3><i class='bx bx-calendar-event'></i> Event Details</h3>
+                    <div class="info-row">
+                        <span class="info-label">Host</span>
+                        <span class="info-value">{{ booking.event.celebrity.get_full_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date</span>
+                        <span class="info-value">{{ booking.event.start_datetime|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Time</span>
+                        <span class="info-value">{{ booking.event.start_datetime|date:"g:i A" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Venue</span>
+                        <span class="info-value">{{ booking.event.venue_name|default:booking.event.city }}</span>
+                    </div>
+                </div>
+
+                <!-- Booking Details -->
+                <div class="info-card">
+                    <h3><i class='bx bx-receipt'></i> Booking Details</h3>
+                    <div class="info-row">
+                        <span class="info-label">Tickets</span>
+                        <span class="info-value">{{ booking.quantity }} × NPR {{ booking.event.ticket_price }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total Paid</span>
+                        <span class="info-value" style="color: var(--sage-green); font-size: 1.2rem;">
+                            NPR {{ booking.total_amount|floatformat:2 }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Payment</span>
+                        <span class="info-value">{{ booking.payment_method|upper }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Booked</span>
+                        <span class="info-value">{{ booking.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket QR Code -->
+            <div class="ticket-section">
+                <h3 style="color: var(--brown); margin-bottom: 1.5rem;">
+                    <i class='bx bx-qr'></i> Your Event Ticket
+                </h3>
+                <div class="qr-wrapper">
+                    <div class="qr-placeholder">
+                        <i class='bx bx-qr-scan'></i>
+                    </div>
+                </div>
+                <div class="ticket-code">{{ booking.booking_code }}</div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Present this code at the event entrance for check-in
+                </p>
+            </div>
+
+            <!-- Payment Pending Alert -->
+            {% if booking.status == 'pending' %}
+            <div class="alert-box">
+                <div class="alert-icon">
+                    <i class='bx bx-info-circle'></i>
+                </div>
+                <div>
+                    <strong style="display: block; margin-bottom: 0.5rem;">Complete Your Payment</strong>
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        Your tickets are reserved for 24 hours. Please complete the payment to confirm your booking.
+                    </p>
+                    <form method="POST" style="margin-top: 1rem;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn btn-primary-action">
+                            <i class='bx bx-credit-card'></i> Pay Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="action-grid">
+                {% if booking.status == 'confirmed' %}
+                    <button onclick="window.print()" class="action-btn btn-primary-action">
+                        <i class='bx bx-download'></i> Download Ticket
+                    </button>
+                    <a href="{% url 'event_detail' booking.event.slug %}" class="action-btn btn-secondary-action">
+                        <i class='bx bx-info-circle'></i> Event Details
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'my_bookings' %}" class="action-btn btn-outline-action">
+                    <i class='bx bx-list-ul'></i> My Bookings
+                </a>
+                
+                {% if booking.status != 'cancelled' and booking.status != 'refunded' and booking.event.start_datetime > now %}
+                    <a href="{% url 'cancel_booking' booking.id %}" class="action-btn btn-danger-action">
+                        <i class='bx bx-x'></i> Cancel Booking
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Important Information -->
+            <div class="info-box">
+                <h3><i class='bx bx-info-circle'></i> Important Information</h3>
+                <ul>
+                    <li>Arrive at least 30 minutes before the event starts</li>
+                    <li>Bring a valid ID for verification purposes</li>
+                    <li>This booking is non-transferable to other persons</li>
+                    <li>Refunds available up to 48 hours before the event</li>
+                    <li>Keep this code safe - it's your entry ticket</li>
+                    <li>Check your email for additional event updates</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh page if payment is pending (every 30 seconds)
+{% if booking.status == 'pending' %}
+setTimeout(function() {
+    location.reload();
+}, 30000);
+{% endif %}
+</script>
+{% endblock %}

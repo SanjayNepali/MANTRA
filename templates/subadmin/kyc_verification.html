@@ -1,0 +1,320 @@
+<!-- templates/subadmin/kyc_verification.html -->
+{% extends 'base.html' %}
+
+{% block title %}KYC Verification Queue | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kyc-header {
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .kyc-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-box h3 {
+        margin: 0;
+        color: var(--brown);
+        font-size: 2rem;
+    }
+    
+    .kyc-item {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .kyc-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .celebrity-info {
+        display: flex;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    
+    .celebrity-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--pink);
+    }
+    
+    .celebrity-details {
+        flex: 1;
+    }
+    
+    .category-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--sage-light);
+        color: var(--sage-dark);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .doc-status {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--light-gray);
+        border-radius: 8px;
+    }
+    
+    .doc-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .doc-item i {
+        font-size: 1.2rem;
+    }
+    
+    .verified-badge {
+        background: #D4EDDA;
+        color: #155724;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .rejected-badge {
+        background: #FFE4E1;
+        color: #DC3545;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="kyc-header">
+    <h1><i class='bx bx-id-card'></i> KYC Verification Queue</h1>
+    <p>Review and verify celebrity accounts from your assigned countries</p>
+</div>
+
+<!-- Statistics -->
+<div class="kyc-stats">
+    <div class="stat-box">
+        <i class='bx bx-time' style="font-size: 2rem; color: var(--pink);"></i>
+        <h3>{{ total_pending }}</h3>
+        <p class="text-muted">Pending</p>
+    </div>
+    <div class="stat-box">
+        <i class='bx bx-check-circle' style="font-size: 2rem; color: #28A745;"></i>
+        <h3>{{ verified_today }}</h3>
+        <p class="text-muted">Verified Today</p>
+    </div>
+    <div class="stat-box">
+        <i class='bx bx-user-check' style="font-size: 2rem; color: var(--sage-green);"></i>
+        <h3>{{ recent_verifications.count }}</h3>
+        <p class="text-muted">This Week</p>
+    </div>
+</div>
+
+<!-- Pending KYC Applications -->
+<div class="card">
+    <h2>Pending Applications</h2>
+    
+    {% if pending_kyc %}
+        {% for celebrity in pending_kyc %}
+        <div class="kyc-item">
+            <div class="celebrity-info">
+                {% if celebrity.user.profile_picture %}
+                    <img src="{{ celebrity.user.profile_picture.url }}" alt="{{ celebrity.user.username }}" class="celebrity-avatar">
+                {% else %}
+                    <div class="celebrity-avatar" style="background: var(--pink-light); display: flex; align-items: center; justify-content: center;">
+                        <i class='bx bx-user' style="font-size: 3rem; color: var(--pink);"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="celebrity-details">
+                    <h3>{{ celebrity.user.get_full_name|default:celebrity.user.username }}</h3>
+                    <p class="text-muted">
+                        <i class='bx bx-at'></i> {{ celebrity.user.username }} | 
+                        <i class='bx bx-envelope'></i> {{ celebrity.user.email }}
+                    </p>
+                    
+                    {% if celebrity.category %}
+                        <div>
+                            <span class="category-badge">{{ celebrity.category }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="doc-status">
+                        <div class="doc-item">
+                            {% if celebrity.kyc_documents.government_id %}
+                                <i class='bx bx-check-circle' style="color: #28A745;"></i>
+                            {% else %}
+                                <i class='bx bx-x-circle' style="color: #DC3545;"></i>
+                            {% endif %}
+                            <span>Government ID</span>
+                        </div>
+                        <div class="doc-item">
+                            {% if celebrity.kyc_documents.proof_of_identity %}
+                                <i class='bx bx-check-circle' style="color: #28A745;"></i>
+                            {% else %}
+                                <i class='bx bx-x-circle' style="color: #DC3545;"></i>
+                            {% endif %}
+                            <span>Proof of Identity</span>
+                        </div>
+                        <div class="doc-item">
+                            {% if celebrity.kyc_documents.social_media_verification %}
+                                <i class='bx bx-check-circle' style="color: #28A745;"></i>
+                            {% else %}
+                                <i class='bx bx-x-circle' style="color: #DC3545;"></i>
+                            {% endif %}
+                            <span>Social Media</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted">
+                        <i class='bx bx-time'></i> Submitted {{ celebrity.created_at|timesince }} ago
+                        {% if celebrity.user.country %}
+                            | <i class='bx bx-map'></i> {{ celebrity.user.city }}, {{ celebrity.user.country }}
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="{% url 'subadmin_verify_celebrity' celebrity.id %}" class="btn btn-primary">
+                        <i class='bx bx-search-alt'></i> Review
+                    </a>
+                    <button class="btn btn-success btn-sm quick-approve" data-id="{{ celebrity.id }}">
+                        <i class='bx bx-check'></i> Quick Approve
+                    </button>
+                    <button class="btn btn-outline btn-sm quick-reject" data-id="{{ celebrity.id }}">
+                        <i class='bx bx-x'></i> Quick Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center" style="padding: 3rem;">
+            <i class='bx bx-check-circle' style="font-size: 4rem; color: #28A745;"></i>
+            <p class="text-muted">No pending KYC applications</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Verifications -->
+{% if recent_verifications %}
+<div class="card mt-3">
+    <h2>Recent Verifications</h2>
+    
+    <table style="width: 100%;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border);">
+                <th style="padding: 1rem; text-align: left;">Celebrity</th>
+                <th style="padding: 1rem; text-align: left;">Status</th>
+                <th style="padding: 1rem; text-align: left;">Date</th>
+                <th style="padding: 1rem; text-align: left;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for celebrity in recent_verifications %}
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 1rem;">
+                    <strong>{{ celebrity.user.username }}</strong><br>
+                    <small class="text-muted">{{ celebrity.user.get_full_name }}</small>
+                </td>
+                <td style="padding: 1rem;">
+                    {% if celebrity.verification_status == 'verified' %}
+                        <span class="verified-badge">Verified</span>
+                    {% else %}
+                        <span class="rejected-badge">Rejected</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem;">{{ celebrity.updated_at|date:"M d, Y" }}</td>
+                <td style="padding: 1rem;">
+                    <a href="{% url 'subadmin_verify_celebrity' celebrity.id %}" class="btn btn-outline btn-sm">
+                        View Details
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick approve
+    document.querySelectorAll('.quick-approve').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('Quick approve this KYC verification?')) return;
+            
+            const celebrityId = this.dataset.id;
+            handleQuickAction('approve_kyc', celebrityId);
+        });
+    });
+    
+    // Quick reject
+    document.querySelectorAll('.quick-reject').forEach(button => {
+        button.addEventListener('click', function() {
+            const reason = prompt('Reason for rejection:');
+            if (!reason) return;
+            
+            const celebrityId = this.dataset.id;
+            handleQuickAction('reject_kyc', celebrityId, reason);
+        });
+    });
+    
+    function handleQuickAction(action, targetId, reason = '') {
+        fetch('{% url "subadmin_quick_action" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `action=${action}&target_id=${targetId}&reason=${reason}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred');
+        });
+    }
+});
+</script>
+{% endblock %}

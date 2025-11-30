@@ -1,0 +1,36 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Earnings - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-money'></i> Earnings Dashboard</h2>
+
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            {% include 'components/stat_card.html' with icon="bx-wallet" label="Total Earnings" value=total_earnings prefix="Rs. " card_color="green" %}
+        </div>
+        <div class="col-md-3">
+            {% include 'components/stat_card.html' with icon="bx-trending-up" label="This Month" value=this_month_earnings prefix="Rs. " card_color="pink" %}
+        </div>
+        <div class="col-md-3">
+            {% include 'components/stat_card.html' with icon="bx-time" label="Pending Payout" value=pending_payout prefix="Rs. " card_color="orange" %}
+        </div>
+        <div class="col-md-3">
+            {% include 'components/stat_card.html' with icon="bx-dollar" label="Available Balance" value=available_balance prefix="Rs. " card_color="blue" %}
+        </div>
+    </div>
+
+    <!-- Earnings Breakdown -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Earnings Breakdown</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="earningsChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}

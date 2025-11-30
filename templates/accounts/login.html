@@ -1,0 +1,470 @@
+<!-- templates/accounts/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    {% load static %}
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --pink-dark: #FF91AC;
+            --pink-light: #FFF0F5;
+            --sage-green: #87A96B;
+            --sage-light: #E8F5E9;
+            --brown: #964B00;
+            --brown-dark: #6B3600;
+            --brown-light: #C4691F;
+            --white: #FFFFFF;
+            --dark-text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+            --light-gray: #F8F9FA;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/landing_navbar.html' %}
+<div class="auth-container">
+    <div class="auth-box">
+        <div class="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Login to continue your journey with MANTRA</p>
+        </div>
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Login As</label>
+                <div class="user-type-grid">
+                    <label class="user-type-option">
+                        <input type="radio" name="user_type" value="fan" checked>
+                        <span class="user-type-card fan-card">
+                            <i class='bx bx-heart'></i>
+                            <span class="user-type-text">Fan</span>
+                        </span>
+                    </label>
+                    <label class="user-type-option">
+                        <input type="radio" name="user_type" value="celebrity">
+                        <span class="user-type-card celebrity-card">
+                            <i class='bx bx-star'></i>
+                            <span class="user-type-text">Celebrity</span>
+                        </span>
+                    </label>
+                    <label class="user-type-option">
+                        <input type="radio" name="user_type" value="admin">
+                        <span class="user-type-card admin-card">
+                            <i class='bx bx-shield'></i>
+                            <span class="user-type-text">Admin</span>
+                        </span>
+                    </label>
+                    <label class="user-type-option">
+                        <input type="radio" name="user_type" value="subadmin">
+                        <span class="user-type-card subadmin-card">
+                            <i class='bx bx-shield-alt'></i>
+                            <span class="user-type-text">Sub-Admin</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class='bx bx-user'></i> Username or Email
+                </label>
+                <input type="text" name="username" class="form-control" placeholder="Enter your username or email" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class='bx bx-lock-alt'></i> Password
+                </label>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="form-group remember-forgot">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember_me">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+            
+            {% if form.errors %}
+                <div class="alert alert-error">
+                    <i class='bx bx-error-circle'></i>
+                    <span>{{ form.errors }}</span>
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary btn-login">
+                <i class='bx bx-log-in'></i> Login to MANTRA
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Don't have an account?</p>
+            <div class="signup-links">
+                <a href="{% url 'fan_register' %}" class="btn btn-secondary btn-signup">
+                    <i class='bx bx-heart'></i> Sign Up as Fan
+                </a>
+                <a href="{% url 'celebrity_register' %}" class="btn btn-outline btn-signup">
+                    <i class='bx bx-star'></i> Sign Up as Celebrity
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+}
+
+.auth-box {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px var(--shadow);
+    padding: 3rem;
+    max-width: 550px;
+    width: 100%;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-header h1 {
+    font-size: 2.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.login-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--brown);
+    font-size: 0.95rem;
+}
+
+.form-label i {
+    margin-right: 0.5rem;
+    color: var(--pink);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--light-gray);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--pink);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+}
+
+.user-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.user-type-option {
+    cursor: pointer;
+    position: relative;
+}
+
+.user-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.user-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+}
+
+.user-type-card i {
+    font-size: 1.5rem;
+}
+
+.user-type-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.user-type-option input[type="radio"]:checked + .user-type-card {
+    border-color: var(--pink);
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
+    transform: translateY(-2px);
+}
+
+.fan-card {
+    background: linear-gradient(135deg, var(--pink-light) 0%, white 100%);
+}
+
+.user-type-option input[type="radio"]:checked + .fan-card {
+    background: var(--pink);
+    color: white;
+}
+
+.user-type-option input[type="radio"]:checked + .fan-card i {
+    color: white;
+}
+
+.celebrity-card {
+    background: linear-gradient(135deg, var(--sage-light) 0%, white 100%);
+}
+
+.user-type-option input[type="radio"]:checked + .celebrity-card {
+    background: var(--sage-green);
+    color: white;
+    border-color: var(--sage-green);
+}
+
+.user-type-option input[type="radio"]:checked + .celebrity-card i {
+    color: white;
+}
+
+.admin-card {
+    background: linear-gradient(135deg, var(--brown-light) 0%, white 100%);
+}
+
+.user-type-option input[type="radio"]:checked + .admin-card {
+    background: var(--brown);
+    color: white;
+    border-color: var(--brown);
+}
+
+.user-type-option input[type="radio"]:checked + .admin-card i {
+    color: white;
+}
+
+.subadmin-card {
+    background: linear-gradient(135deg, #E8DDD3 0%, white 100%);
+}
+
+.user-type-option input[type="radio"]:checked + .subadmin-card {
+    background: var(--brown-dark);
+    color: white;
+    border-color: var(--brown-dark);
+}
+
+.user-type-option input[type="radio"]:checked + .subadmin-card i {
+    color: white;
+}
+
+.fan-card i { color: var(--pink); }
+.celebrity-card i { color: var(--sage-green); }
+.admin-card i { color: var(--brown); }
+.subadmin-card i { color: var(--brown-dark); }
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.remember-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.remember-label input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+}
+
+.forgot-link {
+    font-size: 0.9rem;
+    color: var(--pink);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.forgot-link:hover {
+    color: var(--pink-dark);
+}
+
+.btn-login {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.auth-footer p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.signup-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn-signup {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-signup:hover {
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--sage-green);
+    color: var(--sage-green);
+}
+
+.btn-outline:hover {
+    background: var(--sage-green);
+    color: white;
+    box-shadow: 0 4px 12px rgba(135, 169, 107, 0.3);
+}
+
+/* Alert Styling */
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    color: #DC3545;
+}
+
+.alert i {
+    font-size: 1.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 1rem;
+    }
+    
+    .auth-box {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-header h1 {
+        font-size: 2rem;
+    }
+    
+    .auth-header p {
+        font-size: 1rem;
+    }
+    
+    .user-type-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .user-type-card {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .user-type-card i {
+        font-size: 1.25rem;
+    }
+    
+    .user-type-text {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .signup-links {
+        gap: 0.5rem;
+    }
+    
+    .btn-signup {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Fanclubs - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.fanclubs-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 10px;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: var(--brown);
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Filters */
+.filters-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filters-row input,
+.filters-row select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    font-size: 1rem;
+}
+
+.filters-row input:focus,
+.filters-row select:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+/* Scroll Section */
+.scroll-container {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--pink);
+    border-radius: 10px;
+}
+
+/* Fanclub Card */
+.fanclub-card {
+    flex: 0 0 260px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .3s ease, box-shadow .3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.fanclub-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.fanclub-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.fanclub-name {
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.fanclub-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a, .pagination span {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--brown);
+    text-decoration: none;
+    transition: all .3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+.pagination .current {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .fanclubs-page {
+        padding: 1rem;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fanclubs-page">
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filters-row">
+            <input type="text" name="q" placeholder="Search fanclubs..." value="{{ search_query|default:'' }}">
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort">
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="members" {% if current_sort == 'members' %}selected{% endif %}>Most Members</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Recommended For You -->
+    {% if user.is_authenticated %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-star'></i> Recommended For You</h2>
+        </div>
+        {% if recommended_fanclubs %}
+            <div class="scroll-container">
+                {% for club in recommended_fanclubs %}
+                    <a href="{% url 'fanclub_detail' club.slug %}" class="fanclub-card">
+                        <img src="{{ club.get_image_url }}" alt="{{ club.name }}">
+                        <div class="fanclub-name">{{ club.name }}</div>
+                        <div class="fanclub-meta">
+                            <i class='bx bx-user'></i> {{ club.member_count|default:0 }} members
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state"><p>Join more fanclubs to get personalized recommendations!</p></div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Top Fanclubs -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-crown'></i> Top Fanclubs</h2>
+        </div>
+        {% if top_fanclubs %}
+            <div class="scroll-container">
+                {% for club in top_fanclubs %}
+                    <a href="{% url 'fanclub_detail' club.slug %}" class="fanclub-card">
+                        <img src="{{ club.get_image_url }}" alt="{{ club.name }}">
+                        <div class="fanclub-name">{{ club.name }}</div>
+                        <div class="fanclub-meta"><i class='bx bx-user'></i> {{ club.member_count }} members</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state"><p>No fanclubs available.</p></div>
+        {% endif %}
+    </div>
+
+    <!-- All Fanclubs -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class="bx bx-group"></i> All Fanclubs</h2>
+        </div>
+
+        {% if fanclubs %}
+            <div class="grid">
+                {% for club in fanclubs %}
+                    <a href="{% url 'fanclub_detail' club.slug %}" class="fanclub-card">
+                        <img src="{{ club.get_image_url }}" alt="{{ club.name }}">
+                        <div class="fanclub-name">{{ club.name }}</div>
+                        <div class="fanclub-meta"><i class="bx bx-user"></i> {{ club.member_count }} members</div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if fanclubs.has_other_pages %}
+            <div class="pagination">
+                {% if fanclubs.has_previous %}
+                    <a href="?page={{ fanclubs.previous_page_number }}">‹ Prev</a>
+                {% endif %}
+                <span class="current">Page {{ fanclubs.number }} of {{ fanclubs.paginator.num_pages }}</span>
+                {% if fanclubs.has_next %}
+                    <a href="?page={{ fanclubs.next_page_number }}">Next ›</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class='bx bx-group' style="font-size:4rem; opacity:0.4;"></i>
+                <p>No fanclubs found matching your filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,801 @@
+<!-- templates/admin_dashboard/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - MANTRA System Control{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .admin-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .admin-header .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--pink) 0%, var(--sage-green) 100%);
+    }
+    
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+    
+    .metric-change {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .metric-change.positive {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .metric-change.negative {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        height: 350px;
+        position: relative;
+    }
+
+    .chart-container canvas {
+        max-height: 250px !important;
+        width: 100% !important;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .system-health {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .health-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .health-bar {
+        flex: 1;
+        height: 20px;
+        background: #ecf0f1;
+        border-radius: 10px;
+        margin: 0 1rem;
+        overflow: hidden;
+    }
+    
+    .health-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .health-good { background: #27ae60; }
+    .health-warning { background: #f39c12; }
+    .health-critical { background: #e74c3c; }
+    
+    .alert-item {
+        padding: 1rem;
+        border-left: 4px solid #e74c3c;
+        background: #fff5f5;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-item h4 {
+        color: #c0392b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .trending-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .trending-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-bottom: 1px solid #ecf0f1;
+        transition: background 0.3s;
+    }
+    
+    .trending-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .trending-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+    
+    .subadmin-report-item {
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        background: white;
+    }
+    
+    .subadmin-report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .regional-map {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .region-stat {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        border-radius: 20px;
+        background: #ecf0f1;
+        font-size: 0.85rem;
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .action-btn {
+        padding: 1rem;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #2c3e50;
+    }
+    
+    .action-btn:hover {
+        border-color: #3498db;
+        background: #f8f9fa;
+        transform: translateY(-3px);
+    }
+    
+    .action-btn i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Header -->
+    <div class="admin-header">
+        <h1><i class='bx bx-shield-alt-2'></i> Admin Control Center</h1>
+        <p class="subtitle">System-wide monitoring and management dashboard</p>
+        <div style="margin-top: 1rem;">
+            <select id="dateRange" class="form-control" style="width: 200px; display: inline-block;" onchange="changeDateRange(this.value)">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="metric-value">{{ total_users|floatformat:0 }}</div>
+            <div class="metric-label">Total Users</div>
+            <span class="metric-change positive">+{{ new_users }} new</span>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
+                <i class='bx bx-dollar-circle'></i>
+            </div>
+            <div class="metric-value">${{ total_revenue|floatformat:2 }}</div>
+            <div class="metric-label">Total Revenue</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+                <i class='bx bx-flag'></i>
+            </div>
+            <div class="metric-value">{{ pending_reports }}</div>
+            <div class="metric-label">Pending Reports</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                <i class='bx bx-shield'></i>
+            </div>
+            <div class="metric-value">{{ active_subadmins }}/{{ total_subadmins }}</div>
+            <div class="metric-label">Active SubAdmins</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(52, 73, 94, 0.1); color: #34495e;">
+                <i class='bx bx-star'></i>
+            </div>
+            <div class="metric-value">{{ verified_celebrities }}</div>
+            <div class="metric-label">Verified Celebrities</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;">
+                <i class='bx bx-trending-up'></i>
+            </div>
+            <div class="metric-value">{{ active_users }}</div>
+            <div class="metric-label">Active Users</div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="grid grid-2" style="gap: 2rem; margin-bottom: 2rem;">
+        <!-- Revenue Chart -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Revenue Trends</h3>
+                <div>
+                    <button class="btn btn-sm btn-outline" onclick="exportChart('revenue')">
+                        <i class='bx bx-download'></i> Export
+                    </button>
+                </div>
+            </div>
+            <div style="position: relative; height: 250px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- User Growth Chart -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">User Growth</h3>
+                <div>
+                    <button class="btn btn-sm btn-outline" onclick="exportChart('users')">
+                        <i class='bx bx-download'></i> Export
+                    </button>
+                </div>
+            </div>
+            <div style="position: relative; height: 250px;">
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-2" style="gap: 2rem; margin-bottom: 2rem;">
+        <!-- Engagement Chart -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Platform Engagement</h3>
+            </div>
+            <div style="position: relative; height: 250px;">
+                <canvas id="engagementChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Content Distribution -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Content Distribution</h3>
+            </div>
+            <div style="position: relative; height: 250px;">
+                <canvas id="contentChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Health & Sentiment -->
+    <div class="grid grid-2" style="gap: 2rem; margin-bottom: 2rem;">
+        <!-- System Health -->
+        <div class="system-health">
+            <h3 style="margin-bottom: 1.5rem;">System Health</h3>
+            
+            <div class="health-item">
+                <span style="width: 100px;">Overall</span>
+                <div class="health-bar">
+                    <div class="health-fill health-good" style="width: {{ system_health.overall }}%;"></div>
+                </div>
+                <span style="width: 50px; text-align: right;">{{ system_health.overall|floatformat:0 }}%</span>
+            </div>
+            
+            <div class="health-item">
+                <span style="width: 100px;">Performance</span>
+                <div class="health-bar">
+                    <div class="health-fill {% if system_health.performance >= 70 %}health-good{% elif system_health.performance >= 40 %}health-warning{% else %}health-critical{% endif %}" 
+                         style="width: {{ system_health.performance }}%;"></div>
+                </div>
+                <span style="width: 50px; text-align: right;">{{ system_health.performance|floatformat:0 }}%</span>
+            </div>
+            
+            <div class="health-item">
+                <span style="width: 100px;">Security</span>
+                <div class="health-bar">
+                    <div class="health-fill {% if system_health.security >= 70 %}health-good{% elif system_health.security >= 40 %}health-warning{% else %}health-critical{% endif %}"
+                         style="width: {{ system_health.security }}%;"></div>
+                </div>
+                <span style="width: 50px; text-align: right;">{{ system_health.security|floatformat:0 }}%</span>
+            </div>
+            
+            <div class="health-item">
+                <span style="width: 100px;">Engagement</span>
+                <div class="health-bar">
+                    <div class="health-fill {% if system_health.engagement >= 70 %}health-good{% elif system_health.engagement >= 40 %}health-warning{% else %}health-critical{% endif %}"
+                         style="width: {{ system_health.engagement }}%;"></div>
+                </div>
+                <span style="width: 50px; text-align: right;">{{ system_health.engagement|floatformat:0 }}%</span>
+            </div>
+            
+            <div class="health-item">
+                <span style="width: 100px;">Content</span>
+                <div class="health-bar">
+                    <div class="health-fill {% if system_health.content >= 70 %}health-good{% elif system_health.content >= 40 %}health-warning{% else %}health-critical{% endif %}"
+                         style="width: {{ system_health.content }}%;"></div>
+                </div>
+                <span style="width: 50px; text-align: right;">{{ system_health.content|floatformat:0 }}%</span>
+            </div>
+        </div>
+        
+        <!-- Platform Sentiment -->
+        <div class="chart-container">
+            <h3 style="margin-bottom: 1.5rem;">Platform Sentiment Analysis</h3>
+            <div style="position: relative; height: 250px;">
+                <canvas id="sentimentChart"></canvas>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Avg Toxicity:</span>
+                    <span style="color: {% if platform_sentiment.avg_toxicity < 0.3 %}green{% elif platform_sentiment.avg_toxicity < 0.6 %}orange{% else %}red{% endif %};">
+                        {{ platform_sentiment.avg_toxicity|floatformat:2 }}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Avg Spam:</span>
+                    <span style="color: {% if platform_sentiment.avg_spam < 0.3 %}green{% elif platform_sentiment.avg_spam < 0.6 %}orange{% else %}red{% endif %};">
+                        {{ platform_sentiment.avg_spam|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Critical Alerts -->
+    {% if critical_alerts %}
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="color: #e74c3c; margin-bottom: 1rem;">
+            <i class='bx bx-error-circle'></i> Critical Alerts
+        </h3>
+        {% for alert in critical_alerts %}
+        <div class="alert-item">
+            <h4>{{ alert.title }}</h4>
+            <p style="margin: 0.5rem 0;">{{ alert.description|truncatewords:30 }}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <small style="color: #7f8c8d;">Region: {{ alert.region }} | {{ alert.created_at|timesince }} ago</small>
+                <a href="{% url 'admin_alert_detail' alert.id %}" class="btn btn-sm btn-primary">Review</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Trending Section -->
+    <div class="grid grid-3" style="gap: 2rem; margin-bottom: 2rem;">
+        <!-- Trending Posts -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;">🔥 Trending Posts</h3>
+            <div class="trending-list">
+                {% for post in trending_posts %}
+                <div class="trending-item">
+                    <span class="trending-rank">{{ forloop.counter }}</span>
+                    <div style="flex: 1;">
+                        <strong>{{ post.author.username }}</strong>
+                        <p style="margin: 0; font-size: 0.85rem; color: #7f8c8d;">
+                            {{ post.content|truncatewords:10 }}
+                        </p>
+                        <small>{{ post.likes_count }} likes • {{ post.comments_count }} comments</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Trending Celebrities -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;">⭐ Top Celebrities</h3>
+            <div class="trending-list">
+                {% for celeb in top_celebrities %}
+                <div class="trending-item">
+                    <span class="trending-rank">{{ forloop.counter }}</span>
+                    <div style="flex: 1;">
+                        <strong>{{ celeb.user.username }}</strong>
+                        <p style="margin: 0; font-size: 0.85rem; color: #7f8c8d;">
+                            Influence: {{ celeb.influence_score }}
+                        </p>
+                        <small>{{ celeb.followers }} followers</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Trending Hashtags -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;"># Trending Tags</h3>
+            <div class="trending-list">
+                {% for tag in trending_hashtags %}
+                <div class="trending-item">
+                    <span class="trending-rank">{{ forloop.counter }}</span>
+                    <div style="flex: 1;">
+                        <strong>{{ tag.hashtag }}</strong>
+                        <p style="margin: 0; font-size: 0.85rem; color: #7f8c8d;">
+                            {{ tag.count }} uses
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- SubAdmin Reports -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Recent SubAdmin Activity Reports</h3>
+            <a href="{% url 'review_activity_reports' %}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        
+        {% for report in subadmin_reports %}
+        <div class="subadmin-report-item">
+            <div class="subadmin-report-header">
+                <div>
+                    <strong>{{ report.subadmin.username }}</strong> - {{ report.region }}
+                    <small style="margin-left: 1rem; color: #7f8c8d;">
+                        Period: {{ report.period_start|date:"M d" }} - {{ report.period_end|date:"M d, Y" }}
+                    </small>
+                </div>
+                <div>
+                    {% if report.reviewed_by %}
+                        <span class="badge" style="background: #27ae60; color: white;">Reviewed</span>
+                    {% else %}
+                        <span class="badge" style="background: #f39c12; color: white;">Pending Review</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="display: flex; gap: 2rem; margin-top: 0.5rem;">
+                <small>Reports: {{ report.reports_resolved }}</small>
+                <small>KYC: {{ report.kyc_processed }}</small>
+                <small>Warnings: {{ report.warnings_issued }}</small>
+                <small>Bans: {{ report.bans_issued }}</small>
+            </div>
+            <div style="margin-top: 0.5rem;">
+                <a href="{% url 'review_single_report' report.id %}" class="btn btn-sm btn-primary">Review</a>
+                <a href="{% url 'admin_subadmin_performance' report.subadmin.id %}" class="btn btn-sm btn-outline">Performance</a>
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: #7f8c8d; padding: 2rem;">No recent reports</p>
+        {% endfor %}
+    </div>
+    
+    <!-- Regional Overview -->
+    <div class="regional-map">
+        <h3 style="margin-bottom: 1rem;">Regional Overview</h3>
+        <div style="display: flex; flex-wrap: wrap;">
+            {% for region, stats in regional_stats.items %}
+            <div class="region-stat">
+                <strong>{{ region }}</strong><br>
+                <small>Users: {{ stats.total_users }} | Active: {{ stats.active_users }}</small><br>
+                <small>Reports: {{ stats.reports_resolved }} | KYC: {{ stats.kyc_handled }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'admin_manage_subadmins' %}" class="action-btn">
+            <i class='bx bx-user-plus'></i>
+            Manage SubAdmins
+        </a>
+        <a href="{% url 'admin_user_management' %}" class="action-btn">
+            <i class='bx bx-group'></i>
+            User Management
+        </a>
+        <a href="{% url 'admin_system_analytics' %}" class="action-btn">
+            <i class='bx bx-bar-chart-alt-2'></i>
+            System Analytics
+        </a>
+        <a href="{% url 'admin_export_data' %}" class="action-btn">
+            <i class='bx bx-download'></i>
+            Export Data
+        </a>
+        <a href="{% url 'review_activity_reports' %}" class="action-btn">
+            <i class='bx bx-file'></i>
+            Activity Reports
+        </a>
+        <a href="/admin/" class="action-btn">
+            <i class='bx bx-cog'></i>
+            Django Admin
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart data from backend
+const chartData = {{ chart_data|safe }};
+
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: chartData.dates,
+        datasets: [{
+            label: 'Revenue ($)',
+            data: chartData.revenue,
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// User Growth Chart
+const userCtx = document.getElementById('userChart').getContext('2d');
+new Chart(userCtx, {
+    type: 'bar',
+    data: {
+        labels: chartData.dates,
+        datasets: [{
+            label: 'New Users',
+            data: chartData.users,
+            backgroundColor: '#3498db',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Engagement Chart
+const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+new Chart(engagementCtx, {
+    type: 'line',
+    data: {
+        labels: chartData.dates,
+        datasets: [
+            {
+                label: 'Posts',
+                data: chartData.posts,
+                borderColor: '#9b59b6',
+                backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Engagement',
+                data: chartData.engagement,
+                borderColor: '#e67e22',
+                backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Content Distribution Chart
+const contentCtx = document.getElementById('contentChart').getContext('2d');
+new Chart(contentCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Posts', 'Comments', 'Likes', 'Events', 'Fanclubs'],
+        datasets: [{
+            data: [{{ total_posts }}, {{ total_comments }}, {{ total_likes }}, 150, 75],
+            backgroundColor: [
+                '#3498db',
+                '#2ecc71',
+                '#e74c3c',
+                '#f39c12',
+                '#9b59b6'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            }
+        }
+    }
+});
+
+// Sentiment Chart
+const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+new Chart(sentimentCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Positive', 'Neutral', 'Negative'],
+        datasets: [{
+            data: [
+                {{ platform_sentiment.positive|floatformat:0 }},
+                {{ platform_sentiment.neutral|floatformat:0 }},
+                {{ platform_sentiment.negative|floatformat:0 }}
+            ],
+            backgroundColor: ['#2ecc71', '#95a5a6', '#e74c3c']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+
+// Helper functions
+function changeDateRange(days) {
+    window.location.href = '?days=' + days;
+}
+
+function exportChart(type) {
+    // Implementation for chart export
+    alert('Exporting ' + type + ' chart...');
+}
+
+// Auto-refresh dashboard every 5 minutes
+setTimeout(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

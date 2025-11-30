@@ -1,0 +1,580 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activity Reports - MANTRA Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.reports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--brown);
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--brown);
+}
+
+.summary-card.pending {
+    border-left-color: var(--pink);
+}
+
+.summary-card.reviewed {
+    border-left-color: var(--sage-green);
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--brown-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.card-icon i {
+    font-size: 1.5rem;
+    color: var(--brown);
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.card-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.filters-bar {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.reports-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.report-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.report-header {
+    background: linear-gradient(135deg, var(--brown-light) 0%, var(--sage-light) 100%);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.subadmin-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.subadmin-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.subadmin-details h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+}
+
+.region-badge {
+    padding: 0.25rem 0.75rem;
+    background: var(--brown);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: rgba(255, 182, 193, 0.2);
+    color: var(--pink);
+}
+
+.status-under_review {
+    background: rgba(23, 162, 184, 0.2);
+    color: #17a2b8;
+}
+
+.status-approved {
+    background: rgba(135, 169, 107, 0.2);
+    color: var(--sage-green);
+}
+
+.status-needs_improvement {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.status-reviewed {
+    background: rgba(135, 169, 107, 0.2);
+    color: var(--sage-green);
+}
+
+.report-body {
+    padding: 1.5rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-box {
+    text-align: center;
+    padding: 1rem;
+    background: var(--sage-light);
+    border-radius: 8px;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.period-info {
+    padding: 1rem;
+    background: var(--pink-light);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sentiment-indicators {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--brown-light);
+    border-radius: 8px;
+}
+
+.sentiment-item {
+    flex: 1;
+    text-align: center;
+}
+
+.sentiment-item strong {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--brown);
+}
+
+.sentiment-item small {
+    color: var(--text-muted);
+}
+
+.report-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.review-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.review-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .report-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .sentiment-indicators {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 style="font-size: 2rem; font-weight: 700; color: var(--brown); margin: 0;">
+            SubAdmin Activity Reports
+        </h1>
+        <p style="color: var(--text-muted); margin: 0.5rem 0 0 0;">
+            Review and approve SubAdmin performance reports
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class='bx bx-file-blank'></i>
+            </div>
+            <div class="card-value">{{ total_reports }}</div>
+            <div class="card-label">Total Reports</div>
+        </div>
+
+        <div class="summary-card pending">
+            <div class="card-icon" style="background: var(--pink-light);">
+                <i class='bx bx-time' style="color: var(--pink);"></i>
+            </div>
+            <div class="card-value">{{ pending_review }}</div>
+            <div class="card-label">Pending Review</div>
+        </div>
+
+        <div class="summary-card reviewed">
+            <div class="card-icon" style="background: var(--sage-light);">
+                <i class='bx bx-check-circle' style="color: var(--sage-green);"></i>
+            </div>
+            <div class="card-value">{{ approved }}</div>
+            <div class="card-label">Approved</div>
+        </div>
+
+        <div class="summary-card" style="border-left-color: #ffc107;">
+            <div class="card-icon" style="background: rgba(255, 193, 7, 0.2);">
+                <i class='bx bx-error' style="color: #ffc107;"></i>
+            </div>
+            <div class="card-value">{{ needs_improvement }}</div>
+            <div class="card-label">Needs Improvement</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <form method="GET" class="filter-grid">
+            <div class="form-group">
+                <label class="form-label">Region</label>
+                <input type="text" 
+                       name="region" 
+                       class="form-control" 
+                       placeholder="Filter by region"
+                       value="{{ region_filter }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Review</option>
+                    <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="needs_improvement" {% if status_filter == 'needs_improvement' %}selected{% endif %}>Needs Improvement</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">From Date</label>
+                <input type="date" 
+                       name="from" 
+                       class="form-control"
+                       value="{{ date_from }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">To Date</label>
+                <input type="date" 
+                       name="to" 
+                       class="form-control"
+                       value="{{ date_to }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class='bx bx-search'></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="reports-grid">
+        {% for report in reports %}
+        <div class="report-card">
+            <!-- Report Header -->
+            <div class="report-header">
+                <div class="subadmin-info">
+                    <img src="{{ report.subadmin.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                         alt="{{ report.subadmin.username }}" 
+                         class="subadmin-avatar">
+                    <div class="subadmin-details">
+                        <h3>{{ report.subadmin.get_full_name }}</h3>
+                        <span class="region-badge">{{ report.region }}</span>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            @{{ report.subadmin.username }}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    {% if report.status == 'pending' %}
+                    <span class="status-badge status-pending">
+                        <i class='bx bx-time'></i> Pending Review
+                    </span>
+                    {% elif report.status == 'under_review' %}
+                    <span class="status-badge" style="background: rgba(23, 162, 184, 0.2); color: #17a2b8;">
+                        <i class='bx bx-loader'></i> Under Review
+                    </span>
+                    {% elif report.status == 'approved' %}
+                    <span class="status-badge status-reviewed">
+                        <i class='bx bx-check-circle'></i> Approved
+                    </span>
+                    {% elif report.status == 'needs_improvement' %}
+                    <span class="status-badge" style="background: rgba(255, 193, 7, 0.2); color: #ffc107;">
+                        <i class='bx bx-error'></i> Needs Improvement
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Report Body -->
+            <div class="report-body">
+                <!-- Period -->
+                <div class="period-info">
+                    <i class='bx bx-calendar' style="font-size: 1.25rem; color: var(--pink);"></i>
+                    <strong>Report Period:</strong>
+                    {{ report.period_start|date:"M d, Y" }} - {{ report.period_end|date:"M d, Y" }}
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-value">{{ report.reports_resolved }}</div>
+                        <div class="metric-label">Reports Resolved</div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-value">{{ report.kyc_processed }}</div>
+                        <div class="metric-label">KYC Processed</div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-value">{{ report.warnings_issued }}</div>
+                        <div class="metric-label">Warnings Issued</div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-value">{{ report.suspensions_issued }}</div>
+                        <div class="metric-label">Suspensions</div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-value">{{ report.bans_issued }}</div>
+                        <div class="metric-label">Bans Issued</div>
+                    </div>
+                </div>
+
+                <!-- AI Sentiment Analysis -->
+                <div class="sentiment-indicators">
+                    <div class="sentiment-item">
+                        <strong>{{ report.avg_toxicity_score|floatformat:2 }}</strong>
+                        <small>Avg Toxicity Score</small>
+                    </div>
+                    <div class="sentiment-item">
+                        <strong>{{ report.avg_spam_score|floatformat:2 }}</strong>
+                        <small>Avg Spam Score</small>
+                    </div>
+                    <div class="sentiment-item">
+                        <strong>
+                            {% widthratio report.reports_resolved report.reports_resolved|add:report.kyc_processed 100 %}%
+                        </strong>
+                        <small>Success Rate</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Footer -->
+            <div class="report-footer">
+                <div class="review-info">
+                    {% if report.status != 'pending' and report.reviewed_by %}
+                    <i class='bx bx-check'></i>
+                    Reviewed by {{ report.reviewed_by.username }} on {{ report.reviewed_at|date:"M d, Y" }}
+                    {% if report.performance_rating %}
+                    <span style="margin-left: 0.5rem; color: #ffc107;">
+                        {% for i in "12345"|slice:":"|slice:report.performance_rating %}★{% endfor %}
+                    </span>
+                    {% endif %}
+                    {% else %}
+                    <i class='bx bx-time-five'></i>
+                    Submitted {{ report.submitted_at|timesince }} ago
+                    {% endif %}
+                </div>
+
+                <div class="review-actions">
+                    <a href="{% url 'review_single_report' report.id %}"
+                       class="btn btn-primary btn-sm">
+                        <i class='bx bx-show'></i> {% if report.status == 'pending' %}Review{% else %}View Details{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class='bx bx-file-blank'></i>
+            <h3>No Activity Reports</h3>
+            <p style="color: var(--text-muted);">
+                {% if region_filter or status_filter or date_from or date_to %}
+                No reports match your filter criteria.
+                {% else %}
+                No activity reports have been submitted yet.
+                {% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if reports.has_other_pages %}
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if reports.has_previous %}
+        <a href="?page={{ reports.previous_page_number }}&region={{ region_filter }}&status={{ status_filter }}&from={{ date_from }}&to={{ date_to }}" 
+           class="btn btn-outline-primary">
+            <i class='bx bx-chevron-left'></i> Previous
+        </a>
+        {% endif %}
+        
+        <span style="margin: 0 1rem; color: var(--text-muted);">
+            Page {{ reports.number }} of {{ reports.paginator.num_pages }}
+        </span>
+        
+        {% if reports.has_next %}
+        <a href="?page={{ reports.next_page_number }}&region={{ region_filter }}&status={{ status_filter }}&from={{ date_from }}&to={{ date_to }}" 
+           class="btn btn-outline-primary">
+            Next <i class='bx bx-chevron-right'></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-submit on select change
+document.querySelectorAll('.filters-bar select').forEach(select => {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Quick approve function
+function quickApprove(reportId) {
+    if (confirm('Are you sure you want to approve this report?')) {
+        fetch(`/admin-dashboard/reports/${reportId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'approve',
+                notes: 'Quick approved'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to approve report');
+        });
+    }
+}
+
+// Export reports
+function exportReports() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'csv');
+    window.location.href = '?' + params.toString();
+}
+</script>
+{% endblock %}

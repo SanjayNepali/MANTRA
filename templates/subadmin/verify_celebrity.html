@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Celebrity KYC | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verify-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .verify-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .celeb-profile {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .profile-header {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .profile-pic {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--pink);
+    }
+
+    .profile-info h2 {
+        margin: 0 0 0.5rem 0;
+        color: var(--brown);
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .kyc-documents {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .doc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .doc-card {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .doc-card.uploaded {
+        border-color: #28a745;
+    }
+
+    .doc-card.missing {
+        border-color: #dc3545;
+    }
+
+    .doc-header {
+        padding: 1rem;
+        background: #f8f9fa;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .doc-body {
+        padding: 1rem;
+    }
+
+    .doc-image {
+        width: 100%;
+        height: 200px;
+        object-fit: contain;
+        background: #000;
+        cursor: pointer;
+    }
+
+    .doc-file {
+        color: var(--sage-green);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .verification-actions {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .action-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--brown);
+    }
+
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-approve {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+
+    .btn-reject {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background: #c82333;
+    }
+
+    .btn-request {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-request:hover {
+        background: #e0a800;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-verified {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .info-row {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-container">
+    <div class="verify-header">
+        <h1><i class='bx bx-id-card'></i> Celebrity KYC Verification</h1>
+        <p>Review and verify celebrity account documentation</p>
+    </div>
+
+    <!-- Celebrity Profile -->
+    <div class="celeb-profile">
+        <h3>Celebrity Profile Information</h3>
+        <div class="profile-header">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-pic">
+            {% else %}
+            <div class="profile-pic" style="background: var(--pink-light); display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-user' style="font-size: 4rem; color: var(--pink);"></i>
+            </div>
+            {% endif %}
+
+            <div class="profile-info">
+                <h2>{{ user.get_full_name|default:user.username }}</h2>
+                <p style="color: #6c757d; margin: 0;">@{{ user.username }}</p>
+                <p style="margin-top: 1rem;">
+                    <span class="status-badge status-{{ celebrity.verification_status }}">
+                        {% if celebrity.verification_status == 'verified' %}
+                            ✓ Verified
+                        {% elif celebrity.verification_status == 'rejected' %}
+                            ✗ Rejected
+                        {% else %}
+                            ⏳ Pending Verification
+                        {% endif %}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Email:</div>
+            <div>{{ user.email }}</div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Location:</div>
+            <div>
+                {% if user.city and user.country %}
+                    {{ user.city }}, {{ user.country|upper }}
+                {% elif user.country %}
+                    {{ user.country|upper }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Category:</div>
+            <div>{{ celebrity.category|default:"Not specified" }}</div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Bio:</div>
+            <div>{{ celebrity.bio|default:"No bio provided"|truncatewords:50 }}</div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Registered:</div>
+            <div>{{ user.created_at|date:"F d, Y" }} ({{ user.created_at|timesince }} ago)</div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Followers:</div>
+            <div>{{ user.total_followers|default:0 }}</div>
+        </div>
+
+        {% if celebrity.verification_notes %}
+        <div class="info-row">
+            <div class="info-label">Previous Notes:</div>
+            <div style="color: #dc3545;">{{ celebrity.verification_notes }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- KYC Documents -->
+    <div class="kyc-documents">
+        <h3><i class='bx bx-file'></i> KYC Documents ({{ kyc_docs.count }} uploaded)</h3>
+
+        {% if kyc_docs.exists %}
+        <div class="doc-grid">
+            {% for doc in kyc_docs %}
+            <div class="doc-card uploaded">
+                <div class="doc-header">
+                    <span>
+                        {% if doc.document_type == 'id_card' %}ID Card
+                        {% elif doc.document_type == 'passport' %}Passport
+                        {% elif doc.document_type == 'license' %}License
+                        {% elif doc.document_type == 'certificate' %}Certificate
+                        {% else %}{{ doc.document_type|title }}
+                        {% endif %}
+                    </span>
+                    <i class='bx bx-check-circle' style="color: #28a745; font-size: 1.5rem;"></i>
+                </div>
+                <div class="doc-body">
+                    <a href="{{ doc.document_file.url }}" target="_blank" class="doc-file">
+                        <i class='bx bx-file'></i> View Document
+                    </a>
+                    {% if doc.document_number %}
+                    <p style="margin: 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">
+                        Document #: {{ doc.document_number }}
+                    </p>
+                    {% endif %}
+                    <p style="margin: 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">
+                        Uploaded: {{ doc.uploaded_at|date:"M d, Y g:i A" }}
+                    </p>
+                    {% if doc.document_file.url|slice:"-5:"|lower == ".jpg" or doc.document_file.url|slice:"-5:"|lower == ".jpeg" or doc.document_file.url|slice:"-4:"|lower == ".png" or doc.document_file.url|slice:"-4:"|lower == ".gif" %}
+                    <img src="{{ doc.document_file.url }}" alt="{{ doc.document_type }}" class="doc-image" onclick="window.open('{{ doc.document_file.url }}', '_blank')" style="margin-top: 0.5rem;">
+                    {% endif %}
+                    {% if doc.is_verified %}
+                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.85rem; color: #155724;">
+                        <i class='bx bx-check'></i> Verified{% if doc.verified_by %} by {{ doc.verified_by.username }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: #6c757d;">
+            <i class='bx bx-file-blank' style="font-size: 3rem;"></i>
+            <p>No KYC documents uploaded yet</p>
+            <p style="font-size: 0.9rem;">The celebrity needs to upload verification documents before approval.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Verification Actions -->
+    <div class="verification-actions">
+        <h3><i class='bx bx-check-shield'></i> Verification Decision</h3>
+
+        <form method="post" class="action-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="notes">Notes / Reason:</label>
+                <textarea id="notes" name="notes" placeholder="Add verification notes or reason for rejection..."></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" name="action" value="approve" class="btn btn-approve">
+                    <i class='bx bx-check-circle'></i> Approve & Verify
+                </button>
+
+                <button type="submit" name="action" value="reject" class="btn btn-reject" onclick="return confirm('Are you sure you want to reject this verification?')">
+                    <i class='bx bx-x-circle'></i> Reject
+                </button>
+
+                <button type="submit" name="action" value="request_more" class="btn btn-request">
+                    <i class='bx bx-info-circle'></i> Request More Documents
+                </button>
+
+                <a href="{% url 'subadmin_kyc' %}" class="btn btn-cancel">
+                    <i class='bx bx-arrow-back'></i> Back to Queue
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ product.name }} - MANTRA{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.primary_image %}
+                <img src="{{ product.primary_image.url }}" class="img-fluid rounded shadow-sm" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'images/placeholder.png' %}" class="img-fluid rounded shadow-sm" alt="{{ product.name }}">
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <h2>{{ product.name }}</h2>
+            <p class="text-muted mb-2">
+                By {{ product.celebrity.get_full_name|default:product.celebrity.username }}
+            </p>
+            <p>{{ product.description }}</p>
+
+            {% if final_price and final_price != product.price %}
+                <h4>
+                    <span class="text-danger text-decoration-line-through">NPR {{ product.price }}</span>
+                    <span class="text-success ms-2">NPR {{ final_price }}</span>
+                </h4>
+            {% else %}
+                <h3 class="text-primary">NPR {{ product.price }}</h3>
+            {% endif %}
+
+            <p>Stock: {{ product.stock_quantity }} available</p>
+
+            <!-- Add to cart form -->
+            <form id="addToCartForm" method="POST" action="{% url 'add_to_cart' product.slug %}" class="mt-3">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" name="quantity" min="1" max="{{ product.stock_quantity }}" value="1" class="form-control" style="width:100px;">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-cart-add"></i> Add to Cart
+                </button>
+            </form>
+
+            <!-- Acknowledgment message -->
+            <div id="cartMessage" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+    </div>
+
+    {% if related_products %}
+    <div class="mt-5">
+        <h3>More from {{ product.celebrity.get_full_name|default:product.celebrity.username }}</h3>
+        <div class="d-flex gap-3 flex-wrap mt-3">
+            {% for related in related_products %}
+                <a href="{% url 'merchandise_detail' related.slug %}" class="text-decoration-none text-dark" style="width:220px;">
+                    <div class="card shadow-sm h-100">
+                        {% if related.primary_image %}
+                            <img src="{{ related.primary_image.url }}" class="card-img-top" alt="{{ related.name }}" style="height:200px;object-fit:cover;">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" class="card-img-top" alt="{{ related.name }}" style="height:200px;object-fit:cover;">
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h6 class="fw-bold">{{ related.name }}</h6>
+                            <p class="text-muted mb-0">NPR {{ related.price }}</p>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Simple JS acknowledgment -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("addToCartForm");
+    const messageBox = document.getElementById("cartMessage");
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            messageBox.classList.remove("d-none", "alert-danger", "alert-success");
+            if (data.status === "success") {
+                messageBox.classList.add("alert-success");
+                messageBox.textContent = "✅ " + data.message;
+            } else {
+                messageBox.classList.add("alert-danger");
+                messageBox.textContent = "❌ " + (data.error || "Something went wrong");
+            }
+            setTimeout(() => messageBox.classList.add("d-none"), 3000);
+        })
+        .catch(() => {
+            messageBox.classList.remove("d-none");
+            messageBox.classList.add("alert-danger");
+            messageBox.textContent = "❌ Failed to add item to cart.";
+            setTimeout(() => messageBox.classList.add("d-none"), 3000);
+        });
+    });
+});
+</script>
+{% endblock %}

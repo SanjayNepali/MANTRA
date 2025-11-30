@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subscribe to {{ celebrity_user.username }} | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscribe-container {
+        max-width: 800px;
+        margin: 3rem auto;
+        padding: 0 2rem;
+    }
+
+    .subscribe-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .subscribe-header {
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .celebrity-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 5px solid white;
+        object-fit: cover;
+        margin: 0 auto 1rem;
+        display: block;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .subscribe-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
+        color: white;
+    }
+
+    .subscribe-header p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 1.1rem;
+    }
+
+    .subscribe-body {
+        padding: 3rem 2rem;
+    }
+
+    .price-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+        border-radius: 12px;
+    }
+
+    .price-amount {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--brown);
+        margin: 0;
+    }
+
+    .price-period {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .benefits-section {
+        margin-bottom: 3rem;
+    }
+
+    .benefits-section h2 {
+        font-size: 1.5rem;
+        color: var(--brown);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .benefit-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .benefit-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .benefit-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .benefit-content h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        color: var(--brown);
+    }
+
+    .benefit-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .payment-section {
+        background: var(--bg-light);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .payment-section h2 {
+        font-size: 1.3rem;
+        color: var(--brown);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-info {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--pink);
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .subscribe-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 1rem 3rem;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+
+    .btn-subscribe {
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        color: white;
+    }
+
+    .btn-subscribe:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 182, 193, 0.4);
+    }
+
+    .btn-cancel {
+        background: transparent;
+        border: 2px solid var(--border);
+        color: var(--brown);
+    }
+
+    .btn-cancel:hover {
+        background: var(--bg-light);
+    }
+
+    .terms {
+        text-align: center;
+        margin-top: 2rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .terms a {
+        color: var(--pink);
+        text-decoration: none;
+    }
+
+    .terms a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .subscribe-container {
+            padding: 0 1rem;
+        }
+
+        .subscribe-header {
+            padding: 2rem 1rem;
+        }
+
+        .subscribe-body {
+            padding: 2rem 1rem;
+        }
+
+        .benefits-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .subscribe-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .price-amount {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="subscribe-container">
+    <div class="subscribe-card">
+        <!-- Header -->
+        <div class="subscribe-header">
+            {% if celebrity_user.profile_picture %}
+            <img src="{{ celebrity_user.profile_picture.url }}" alt="{{ celebrity_user.username }}" class="celebrity-avatar">
+            {% else %}
+            <div class="celebrity-avatar" style="background: white; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-user' style="font-size: 3rem; color: var(--pink);"></i>
+            </div>
+            {% endif %}
+            <h1>Subscribe to {{ celebrity_user.get_full_name|default:celebrity_user.username }}</h1>
+            <p>Get exclusive access to VIP content</p>
+        </div>
+
+        <!-- Body -->
+        <div class="subscribe-body">
+            <!-- Price -->
+            <div class="price-section">
+                <div class="price-amount">${{ subscription_price }}</div>
+                <div class="price-period">per month</div>
+            </div>
+
+            <!-- Benefits -->
+            <div class="benefits-section">
+                <h2><i class='bx bx-crown'></i> What You'll Get</h2>
+                <div class="benefits-grid">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-lock-open'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>Exclusive Content</h3>
+                            <p>Access to subscriber-only posts and updates</p>
+                        </div>
+                    </div>
+
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>Early Access</h3>
+                            <p>Be the first to see new content and announcements</p>
+                        </div>
+                    </div>
+
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-camera'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>Behind the Scenes</h3>
+                            <p>Exclusive behind-the-scenes photos and videos</p>
+                        </div>
+                    </div>
+
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-message-square-dots'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>Fanclub Access</h3>
+                            <p>Direct messages from {{ celebrity_user.username }} in fanclub chat</p>
+                        </div>
+                    </div>
+
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-shopping-bag'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>Merch Discounts</h3>
+                            <p>Special discounts on official merchandise</p>
+                        </div>
+                    </div>
+
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class='bx bx-star'></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h3>VIP Badge</h3>
+                            <p>Show off your VIP status with a special badge</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="payment-section">
+                <h2><i class='bx bx-info-circle'></i> Payment Information</h2>
+                <div class="payment-info">
+                    <p><strong>Note:</strong> This is a simulated payment for demo purposes. In a production environment, this would integrate with a real payment processor like Stripe or PayPal.</p>
+                    <p style="margin-top: 1rem;">Your subscription will be active for 30 days from the date of purchase and will automatically expire unless renewed.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <form method="post" class="subscribe-actions">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-subscribe">
+                    <i class='bx bx-crown'></i> Confirm Subscription
+                </button>
+                <a href="{% url 'profile' celebrity_user.username %}" class="btn btn-cancel">
+                    <i class='bx bx-x'></i> Cancel
+                </a>
+            </form>
+
+            <!-- Terms -->
+            <div class="terms">
+                By subscribing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

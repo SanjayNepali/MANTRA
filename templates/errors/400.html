@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Bad Request - MANTRA{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <i class='bx bx-error' style='font-size: 8rem; color: var(--pink);'></i>
+    <h1 class="display-4 mt-4">400</h1>
+    <h3>Bad Request</h3>
+    <p class="text-muted">Sorry, your request could not be processed.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary mt-3">Go Home</a>
+</div>
+{% endblock %}

@@ -1,0 +1,556 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage SubAdmins - MANTRA Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--sage-green);
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--sage-green);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.filters-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.subadmin-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table-header {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--sage-dark) 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 1.5fr;
+    gap: 1rem;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 1.5fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+    transition: background 0.3s;
+}
+
+.table-row:hover {
+    background: var(--sage-light);
+}
+
+.subadmin-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.subadmin-avatar {
+    width: 55px;
+    height: 55px;
+    min-width: 55px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e6e6e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subadmin-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.subadmin-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.subadmin-details h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2e2e2e;
+}
+
+.subadmin-email {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.status-active {
+    background: rgba(135, 169, 107, 0.2);
+    color: var(--sage-green);
+}
+
+.status-inactive {
+    background: rgba(150, 75, 0, 0.2);
+    color: var(--brown);
+}
+
+.performance-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.performance-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sage-green) 0%, var(--sage-dark) 100%);
+    transition: width 0.3s;
+}
+
+.performance-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.btn-view {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.btn-view:hover {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-edit {
+    background: var(--pink-light);
+    color: var(--pink);
+}
+
+.btn-edit:hover {
+    background: var(--pink);
+    color: white;
+}
+
+.btn-delete {
+    background: #FFE4E1;
+    color: #DC3545;
+}
+
+.btn-delete:hover {
+    background: #DC3545;
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+.create-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    
+    background: var(--sage-green);
+    color: white !important;
+
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: background 0.2s ease;
+}
+
+.create-btn i {
+    font-size: 1rem;
+}
+
+.create-btn:hover {
+    background: var(--sage-dark);
+}
+
+@media (max-width: 968px) {
+    .table-header, .table-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .table-header {
+        display: none;
+    }
+    
+    .table-row {
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">SubAdmin Management</h1>
+            <p style="color: var(--text-muted); margin: 0;">Manage country administrators and their permissions</p>
+        </div>
+        <a href="{% url 'admin_create_subadmin' %}" class="btn btn-primary">
+            <i class='bx bx-plus'></i> Create SubAdmin
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total SubAdmins</div>
+            <div class="stat-value">{{ total_subadmins }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active SubAdmins</div>
+            <div class="stat-value">{{ active_subadmins }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Inactive</div>
+            <div class="stat-value">{{ total_subadmins|add:"-"|add:active_subadmins }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Countries Managed</div>
+            <div class="stat-value">{{ subadmins|length|default:0 }}</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="GET" class="filter-form">
+            <div class="form-group">
+                <label class="form-label">Search</label>
+                <input type="text" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="Search by name or email..."
+                       value="{{ search_query }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Country</label>
+                <input type="text"
+                       name="region"
+                       class="form-control"
+                       placeholder="Filter by country"
+                       value="{{ region_filter }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class='bx bx-search'></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- SubAdmins Table -->
+    <div class="subadmin-table">
+        <div class="table-header">
+            <div>SubAdmin</div>
+            <div>Primary Country</div>
+            <div>Assigned Countries</div>
+            <div>Status</div>
+            <div>Performance</div>
+            <div>Actions</div>
+        </div>
+
+        {% for subadmin in subadmins %}
+        <div class="table-row">
+            <div class="subadmin-info">
+                <div class="subadmin-avatar">
+                    {% if subadmin.profile_picture %}
+                        <img src="{{ subadmin.profile_picture.url }}" alt="{{ subadmin.username }}">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" alt="{{ subadmin.username }}">
+                    {% endif %}
+                </div>
+
+                <div class="subadmin-details">
+                    <h4>{{ subadmin.get_full_name }}</h4>
+                    <div class="subadmin-email">@{{ subadmin.username }} • {{ subadmin.email }}</div>
+                </div>
+            </div>
+            <div>
+                <strong>{{ subadmin.subadmin_profile.region }}</strong>
+            </div>
+
+            <div>
+                <small>{{ subadmin.subadmin_profile.assigned_areas|length }} areas</small>
+            </div>
+
+            <div>
+                {% if subadmin.is_active %}
+                <span class="status-badge status-active">Active</span>
+                {% else %}
+                <span class="status-badge status-inactive">Inactive</span>
+                {% endif %}
+            </div>
+
+            <div>
+                {% if subadmin.performance %}
+                <div class="performance-bar">
+                    <div class="performance-fill" style="width: {{ subadmin.performance.accuracy_rate }}%"></div>
+                </div>
+                <div class="performance-text">
+                    {{ subadmin.performance.total_reports_handled }} reports handled
+                </div>
+                {% else %}
+                <small style="color: var(--text-muted);">No data</small>
+                {% endif %}
+            </div>
+
+            <div class="actions-cell">
+                <a href="{% url 'admin_subadmin_performance' subadmin.id %}" 
+                   class="btn-icon btn-view"
+                   title="View Performance">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                </a>
+                <a href="{% url 'admin_edit_subadmin' subadmin.id %}" 
+                   class="btn-icon btn-edit"
+                   title="Edit SubAdmin">
+                    <i class='bx bx-edit'></i>
+                </a>
+                <button onclick="toggleStatus('{{ subadmin.id }}')" 
+                        class="btn-icon {% if subadmin.is_active %}btn-delete{% else %}btn-view{% endif %}"
+                        title="{% if subadmin.is_active %}Deactivate{% else %}Activate{% endif %}">
+                    <i class='bx {% if subadmin.is_active %}bx-x{% else %}bx-check{% endif %}'></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class='bx bx-user-x'></i>
+            <h3>No SubAdmins Found</h3>
+            <p style="color: var(--text-muted);">
+                {% if search_query or status_filter or region_filter %}
+                No SubAdmins match your filters. Try adjusting your search criteria.
+                {% else %}
+                Get started by creating your first SubAdmin.
+                {% endif %}
+            </p>
+
+            {% if not search_query and not status_filter %}
+            <a href="{% url 'admin_create_subadmin' %}" class="create-btn">
+                <i class='bx bx-plus'></i> Create First SubAdmin
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+    <!-- Pagination -->
+    {% if subadmins.has_other_pages %}
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if subadmins.has_previous %}
+        <a href="?page={{ subadmins.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&region={{ region_filter }}" 
+           class="btn btn-outline-primary">
+            <i class='bx bx-chevron-left'></i> Previous
+        </a>
+        {% endif %}
+        
+        <span style="margin: 0 1rem; color: var(--text-muted);">
+            Page {{ subadmins.number }} of {{ subadmins.paginator.num_pages }}
+        </span>
+        
+        {% if subadmins.has_next %}
+        <a href="?page={{ subadmins.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&region={{ region_filter }}" 
+           class="btn btn-outline-primary">
+            Next <i class='bx bx-chevron-right'></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleStatus(subadminId) {
+    if (confirm('Are you sure you want to change this SubAdmin\'s status?')) {
+        fetch(`/admin-dashboard/subadmins/${subadminId}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showToast(data.message, 'success');
+                // Reload after a short delay to show the toast
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update status. Please try again.');
+        });
+    }
+}
+
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.custom-toast');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `custom-toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class='bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'}'></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add some basic styles
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+        color: ${type === 'success' ? '#155724' : '#721c24'};
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 300px;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Auto-submit filter form on select change
+document.querySelectorAll('.filter-form select').forEach(select => {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+{% endblock %}

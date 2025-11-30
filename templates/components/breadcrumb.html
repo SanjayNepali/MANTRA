@@ -1,0 +1,333 @@
+{% load static %}
+
+<!-- Breadcrumb Component -->
+<nav aria-label="breadcrumb" class="breadcrumb-wrapper">
+    <ol class="breadcrumb">
+        <!-- Home Link (Always Present) -->
+        <li class="breadcrumb-item">
+            <a href="{% url 'home' %}">
+                <i class='bx bx-home-alt'></i>
+                {% if show_home_text|default:True %}
+                <span>Home</span>
+                {% endif %}
+            </a>
+        </li>
+
+        <!-- Dynamic Breadcrumb Items -->
+        {% for item in breadcrumb_items %}
+            {% if forloop.last %}
+                <!-- Active/Current Page -->
+                <li class="breadcrumb-item active" aria-current="page">
+                    {% if item.icon %}
+                    <i class='bx {{ item.icon }}'></i>
+                    {% endif %}
+                    {{ item.label }}
+                </li>
+            {% else %}
+                <!-- Linked Item -->
+                <li class="breadcrumb-item">
+                    <a href="{{ item.url }}">
+                        {% if item.icon %}
+                        <i class='bx {{ item.icon }}'></i>
+                        {% endif %}
+                        {{ item.label }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+
+    {% if show_actions %}
+    <div class="breadcrumb-actions">
+        {% block breadcrumb_actions %}
+            <!-- Custom actions can be added here -->
+        {% endblock %}
+    </div>
+    {% endif %}
+</nav>
+
+<style>
+/* Breadcrumb Wrapper */
+.breadcrumb-wrapper {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    list-style: none;
+}
+
+/* Breadcrumb Item */
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.breadcrumb-item a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--pink);
+    background: #fff5f7;
+}
+
+.breadcrumb-item i {
+    font-size: 1.1rem;
+}
+
+/* Active/Current Item */
+.breadcrumb-item.active {
+    color: var(--brown);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Breadcrumb Separator */
+.breadcrumb-item + .breadcrumb-item::before {
+    content: '/';
+    padding: 0 0.75rem;
+    color: #d1d5db;
+    font-weight: 400;
+}
+
+/* Alternative Separator Styles */
+.breadcrumb.separator-arrow .breadcrumb-item + .breadcrumb-item::before {
+    content: '\f142';
+    font-family: 'boxicons';
+    font-size: 1.25rem;
+}
+
+.breadcrumb.separator-chevron .breadcrumb-item + .breadcrumb-item::before {
+    content: '\ea5b';
+    font-family: 'boxicons';
+    font-size: 1rem;
+}
+
+.breadcrumb.separator-dot .breadcrumb-item + .breadcrumb-item::before {
+    content: '•';
+    font-size: 1.5rem;
+}
+
+/* Breadcrumb Actions */
+.breadcrumb-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.breadcrumb-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Compact Variant */
+.breadcrumb-wrapper.compact {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-wrapper.compact .breadcrumb-item {
+    font-size: 0.875rem;
+}
+
+/* Transparent Variant */
+.breadcrumb-wrapper.transparent {
+    background: transparent;
+    box-shadow: none;
+    padding: 0.5rem 0;
+}
+
+/* Sticky Breadcrumb */
+.breadcrumb-wrapper.sticky {
+    position: sticky;
+    top: 70px; /* Adjust based on navbar height */
+    z-index: 100;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Mobile Responsive Breadcrumb */
+@media (max-width: 768px) {
+    .breadcrumb-wrapper {
+        padding: 0.75rem 1rem;
+    }
+
+    .breadcrumb-item {
+        font-size: 0.875rem;
+    }
+
+    /* Hide intermediate items on mobile, show only first and last */
+    .breadcrumb.mobile-compact .breadcrumb-item:not(:first-child):not(:last-child) {
+        display: none;
+    }
+
+    .breadcrumb.mobile-compact .breadcrumb-item:nth-last-child(2)::before {
+        content: '...';
+        padding: 0 0.5rem;
+    }
+
+    /* Hide icon text on very small screens */
+    .breadcrumb-item a span {
+        display: inline;
+    }
+}
+
+@media (max-width: 576px) {
+    .breadcrumb-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .breadcrumb-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* Even more compact on small screens */
+    .breadcrumb-item + .breadcrumb-item::before {
+        padding: 0 0.5rem;
+    }
+
+    /* Hide "Home" text, keep icon only */
+    .breadcrumb-item:first-child a span {
+        display: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .breadcrumb-wrapper {
+        box-shadow: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .breadcrumb-actions {
+        display: none;
+    }
+}
+
+/* Dark Mode Support (if implemented) */
+@media (prefers-color-scheme: dark) {
+    .breadcrumb-wrapper {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .breadcrumb-item a {
+        color: #d1d5db;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--pink);
+        background: rgba(255, 182, 193, 0.1);
+    }
+
+    .breadcrumb-item.active {
+        color: white;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: #6b7280;
+    }
+}
+
+/* Accessibility */
+.breadcrumb-item a:focus {
+    outline: 2px solid var(--pink);
+    outline-offset: 2px;
+}
+
+/* Animation */
+.breadcrumb-item {
+    animation: breadcrumbFadeIn 0.3s ease forwards;
+    opacity: 0;
+}
+
+.breadcrumb-item:nth-child(1) { animation-delay: 0.05s; }
+.breadcrumb-item:nth-child(2) { animation-delay: 0.1s; }
+.breadcrumb-item:nth-child(3) { animation-delay: 0.15s; }
+.breadcrumb-item:nth-child(4) { animation-delay: 0.2s; }
+.breadcrumb-item:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes breadcrumbFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>
+
+<script>
+// Breadcrumb Helper Functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Truncate long breadcrumb labels
+    function truncateBreadcrumbs() {
+        const items = document.querySelectorAll('.breadcrumb-item');
+        const maxWidth = window.innerWidth < 768 ? 100 : 200;
+
+        items.forEach(item => {
+            const link = item.querySelector('a, span');
+            if (link && link.offsetWidth > maxWidth) {
+                const text = link.textContent;
+                const truncated = text.substring(0, 20) + '...';
+                link.setAttribute('title', text);
+                link.textContent = truncated;
+            }
+        });
+    }
+
+    // Initialize on load
+    truncateBreadcrumbs();
+
+    // Re-check on resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(truncateBreadcrumbs, 250);
+    });
+
+    // Add keyboard navigation
+    const breadcrumbLinks = document.querySelectorAll('.breadcrumb-item a');
+    breadcrumbLinks.forEach((link, index) => {
+        link.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && breadcrumbLinks[index + 1]) {
+                e.preventDefault();
+                breadcrumbLinks[index + 1].focus();
+            } else if (e.key === 'ArrowLeft' && breadcrumbLinks[index - 1]) {
+                e.preventDefault();
+                breadcrumbLinks[index - 1].focus();
+            }
+        });
+    });
+});
+</script>

@@ -1,0 +1,726 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feed - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.feed-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 250px 1fr 300px;
+    gap: 2rem;
+}
+
+/* Left Sidebar - Filters */
+.filters-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.filter-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.filter-card h3 {
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.filter-item {
+    margin-bottom: 0.75rem;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.filter-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.filter-checkbox label {
+    cursor: pointer;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.content-warning-toggle {
+    background: var(--pink-light);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toggle-switch label {
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Main Feed */
+.feed-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feed-header {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+}
+
+.feed-header h1 {
+    margin: 0 0 0.5rem 0;
+    color: white;
+}
+
+.feed-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.feed-tab {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.feed-tab:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.feed-tab.active {
+    background: white;
+    color: var(--pink);
+}
+
+/* Post Card */
+.post-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.post-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.post-card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.author-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--pink-light);
+}
+
+.author-details h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.author-details small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.post-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.post-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-exclusive {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+}
+
+.badge-merch {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.badge-event {
+    background: var(--pink-light);
+    color: var(--pink);
+}
+
+.badge-announcement {
+    background: var(--sage-green);
+    color: white;
+}
+
+.post-content {
+    padding: 0 1.5rem 1rem;
+}
+
+.post-text {
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.post-media {
+    margin-top: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.post-media img,
+.post-media video {
+    width: 100%;
+    display: block;
+}
+
+.content-warning {
+    background: #FFF3CD;
+    border: 2px solid #FFC107;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.content-warning h4 {
+    margin: 0 0 0.5rem 0;
+    color: #856404;
+}
+
+.content-warning p {
+    margin: 0 0 1rem 0;
+    color: #856404;
+}
+
+.post-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.action-btn.liked {
+    color: var(--pink);
+}
+
+.action-btn i {
+    font-size: 1.3rem;
+}
+
+/* Right Sidebar */
+.trending-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.trending-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.trending-card h3 {
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    color: var(--brown);
+}
+
+.trending-tag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s;
+}
+
+.trending-tag:last-child {
+    border-bottom: none;
+}
+
+.trending-tag:hover {
+    padding-left: 0.5rem;
+    color: var(--pink);
+}
+
+.tag-name {
+    font-weight: 600;
+}
+
+.tag-count {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+    .feed-container {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar,
+    .trending-sidebar {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feed-container">
+    <!-- Left Sidebar - Filters -->
+    <aside class="filters-sidebar">
+        <!-- Content Warning Toggle -->
+        <div class="content-warning-toggle">
+            <div class="toggle-switch">
+                <label for="hideWarnings">Hide Warnings</label>
+                <input type="checkbox" id="hideWarnings" onchange="toggleWarnings()">
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 0 0;">
+                Automatically show flagged content
+            </p>
+        </div>
+
+        <!-- Post Type Filter -->
+        <div class="filter-card">
+            <h3><i class='bx bx-filter'></i> Post Types</h3>
+            <ul class="filter-list">
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_all" name="post_type" value="all" checked onchange="filterPosts()">
+                        <label for="filter_all">All Posts</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_regular" name="post_type" value="regular" onchange="filterPosts()">
+                        <label for="filter_regular">Regular</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_exclusive" name="post_type" value="exclusive" onchange="filterPosts()">
+                        <label for="filter_exclusive">Exclusive</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_merch" name="post_type" value="merch" onchange="filterPosts()">
+                        <label for="filter_merch">Merchandise</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_event" name="post_type" value="event" onchange="filterPosts()">
+                        <label for="filter_event">Events</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_announcement" name="post_type" value="announcement" onchange="filterPosts()">
+                        <label for="filter_announcement">Announcements</label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Content Filter -->
+        <div class="filter-card">
+            <h3><i class='bx bx-shield'></i> Content Filter</h3>
+            <ul class="filter-list">
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_verified" name="content_filter" value="verified" onchange="filterPosts()">
+                        <label for="filter_verified">Verified Only</label>
+                    </div>
+                </li>
+                <li class="filter-item">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filter_following" name="content_filter" value="following" onchange="filterPosts()">
+                        <label for="filter_following">Following</label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Feed -->
+    <main class="feed-main">
+        <div class="feed-header">
+            <h1>Your Feed</h1>
+            <p style="margin: 0; opacity: 0.9;">Discover content from celebrities you follow</p>
+            <div class="feed-tabs">
+                <button class="feed-tab active" onclick="switchFeed('all')">For You</button>
+                <button class="feed-tab" onclick="switchFeed('following')">Following</button>
+                <button class="feed-tab" onclick="switchFeed('trending')">Trending</button>
+                <button class="feed-tab" onclick="switchFeed('exclusive')">Exclusive</button>
+            </div>
+        </div>
+
+        <!-- Posts -->
+        <div id="postsContainer">
+            {% for post in posts %}
+            <article class="post-card" data-post-type="{{ post.post_type }}" data-verified="{{ post.author.is_verified }}">
+                <div class="post-card-header">
+                    <div class="author-info">
+                        {% if post.author.profile_picture %}
+                        <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.username }}" class="author-avatar">
+                        {% else %}
+                        <div class="author-avatar" style="background: var(--pink-light); display: flex; align-items: center; justify-content: center;">
+                            <i class='bx bx-user' style="color: var(--pink);"></i>
+                        </div>
+                        {% endif %}
+                        <div class="author-details">
+                            <h5>
+                                <a href="{% url 'profile' post.author.username %}" style="text-decoration: none; color: inherit;">
+                                    {{ post.author.get_full_name|default:post.author.username }}
+                                </a>
+                                {% if post.author.is_verified %}
+                                <i class='bx bxs-badge-check' style="color: var(--sage-green);"></i>
+                                {% endif %}
+                            </h5>
+                            <small>{{ post.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    <div class="post-badges">
+                        {% if post.is_exclusive %}
+                        <span class="post-badge badge-exclusive">
+                            <i class='bx bxs-crown'></i> Exclusive
+                        </span>
+                        {% endif %}
+                        {% if post.post_type == 'merch' %}
+                        <span class="post-badge badge-merch">
+                            <i class='bx bx-shopping-bag'></i> Merch
+                        </span>
+                        {% elif post.post_type == 'event' %}
+                        <span class="post-badge badge-event">
+                            <i class='bx bx-calendar'></i> Event
+                        </span>
+                        {% elif post.post_type == 'announcement' %}
+                        <span class="post-badge badge-announcement">
+                            <i class='bx bx-megaphone'></i> Announcement
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="post-content">
+                    {% if post.has_content_warning %}
+                    <div class="content-warning" id="warning-{{ post.id }}">
+                        <h4><i class='bx bx-error-circle'></i> Content Warning</h4>
+                        <p>This post may contain sensitive content</p>
+                        <button class="btn btn-primary" onclick="showContent('{{ post.id }}')">Show Content</button>
+                    </div>
+                    <div id="content-{{ post.id }}" style="display: none;">
+                    {% endif %}
+
+                        <div class="post-text">{{ post.content }}</div>
+
+                        {% if post.image %}
+                        <div class="post-media">
+                            <img src="{{ post.image.url }}" alt="Post image">
+                        </div>
+                        {% endif %}
+
+                        {% if post.video %}
+                        <div class="post-media">
+                            <video controls>
+                                <source src="{{ post.video.url }}" type="video/mp4">
+                            </video>
+                        </div>
+                        {% endif %}
+
+                        {% if post.tags %}
+                        <div style="margin-top: 1rem;">
+                            {% for tag in post.tags %}
+                            <a href="?tag={{ tag }}" style="color: var(--pink); text-decoration: none; margin-right: 0.5rem;">#{{ tag }}</a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    {% if post.has_content_warning %}
+                    </div>
+                    {% endif %}
+
+                    <!-- AI Analysis Indicators -->
+                    {% if post.toxicity_score and post.toxicity_score > 0.3 %}
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: {% if post.toxicity_score > 0.7 %}#fff5f5{% elif post.toxicity_score > 0.5 %}#fff8f0{% else %}#fffbf0{% endif %}; border-left: 4px solid {% if post.toxicity_score > 0.7 %}#dc3545{% elif post.toxicity_score > 0.5 %}#ff9800{% else %}#ffc107{% endif %}; border-radius: 8px; font-size: 0.85rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: {% if post.toxicity_score > 0.7 %}#721c24{% elif post.toxicity_score > 0.5 %}#8a2c0d{% else %}#856404{% endif %};">
+                            <i class='bx bx-error-circle'></i>
+                            <strong>AI Detection:</strong>
+                            {% if post.toxicity_score > 0.7 %}
+                            High toxicity detected in this content
+                            {% elif post.toxicity_score > 0.5 %}
+                            Moderate toxicity detected in this content
+                            {% else %}
+                            Mild toxicity detected in this content
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="post-actions">
+                    <button class="action-btn {% if post.user_has_liked %}liked{% endif %}" onclick="toggleLike('{{ post.id }}')">
+                        <i class='bx {% if post.user_has_liked %}bxs-heart{% else %}bx-heart{% endif %}'></i>
+                        <span id="likes-{{ post.id }}">{{ post.likes_count }}</span>
+                    </button>
+                    <a href="{% url 'post_detail' post.id %}" class="action-btn">
+                        <i class='bx bx-comment'></i>
+                        <span>{{ post.comments_count }}</span>
+                    </a>
+                    <button class="action-btn" onclick="sharePost('{{ post.id }}')">
+                        <i class='bx bx-share-alt'></i>
+                        <span>Share</span>
+                    </button>
+                    <button class="action-btn" onclick="savePost('{{ post.id }}')">
+                        <i class='bx bx-bookmark'></i>
+                    </button>
+                </div>
+            </article>
+            {% empty %}
+            <div style="text-align: center; padding: 3rem;">
+                <i class='bx bx-ghost' style="font-size: 4rem; color: var(--text-muted);"></i>
+                <p style="color: var(--text-muted); margin-top: 1rem;">No posts to show. Follow some celebrities to see their content!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Load More -->
+        {% if posts.has_next %}
+        <button class="btn btn-primary" onclick="loadMore()" style="width: 100%;">
+            Load More Posts
+        </button>
+        {% endif %}
+    </main>
+
+    <!-- Right Sidebar - Trending -->
+    <aside class="trending-sidebar">
+        <div class="trending-card">
+            <h3><i class='bx bx-trending-up'></i> Trending Tags</h3>
+            {% for tag in trending_tags %}
+            <a href="?tag={{ tag.name }}" class="trending-tag">
+                <span class="tag-name">#{{ tag.name }}</span>
+                <span class="tag-count">{{ tag.count }} posts</span>
+            </a>
+            {% empty %}
+            <p style="color: var(--text-muted); text-align: center;">No trending tags</p>
+            {% endfor %}
+        </div>
+
+        <div class="trending-card">
+            <h3><i class='bx bx-user-plus'></i> Suggested</h3>
+            {% for celeb in suggested_celebrities %}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0;">
+                {% if celeb.profile_picture %}
+                <img src="{{ celeb.profile_picture.url }}" alt="{{ celeb.username }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                {% endif %}
+                <div style="flex: 1;">
+                    <strong style="font-size: 0.9rem;">{{ celeb.username }}</strong>
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">{{ celeb.followers_count }} followers</p>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="followUser('{{ celeb.username }}')">Follow</button>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+</div>
+
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+function toggleWarnings() {
+    const hideWarnings = document.getElementById('hideWarnings').checked;
+    if (hideWarnings) {
+        document.querySelectorAll('.content-warning').forEach(warning => {
+            const postId = warning.id.replace('warning-', '');
+            showContent(postId);
+        });
+    }
+}
+
+function showContent(postId) {
+    document.getElementById('warning-' + postId).style.display = 'none';
+    document.getElementById('content-' + postId).style.display = 'block';
+}
+
+function filterPosts() {
+    const cards = document.querySelectorAll('.post-card');
+    const typeFilters = Array.from(document.querySelectorAll('input[name="post_type"]:checked')).map(cb => cb.value);
+    const contentFilters = Array.from(document.querySelectorAll('input[name="content_filter"]:checked')).map(cb => cb.value);
+
+    cards.forEach(card => {
+        let show = true;
+
+        // Type filter
+        if (!typeFilters.includes('all') && typeFilters.length > 0) {
+            const postType = card.dataset.postType;
+            if (!typeFilters.includes(postType)) {
+                show = false;
+            }
+        }
+
+        // Verified filter
+        if (contentFilters.includes('verified')) {
+            if (card.dataset.verified !== 'True') {
+                show = false;
+            }
+        }
+
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function switchFeed(feedType) {
+    // Update tabs
+    document.querySelectorAll('.feed-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Reload with filter
+    window.location.href = `?feed=${feedType}`;
+}
+
+function toggleLike(postId) {
+    fetch(`/posts/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const likesSpan = document.getElementById('likes-' + postId);
+        likesSpan.textContent = data.likes_count;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function sharePost(postId) {
+    const url = window.location.origin + '/posts/' + postId + '/';
+    navigator.clipboard.writeText(url).then(() => {
+        alert('Link copied to clipboard!');
+    });
+}
+
+function savePost(postId) {
+    fetch(`/posts/${postId}/save/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function followUser(username) {
+    fetch(`/accounts/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Following ' + username);
+        location.reload();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function loadMore() {
+    // Implement pagination
+    console.log('Load more posts');
+}
+</script>
+{% endblock %}

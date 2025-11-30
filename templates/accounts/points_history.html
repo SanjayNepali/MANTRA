@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Points History - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Points History</h2>
+    <div class="card">
+        <div class="card-header">
+            <h5>Current Balance: {{ user.points }} Points</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Points</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in points_history %}
+                        <tr>
+                            <td>{{ transaction.created_at|date:"M d, Y" }}</td>
+                            <td>{{ transaction.description }}</td>
+                            <td>
+                                {% if transaction.points > 0 %}
+                                    <span class="text-success">+{{ transaction.points }}</span>
+                                {% else %}
+                                    <span class="text-danger">{{ transaction.points }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.transaction_type }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No points history yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

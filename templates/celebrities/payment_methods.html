@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Payment Methods - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Payment Methods</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>eSewa</h5>
+                </div>
+                <div class="card-body">
+                    {% if esewa_qr %}
+                        <img src="{{ esewa_qr }}" class="img-fluid mb-3" alt="eSewa QR">
+                        <button class="btn btn-warning btn-sm">Update QR Code</button>
+                    {% else %}
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_method" value="esewa">
+                            <div class="mb-3">
+                                <label class="form-label">Upload eSewa QR Code</label>
+                                <input type="file" class="form-control" name="qr_code" accept="image/*" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Khalti</h5>
+                </div>
+                <div class="card-body">
+                    {% if khalti_qr %}
+                        <img src="{{ khalti_qr }}" class="img-fluid mb-3" alt="Khalti QR">
+                        <button class="btn btn-warning btn-sm">Update QR Code</button>
+                    {% else %}
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_method" value="khalti">
+                            <div class="mb-3">
+                                <label class="form-label">Upload Khalti QR Code</label>
+                                <input type="file" class="form-control" name="qr_code" accept="image/*" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

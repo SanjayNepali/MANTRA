@@ -1,0 +1,257 @@
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Celebrity Dashboard - MANTRA{% endblock %}
+
+{% block content %}
+<div class="celebrity-dashboard-container">
+    <!-- Welcome Section -->
+    <div class="dashboard-welcome">
+        <div class="welcome-content">
+            <h1>Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+            <p>Your celebrity command center</p>
+        </div>
+        <div class="welcome-stats">
+            <div class="stat-pill">
+                <i class='bx bx-user'></i>
+                <span>{{ total_followers|default:0 }} Followers</span>
+            </div>
+            <div class="stat-pill">
+                <i class='bx bx-trending-up'></i>
+                <span>{{ engagement_rate|default:0 }}% Engagement</span>
+            </div>
+            <div class="stat-pill">
+                <i class='bx bx-dollar-circle'></i>
+                <span>NPR {{ total_revenue|default:0 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'create_post' %}" class="action-card">
+            <i class='bx bxs-edit'></i>
+            <span>Create Post</span>
+        </a>
+        <a href="{% url 'create_event' %}" class="action-card">
+            <i class='bx bx-calendar-event'></i>
+            <span>New Event</span>
+        </a>
+        <a href="{% url 'celebrity_analytics' %}" class="action-card">
+            <i class='bx bx-bar-chart'></i>
+            <span>View Analytics</span>
+        </a>
+        <a href="{% url 'payment_history' %}" class="action-card">
+            <i class='bx bx-wallet'></i>
+            <span>Payments</span>
+        </a>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Left Column: Main Content -->
+        <div class="dashboard-main">
+            <!-- Stats Overview -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class='bx bx-trending-up'></i> Performance Overview</h2>
+                    <a href="{% url 'celebrity_analytics' %}" class="btn-link">View Details</a>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon followers">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ total_followers|default:0 }}</h3>
+                            <p>Total Followers</p>
+                            <span class="stat-change positive">+{{ new_followers_this_week|default:0 }} this week</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon views">
+                            <i class='bx bx-show'></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ total_views|default:0 }}</h3>
+                            <p>Profile Views</p>
+                            <span class="stat-change">Last 30 days</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon engagement">
+                            <i class='bx bx-heart'></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ total_likes|default:0 }}</h3>
+                            <p>Total Likes</p>
+                            <span class="stat-change">All time</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon posts">
+                            <i class='bx bx-news'></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ total_posts|default:0 }}</h3>
+                            <p>Total Posts</p>
+                            <span class="stat-change">Published</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class='bx bx-news'></i> Recent Posts</h2>
+                    <a href="{% url 'create_post' %}" class="btn-link">Create New</a>
+                </div>
+
+                <div class="posts-list">
+                    {% if recent_posts %}
+                        {% for post in recent_posts %}
+                        <div class="post-item">
+                            <div class="post-content">
+                                <p>{{ post.content|truncatewords:20 }}</p>
+                                <span class="post-time">{{ post.created_at|timesince }} ago</span>
+                            </div>
+                            <div class="post-stats">
+                                <span><i class='bx bx-heart'></i> {{ post.likes_count|default:0 }}</span>
+                                <span><i class='bx bx-comment'></i> {{ post.comments_count|default:0 }}</span>
+                                <span><i class='bx bx-share'></i> {{ post.shares_count|default:0 }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-news'></i>
+                            <p>No posts yet! Share your first post with your fans.</p>
+                            <a href="{% url 'create_post' %}" class="btn btn-primary">
+                                <i class='bx bx-plus'></i> Create Post
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class='bx bx-calendar'></i> Upcoming Events</h2>
+                    <a href="{% url 'event_create' %}" class="btn-link">Create Event</a>
+                </div>
+
+                <div class="events-list">
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events %}
+                        <div class="event-item">
+                            <div class="event-icon">
+                                <i class='bx bx-calendar-event'></i>
+                            </div>
+                            <div class="event-info">
+                                <h4>{{ event.title }}</h4>
+                                <p>{{ event.start_datetime|date:"M d, Y • g:i A" }}</p>
+                                <span class="event-attendees">{{ event.registered_count|default:0 }} registered</span>
+                            </div>
+                            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-outline">View</a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-calendar-x'></i>
+                            <p>No upcoming events. Create one to engage with your fans!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <div class="dashboard-sidebar">
+            <!-- Revenue Card -->
+            <div class="section-card revenue-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-wallet'></i> Revenue</h3>
+                </div>
+                <div class="revenue-content">
+                    <div class="revenue-total">
+                        <span class="currency">NPR</span>
+                        <h2>{{ total_revenue|default:0 }}</h2>
+                    </div>
+                    <div class="revenue-breakdown">
+                        <div class="revenue-item">
+                            <span>This Month</span>
+                            <strong>NPR {{ revenue_this_month|default:0 }}</strong>
+                        </div>
+                        <div class="revenue-item">
+                            <span>Pending</span>
+                            <strong>NPR {{ pending_revenue|default:0 }}</strong>
+                        </div>
+                    </div>
+                    <a href="{% url 'payment_history' %}" class="btn btn-primary btn-block">
+                        <i class='bx bx-dollar-circle'></i> View Payments
+                    </a>
+                </div>
+            </div>
+
+            <!-- Top Fans -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-star'></i> Top Fans</h3>
+                </div>
+                <div class="fans-list">
+                    {% if top_fans %}
+                        {% for fan in top_fans %}
+                        <div class="fan-item">
+                            <div class="fan-avatar">
+                                {% if fan.profile_picture %}
+                                    <img src="{{ fan.profile_picture.url }}" alt="{{ fan.username }}">
+                                {% else %}
+                                    <div class="avatar-default">{{ fan.username.0|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="fan-info">
+                                <h4>{{ fan.get_full_name|default:fan.username }}</h4>
+                                <p>{{ fan.interaction_count|default:0 }} interactions</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No fan data yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-link'></i> Quick Links</h3>
+                </div>
+                <div class="quick-links-list">
+                    <a href="{% url 'profile' user.username %}">
+                        <i class='bx bx-user'></i> View Profile
+                    </a>
+                    <a href="{% url 'edit_profile' %}">
+                        <i class='bx bx-edit'></i> Edit Profile
+                    </a>
+                    <a href="{% url 'merchandise_list' %}">
+                        <i class='bx bx-shopping-bag'></i> Merchandise
+                    </a>
+                    <a href="{% url 'fanclub_list' %}">
+                        <i class='bx bx-group'></i> Fanclubs
+                    </a>
+                    <a href="{% url 'settings' %}">
+                        <i class='bx bx-cog'></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %} {% endcomment %}

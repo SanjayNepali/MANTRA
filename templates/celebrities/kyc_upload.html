@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}KYC Verification - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>KYC Verification</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class='bx bx-info-circle'></i> Upload your documents for verification to get the verified badge.
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document Type</label>
+                            <select class="form-select" name="document_type" required>
+                                <option value="">Select Document Type</option>
+                                <option value="passport">Passport</option>
+                                <option value="driving_license">Driving License</option>
+                                <option value="national_id">National ID</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document Number</label>
+                            <input type="text" class="form-control" name="document_number" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document Front</label>
+                            <input type="file" class="form-control" name="document_front" accept="image/*,application/pdf" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document Back</label>
+                            <input type="file" class="form-control" name="document_back" accept="image/*,application/pdf">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Selfie with Document</label>
+                            <input type="file" class="form-control" name="selfie" accept="image/*" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Submit for Verification</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

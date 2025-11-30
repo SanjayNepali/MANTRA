@@ -1,0 +1,47 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Inventory Management - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-package'></i> Inventory Management</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.sku }}</td>
+                        <td>{{ item.stock_quantity }}</td>
+                        <td>
+                            {% if item.stock_quantity > 10 %}
+                            <span class="badge bg-success">In Stock</span>
+                            {% elif item.stock_quantity > 0 %}
+                            <span class="badge bg-warning">Low Stock</span>
+                            {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">Update</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

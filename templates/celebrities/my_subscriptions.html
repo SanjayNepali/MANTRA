@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Subscriptions - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.subscriptions-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.subscriptions-header {
+    margin-bottom: 2rem;
+}
+
+.subscriptions-header h1 {
+    margin: 0 0 1rem 0;
+    color: var(--brown);
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.filter-tab:hover {
+    color: var(--sage-green);
+}
+
+.filter-tab.active {
+    color: var(--pink);
+    border-bottom-color: var(--pink);
+}
+
+.subscriptions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.subscription-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.subscription-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.subscription-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.subscription-status.active {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.subscription-status.expired {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.subscription-status.cancelled {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+}
+
+.celebrity-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.celebrity-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.celebrity-details h3 {
+    margin: 0 0 0.25rem 0;
+    color: var(--brown);
+}
+
+.celebrity-details p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.subscription-info {
+    background: var(--bg-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--brown);
+}
+
+.auto-renew-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--sage-light);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.auto-renew-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    margin: 0;
+    font-weight: 600;
+    color: var(--brown);
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 26px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--sage-green);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.subscription-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.subscription-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 5rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="subscriptions-container">
+    <div class="subscriptions-header">
+        <h1><i class='bx bx-crown'></i> My Subscriptions</h1>
+        <p style="color: var(--text-muted);">Manage your celebrity subscriptions</p>
+    </div>
+
+    <div class="filter-tabs">
+        <a href="?status=active" class="filter-tab {% if status_filter == 'active' %}active{% endif %}">
+            <i class='bx bx-check-circle'></i> Active
+        </a>
+        <a href="?status=expired" class="filter-tab {% if status_filter == 'expired' %}active{% endif %}">
+            <i class='bx bx-time'></i> Expired
+        </a>
+        <a href="?status=cancelled" class="filter-tab {% if status_filter == 'cancelled' %}active{% endif %}">
+            <i class='bx bx-x-circle'></i> Cancelled
+        </a>
+        <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
+            <i class='bx bx-list-ul'></i> All
+        </a>
+    </div>
+
+    {% if subscriptions %}
+    <div class="subscriptions-grid">
+        {% for subscription in subscriptions %}
+        <div class="subscription-card">
+            <span class="subscription-status {{ subscription.status }}">
+                {% if subscription.status == 'active' %}
+                    <i class='bx bx-check-circle'></i> Active
+                {% elif subscription.status == 'expired' %}
+                    <i class='bx bx-time'></i> Expired
+                {% elif subscription.status == 'cancelled' %}
+                    <i class='bx bx-x-circle'></i> Cancelled
+                {% endif %}
+            </span>
+
+            <div class="celebrity-info">
+                {% if subscription.celebrity.user.avatar %}
+                <img src="{{ subscription.celebrity.user.avatar.url }}" alt="{{ subscription.celebrity.user.username }}" class="celebrity-avatar">
+                {% else %}
+                <div class="celebrity-avatar" style="background: var(--pink); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">
+                    {{ subscription.celebrity.user.username|first|upper }}
+                </div>
+                {% endif %}
+                <div class="celebrity-details">
+                    <h3>{{ subscription.celebrity.user.get_full_name|default:subscription.celebrity.user.username }}</h3>
+                    <p>@{{ subscription.celebrity.user.username }}</p>
+                </div>
+            </div>
+
+            <div class="subscription-info">
+                <div class="info-row">
+                    <span class="info-label">Started</span>
+                    <span class="info-value">{{ subscription.created_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">{% if subscription.status == 'active' %}Ends{% else %}Ended{% endif %}</span>
+                    <span class="info-value">{{ subscription.end_date|date:"M d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Amount</span>
+                    <span class="info-value">NPR {{ subscription.amount_paid }}</span>
+                </div>
+            </div>
+
+            {% if subscription.status == 'active' %}
+            <div class="auto-renew-toggle">
+                <label for="auto-renew-{{ subscription.id }}">
+                    <i class='bx bx-sync'></i> Auto-Renew
+                </label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="auto-renew-{{ subscription.id }}" {% if subscription.auto_renew %}checked{% endif %} onchange="toggleAutoRenew({{ subscription.id }}, this)">
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+
+            <div class="subscription-actions">
+                <a href="{% url 'profile' subscription.celebrity.user.username %}" class="btn btn-outline">
+                    <i class='bx bx-user'></i> View Profile
+                </a>
+                <a href="{% url 'cancel_subscription' subscription.id %}" class="btn btn-outline" style="color: #dc3545; border-color: #dc3545;">
+                    <i class='bx bx-x-circle'></i> Cancel
+                </a>
+            </div>
+            {% elif subscription.status == 'expired' or subscription.status == 'cancelled' %}
+            <div class="subscription-actions">
+                <a href="{% url 'renew_subscription' subscription.celebrity.user.id %}" class="btn btn-primary">
+                    <i class='bx bx-refresh'></i> Renew Subscription
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class='bx bx-crown'></i>
+        <p>You don't have any {% if status_filter != 'all' %}{{ status_filter }}{% endif %} subscriptions</p>
+        <a href="{% url 'celebrity_list' %}" class="btn btn-primary">
+            <i class='bx bx-search'></i> Browse Celebrities
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleAutoRenew(subscriptionId, checkbox) {
+    fetch(`/celebrities/subscription/toggle-auto-renew/${subscriptionId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Show success message
+            const message = document.createElement('div');
+            message.style.cssText = 'position: fixed; top: 20px; right: 20px; background: var(--sage-green); color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999;';
+            message.innerHTML = `<i class='bx bx-check-circle'></i> ${data.message}`;
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.3s';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        } else {
+            // Revert checkbox on error
+            checkbox.checked = !checkbox.checked;
+            alert('Error: ' + (data.error || 'Failed to toggle auto-renew'));
+        }
+    })
+    .catch(error => {
+        // Revert checkbox on error
+        checkbox.checked = !checkbox.checked;
+        console.error('Error:', error);
+        alert('Failed to toggle auto-renew. Please try again.');
+    });
+}
+</script>
+{% endblock %}

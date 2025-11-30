@@ -1,0 +1,618 @@
+{% extends 'base.html' %}
+
+{% block title %}Discover Celebrities - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.celebrities-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 10px;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Search and Filters */
+.filters-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    font-size: 1rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+.filter-select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-header .view-all {
+    color: var(--pink);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.section-header .view-all:hover {
+    color: var(--sage-green);
+}
+
+/* Horizontal Scroll Container */
+.scroll-container {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--pink);
+    border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: var(--pink-dark);
+}
+
+/* Celebrity Card */
+.celebrity-card {
+    flex: 0 0 280px;
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.celebrity-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.celebrity-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--pink-light);
+    margin-bottom: 1rem;
+}
+
+.celebrity-avatar-default {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--sage-green));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border: 4px solid var(--pink-light);
+}
+
+.celebrity-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.verified-badge {
+    color: var(--sage-green);
+    font-size: 1.5rem;
+}
+
+.celebrity-username {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.celebrity-category {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--sage-light);
+    color: var(--sage-green);
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.celebrity-stats {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin: 1rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brown);
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.celebrity-rank {
+    font-size: 0.85rem;
+    color: var(--pink);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.follow-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.follow-btn:hover {
+    background: var(--pink-dark);
+    transform: scale(1.05);
+}
+
+/* Main Grid */
+.celebrities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a,
+.pagination span {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--brown);
+    background: white;
+    border: 2px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+.pagination .current {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .celebrities-page {
+        padding: 1rem;
+        padding-top: 90px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    .celebrity-card {
+        flex: 0 0 240px;
+    }
+
+    .celebrities-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="celebrities-page">
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filters-row" id="celebrity-filter-form">
+            <div class="search-box">
+                <input type="text" name="search" placeholder="Search celebrities..." value="{{ search_query|default:'' }}" onkeypress="if(event.key === 'Enter') this.form.submit();">
+            </div>
+
+            <select name="category" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for cat_code, cat_name in categories %}
+                    <option value="{{ cat_code }}" {% if current_category == cat_code %}selected{% endif %}>
+                        {{ cat_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="sort" class="filter-select" onchange="this.form.submit()">
+                <option value="-points" {% if current_sort == '-points' or not current_sort %}selected{% endif %}>Top Rated</option>
+                <option value="-followers" {% if current_sort == '-followers' %}selected{% endif %}>Most Followers</option>
+                <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>Newest</option>
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>A-Z</option>
+            </select>
+
+            <button type="submit" style="padding: 0.75rem 2rem; background: var(--pink); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; transition: all 0.3s;">Search</button>
+        </form>
+    </div>
+
+    <!-- Unverified Celebrities (Admin/SubAdmin only) -->
+    {% if user.is_admin_user and unverified_celebrities %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-time'></i> Pending Verification</h2>
+            <a href="{% url 'admin_kyc_list' %}" class="view-all">View All →</a>
+        </div>
+        <div class="scroll-container">
+            {% for celebrity in unverified_celebrities %}
+                <a href="{% url 'profile' celebrity.username %}" class="celebrity-card">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+                    {% else %}
+                        <div class="celebrity-avatar-default">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+
+                    <h3 class="celebrity-name">
+                        {{ celebrity.get_full_name|default:celebrity.username }}
+                    </h3>
+                    <p class="celebrity-username">@{{ celebrity.username }}</p>
+
+                    <span class="celebrity-category">Unverified</span>
+
+                    <div class="celebrity-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.total_followers|default:0 }}</span>
+                            <span class="stat-label">Followers</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.points|default:0 }}</span>
+                            <span class="stat-label">Points</span>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Celebrities -->
+    {% if top_celebrities %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-trophy'></i> Top Celebrities</h2>
+        </div>
+        <div class="scroll-container">
+            {% for celebrity in top_celebrities %}
+                <a href="{% url 'profile' celebrity.username %}" class="celebrity-card">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+                    {% else %}
+                        <div class="celebrity-avatar-default">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+
+                    <h3 class="celebrity-name">
+                        {{ celebrity.get_full_name|default:celebrity.username }}
+                        {% if celebrity.is_verified %}
+                            <i class='bx bxs-badge-check verified-badge'></i>
+                        {% endif %}
+                    </h3>
+                    <p class="celebrity-username">@{{ celebrity.username }}</p>
+
+                    {% if celebrity.rank %}
+                        <p class="celebrity-rank">{{ celebrity.rank }}</p>
+                    {% endif %}
+
+                    <div class="celebrity-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.total_followers|default:0 }}</span>
+                            <span class="stat-label">Followers</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.points|default:0 }}</span>
+                            <span class="stat-label">Points</span>
+                        </div>
+                    </div>
+
+                    <button class="follow-btn">Follow</button>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Trending Celebrities -->
+    {% if trending_celebrities %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-trending-up'></i> Trending This Month</h2>
+        </div>
+        <div class="scroll-container">
+            {% for celebrity in trending_celebrities %}
+                <a href="{% url 'profile' celebrity.username %}" class="celebrity-card">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+                    {% else %}
+                        <div class="celebrity-avatar-default">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+
+                    <h3 class="celebrity-name">
+                        {{ celebrity.get_full_name|default:celebrity.username }}
+                        {% if celebrity.is_verified %}
+                            <i class='bx bxs-badge-check verified-badge'></i>
+                        {% endif %}
+                    </h3>
+                    <p class="celebrity-username">@{{ celebrity.username }}</p>
+
+                    <span class="celebrity-category">🔥 Trending</span>
+
+                    <div class="celebrity-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.followers_count|default:celebrity.total_followers|default:0 }}</span>
+                            <span class="stat-label">Followers</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.points|default:0 }}</span>
+                            <span class="stat-label">Points</span>
+                        </div>
+                    </div>
+
+                    <button class="follow-btn">Follow</button>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommended Celebrities -->
+    {% if recommended_celebrities %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-star'></i> Recommended for You</h2>
+        </div>
+        <div class="scroll-container">
+            {% for celebrity in recommended_celebrities %}
+                <a href="{% url 'profile' celebrity.username %}" class="celebrity-card">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+                    {% else %}
+                        <div class="celebrity-avatar-default">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+
+                    <h3 class="celebrity-name">
+                        {{ celebrity.get_full_name|default:celebrity.username }}
+                        {% if celebrity.is_verified %}
+                            <i class='bx bxs-badge-check verified-badge'></i>
+                        {% endif %}
+                    </h3>
+                    <p class="celebrity-username">@{{ celebrity.username }}</p>
+
+                    {% if celebrity.celebrity_profile.category %}
+                        <span class="celebrity-category">{{ celebrity.celebrity_profile.get_category_display }}</span>
+                    {% endif %}
+
+                    <div class="celebrity-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.total_followers|default:0 }}</span>
+                            <span class="stat-label">Followers</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ celebrity.points|default:0 }}</span>
+                            <span class="stat-label">Points</span>
+                        </div>
+                    </div>
+
+                    <button class="follow-btn">Follow</button>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Celebrities Grid -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2><i class='bx bx-grid-alt'></i> All Verified Celebrities</h2>
+        </div>
+
+        {% if celebrities %}
+            <div class="celebrities-grid">
+                {% for celebrity in celebrities %}
+                    <a href="{% url 'profile' celebrity.username %}" class="celebrity-card">
+                        {% if celebrity.profile_picture %}
+                            <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+                        {% else %}
+                            <div class="celebrity-avatar-default">{{ celebrity.username.0|upper }}</div>
+                        {% endif %}
+
+                        <h3 class="celebrity-name">
+                            {{ celebrity.get_full_name|default:celebrity.username }}
+                            {% if celebrity.is_verified %}
+                                <i class='bx bxs-badge-check verified-badge'></i>
+                            {% endif %}
+                        </h3>
+                        <p class="celebrity-username">@{{ celebrity.username }}</p>
+
+                        {% if celebrity.celebrity_profile.category %}
+                            <span class="celebrity-category">{{ celebrity.celebrity_profile.get_category_display }}</span>
+                        {% endif %}
+
+                        <div class="celebrity-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">{{ celebrity.total_followers|default:0 }}</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">{{ celebrity.points|default:0 }}</span>
+                                <span class="stat-label">Points</span>
+                            </div>
+                        </div>
+
+                        <button class="follow-btn">Follow</button>
+                    </a>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if celebrities.has_other_pages %}
+            <div class="pagination">
+                {% if celebrities.has_previous %}
+                    <a href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">« First</a>
+                    <a href="?page={{ celebrities.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">‹ Previous</a>
+                {% endif %}
+
+                <span class="current">Page {{ celebrities.number }} of {{ celebrities.paginator.num_pages }}</span>
+
+                {% if celebrities.has_next %}
+                    <a href="?page={{ celebrities.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Next ›</a>
+                    <a href="?page={{ celebrities.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Last »</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class='bx bx-user-x'></i>
+                <p>No celebrities found matching your criteria.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

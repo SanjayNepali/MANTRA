@@ -1,0 +1,584 @@
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Dashboard - MANTRA{% endblock %}
+
+{% block content %}
+<div class="fan-dashboard-container">
+    <!-- Welcome Section -->
+    <div class="dashboard-welcome">
+        <div class="welcome-content">
+            <h1>Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+            <p>Your personalized celebrity fan hub</p>
+        </div>
+        <div class="welcome-stats">
+            <div class="stat-pill">
+                <i class='bx bx-user'></i>
+                <span>{{ total_following }} Following</span>
+            </div>
+            <div class="stat-pill">
+                <i class='bx bx-star'></i>
+                <span>{{ fan_profile.points|default:0 }} Points</span>
+            </div>
+            <div class="stat-pill">
+                <i class='bx bx-trophy'></i>
+                <span>{{ fan_profile.rank|title|default:"Observer" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'celebrity_list' %}" class="action-card">
+            <i class='bx bx-user-check'></i>
+            <span>Discover Celebrities</span>
+        </a>
+        <a href="{% url 'event_list' %}" class="action-card">
+            <i class='bx bx-calendar-event'></i>
+            <span>Browse Events</span>
+        </a>
+        <a href="{% url 'fanclub_list' %}" class="action-card">
+            <i class='bx bx-group'></i>
+            <span>Join Fanclubs</span>
+        </a>
+        <a href="{% url 'merchandise_list' %}" class="action-card">
+            <i class='bx bx-shopping-bag'></i>
+            <span>Shop Merch</span>
+        </a>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Left Column: Feed -->
+        <div class="dashboard-main">
+            <!-- Feed Posts -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class='bx bx-news'></i> Your Feed</h2>
+                    <a href="{% url 'fan_feed' %}" class="btn-link">View All</a>
+                </div>
+
+                <div class="posts-feed">
+                    {% if feed_posts %}
+                        {% for post in feed_posts %}
+                        <div class="feed-post-card">
+                            <div class="post-header">
+                                <div class="post-author">
+                                    {% if post.author.profile_picture %}
+                                        <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.username }}" class="author-avatar">
+                                    {% else %}
+                                        <div class="author-avatar-default">{{ post.author.username.0|upper }}</div>
+                                    {% endif %}
+                                    <div class="author-info">
+                                        <h4>{{ post.author.get_full_name|default:post.author.username }}</h4>
+                                        <span class="post-time">{{ post.created_at|timesince }} ago</span>
+                                    </div>
+                                </div>
+                                {% if post.author.is_verified %}
+                                    <span class="verified-icon"><i class='bx bxs-badge-check'></i></span>
+                                {% endif %}
+                            </div>
+
+                            <div class="post-content">
+                                <p>{{ post.content|truncatewords:30 }}</p>
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" alt="Post image" class="post-image">
+                                {% endif %}
+                            </div>
+
+                            <div class="post-actions">
+                                <button class="action-btn">
+                                    <i class='bx bx-heart'></i>
+                                    <span>{{ post.likes_count }}</span>
+                                </button>
+                                <button class="action-btn">
+                                    <i class='bx bx-comment'></i>
+                                    <span>{{ post.comments_count }}</span>
+                                </button>
+                                <button class="action-btn">
+                                    <i class='bx bx-share'></i>
+                                    <span>{{ post.shares_count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-feed">
+                            <i class='bx bx-news'></i>
+                            <p>No posts yet! Start following celebrities to see their content here.</p>
+                            <a href="{% url 'celebrity_list' %}" class="btn btn-primary">
+                                <i class='bx bx-user-plus'></i> Follow Celebrities
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <div class="dashboard-sidebar">
+            <!-- Upcoming Events -->
+            {% if upcoming_events %}
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-calendar'></i> Upcoming Events</h3>
+                </div>
+                <div class="events-list">
+                    {% for registration in upcoming_events %}
+                    <div class="event-item">
+                        <div class="event-icon">
+                            <i class='bx bx-calendar-event'></i>
+                        </div>
+                        <div class="event-info">
+                            <h4>{{ registration.event.title }}</h4>
+                            <p>{{ registration.event.start_datetime|date:"M d, Y • g:i A" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'event_list' %}" class="btn-link-full">View All Events</a>
+            </div>
+            {% endif %}
+
+            <!-- My Fanclubs -->
+            {% if club_memberships %}
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-group'></i> My Fanclubs</h3>
+                </div>
+                <div class="fanclubs-list">
+                    {% for membership in club_memberships %}
+                    <div class="fanclub-item">
+                        <div class="fanclub-icon">
+                            {% if membership.fanclub.icon %}
+                                <img src="{{ membership.fanclub.icon.url }}" alt="{{ membership.fanclub.name }}">
+                            {% else %}
+                                <div class="fanclub-icon-default">{{ membership.fanclub.name.0|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="fanclub-info">
+                            <h4>{{ membership.fanclub.name }}</h4>
+                            <p>{{ membership.fanclub.members.count }} members</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'fanclub_list' %}" class="btn-link-full">Browse Fanclubs</a>
+            </div>
+            {% endif %}
+
+            <!-- Suggested Celebrities -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class='bx bx-star'></i> Suggested for You</h3>
+                </div>
+                <div class="suggestions-list">
+                    <p class="text-muted">Discover new celebrities to follow</p>
+                    <a href="{% url 'celebrity_list' %}" class="btn btn-primary btn-block">
+                        <i class='bx bx-compass'></i> Explore
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.fan-dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Welcome Section */
+.dashboard-welcome {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.welcome-content h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-content p {
+    opacity: 0.9;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stat-pill {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.stat-pill i {
+    font-size: 1.5rem;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--brown);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.action-card i {
+    font-size: 2rem;
+    color: var(--pink);
+}
+
+.action-card span {
+    font-weight: 600;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.dashboard-main,
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2,
+.section-header h3 {
+    font-size: 1.4rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.section-header h3 {
+    font-size: 1.2rem;
+}
+
+.btn-link {
+    color: var(--pink);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.btn-link:hover {
+    color: var(--sage-green);
+}
+
+.btn-link-full {
+    display: block;
+    text-align: center;
+    color: var(--pink);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+    transition: color 0.3s ease;
+}
+
+.btn-link-full:hover {
+    color: var(--sage-green);
+}
+
+/* Feed Posts */
+.posts-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feed-post-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.feed-post-card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.post-author {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.author-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-avatar-default {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--pink-light);
+    color: var(--pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.author-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--brown);
+}
+
+.post-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.verified-icon {
+    color: var(--sage-green);
+    font-size: 1.5rem;
+}
+
+.post-content p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.post-image {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 1rem;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.post-actions {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    font-size: 1rem;
+}
+
+.action-btn:hover {
+    color: var(--pink);
+}
+
+.action-btn i {
+    font-size: 1.3rem;
+}
+
+/* Empty Feed */
+.empty-feed {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-feed i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+.empty-feed p {
+    margin-bottom: 1.5rem;
+}
+
+/* Events List */
+.events-list,
+.fanclubs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-item,
+.fanclub-item {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.event-item:hover,
+.fanclub-item:hover {
+    background: var(--pink-light);
+}
+
+.event-icon,
+.fanclub-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    background: var(--pink-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.event-icon i {
+    font-size: 1.5rem;
+    color: var(--pink);
+}
+
+.fanclub-icon img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.fanclub-icon-default {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: var(--sage-light);
+    color: var(--sage-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.event-info h4,
+.fanclub-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--brown);
+}
+
+.event-info p,
+.fanclub-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+.suggestions-list {
+    text-align: center;
+}
+
+.suggestions-list p {
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-welcome {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-stats {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-welcome h1 {
+        font-size: 1.5rem;
+    }
+
+    .stat-pill {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %} {% endcomment %}

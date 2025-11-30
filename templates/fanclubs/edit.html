@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ fanclub.name }} - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.form-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--brown);
+}
+
+.form-control, .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.current-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    border: 2px solid #e0e0e0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--pink);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #ff9fb0;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+@media (max-width: 768px) {
+    .edit-container {
+        padding: 0 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="page-header">
+        <h1><i class='bx bx-edit'></i> Edit Fanclub</h1>
+        <p>Update your fanclub information</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Fanclub Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-danger">{{ form.name.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Choose a unique name for your fanclub</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description *</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-danger">{{ form.description.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Describe what your fanclub is about</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.welcome_message.id_for_label }}">Welcome Message</label>
+                {{ form.welcome_message }}
+                {% if form.welcome_message.errors %}
+                    <div class="text-danger">{{ form.welcome_message.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">A message shown to new members</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.icon.id_for_label }}">Fanclub Icon/Profile Picture</label>
+                {% if fanclub.icon %}
+                    <div>
+                        <img src="{{ fanclub.icon.url }}" alt="Current icon" class="current-image">
+                        <p class="help-text">Current icon - upload a new one to replace it</p>
+                    </div>
+                {% endif %}
+                {{ form.icon }}
+                {% if form.icon.errors %}
+                    <div class="text-danger">{{ form.icon.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">This will be displayed as the fanclub profile picture</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.cover_image.id_for_label }}">Cover Image</label>
+                {% if fanclub.cover_image %}
+                    <div>
+                        <img src="{{ fanclub.cover_image.url }}" alt="Current cover" class="current-image" style="max-width: 400px;">
+                        <p class="help-text">Current cover image - upload a new one to replace it</p>
+                    </div>
+                {% endif %}
+                {{ form.cover_image }}
+                {% if form.cover_image.errors %}
+                    <div class="text-danger">{{ form.cover_image.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Banner image for your fanclub</div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.club_type.id_for_label }}">Club Type</label>
+                {{ form.club_type }}
+                {% if form.club_type.errors %}
+                    <div class="text-danger">{{ form.club_type.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-check">
+                {{ form.is_private }}
+                <label for="{{ form.is_private.id_for_label }}">Private Fanclub</label>
+            </div>
+
+            <div class="form-check">
+                {{ form.requires_approval }}
+                <label for="{{ form.requires_approval.id_for_label }}">Require Approval to Join</label>
+            </div>
+
+            <div class="form-check">
+                {{ form.allow_member_posts }}
+                <label for="{{ form.allow_member_posts.id_for_label }}">Allow Members to Post</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class='bx bx-save'></i> Save Changes
+                </button>
+                <a href="{% url 'fanclub_detail' fanclub.slug %}" class="btn btn-secondary">
+                    <i class='bx bx-x'></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

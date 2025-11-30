@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Profile - {{ profile_user.username }} | SubAdmin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .profile-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--sage-green), var(--pink));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+    }
+
+    .profile-info h2 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--sage-green);
+    }
+
+    .stat-card p {
+        margin: 0;
+        color: #666;
+    }
+
+    .section {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section h3 {
+        margin-top: 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .violation-item {
+        padding: 1rem;
+        border-left: 4px solid #dc3545;
+        background: #fff5f5;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+    }
+
+    .violation-item.warning {
+        border-left-color: #ffc107;
+        background: #fffbf0;
+    }
+
+    .report-item {
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--sage-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+        background: var(--pink);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <a href="{% url 'subadmin_users' %}" class="back-btn">
+        <i class='bx bx-arrow-back'></i> Back to User Management
+    </a>
+
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {{ profile_user.username|slice:":1"|upper }}
+        </div>
+        <div class="profile-info">
+            <h2>{{ profile_user.username }}
+                {% if profile_user.is_verified %}
+                <span class="badge badge-success">✓ Verified</span>
+                {% endif %}
+                {% if profile_user.is_banned and profile_user.banned_until %}
+                <span class="badge badge-warning">Suspended</span>
+                {% elif profile_user.is_banned %}
+                <span class="badge badge-danger">Banned</span>
+                {% endif %}
+            </h2>
+            <p><strong>Email:</strong> {{ profile_user.email }}</p>
+            <p><strong>Type:</strong> {{ profile_user.get_user_type_display }}</p>
+            <p><strong>Country:</strong> {{ profile_user.country }}</p>
+            <p><strong>Joined:</strong> {{ profile_user.created_at|date:"F d, Y" }}</p>
+            {% if profile_user.is_banned %}
+            <p style="color: red;"><strong>Ban Reason:</strong> {{ profile_user.ban_reason }}</p>
+            {% if profile_user.banned_until %}
+            <p style="color: orange;"><strong>Banned Until:</strong> {{ profile_user.banned_until|date:"F d, Y H:i" }}</p>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ profile_user.points }}</h3>
+            <p>Points</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ total_posts }}</h3>
+            <p>Total Posts</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ total_comments }}</h3>
+            <p>Total Comments</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ profile_user.warnings_count }}</h3>
+            <p>Warnings</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ total_reports_against }}</h3>
+            <p>Reports Against</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ total_reports_made }}</h3>
+            <p>Reports Made</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3><i class='bx bx-shield-x'></i> Moderation History ({{ violations.count }})</h3>
+        {% if violations %}
+            {% for violation in violations %}
+            <div class="violation-item {% if violation.action_type == 'warning' %}warning{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <strong>{{ violation.get_action_type_display }}</strong>
+                        <p style="margin: 0.5rem 0 0 0;">{{ violation.reason }}</p>
+                        {% if violation.report %}
+                        <small style="color: #666;">Related to report: {{ violation.report.report_type }}</small>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right;">
+                        <small style="color: #666;">{{ violation.created_at|date:"M d, Y H:i" }}</small>
+                        <p style="margin: 0.25rem 0 0 0;"><small>By: {{ violation.performed_by.username }}</small></p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #666; text-align: center; padding: 2rem;">No moderation actions taken against this user.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h3><i class='bx bx-error'></i> Reports Against This User ({{ total_reports_against }})</h3>
+        {% if reports_against %}
+            {% for report in reports_against %}
+            <div class="report-item">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span>
+                        <strong style="margin-left: 0.5rem;">{{ report.get_report_type_display }}</strong>
+                        <p style="margin: 0.5rem 0;">{{ report.description|truncatewords:30 }}</p>
+                        <small style="color: #666;">Reported by: {{ report.reported_by.username }}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <small>{{ report.created_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #666; text-align: center; padding: 2rem;">No reports filed against this user.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h3><i class='bx bx-flag'></i> Reports Made By This User ({{ total_reports_made }})</h3>
+        {% if reports_made %}
+            {% for report in reports_made %}
+            <div class="report-item">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span>
+                        <strong style="margin-left: 0.5rem;">{{ report.get_report_type_display }}</strong>
+                        <p style="margin: 0.5rem 0;">{{ report.description|truncatewords:30 }}</p>
+                        {% if report.target_user %}
+                        <small style="color: #666;">Against: {{ report.target_user.username }}</small>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right;">
+                        <small>{{ report.created_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #666; text-align: center; padding: 2rem;">This user has not made any reports.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h3><i class='bx bx-block'></i> Flagged Posts ({{ flagged_posts.count }})</h3>
+        {% if flagged_posts %}
+            {% for post in flagged_posts %}
+            <div class="report-item">
+                <div>
+                    <strong>{{ post.title|default:"Untitled Post" }}</strong>
+                    <p style="margin: 0.5rem 0;">{{ post.content|truncatewords:50 }}</p>
+                    <small style="color: #666;">Posted: {{ post.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #666; text-align: center; padding: 2rem;">No flagged posts.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

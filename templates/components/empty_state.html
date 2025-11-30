@@ -1,0 +1,67 @@
+<!-- templates/components/empty_state.html -->
+{% load static %}
+
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class='bx {{ icon|default:"bx-package" }}'></i>
+    </div>
+    <h4 class="empty-state-title">{{ title|default:"No content found" }}</h4>
+    <p class="empty-state-message">{{ message|default:"There's nothing to show here yet." }}</p>
+    
+    {% if action_url and action_text %}
+    <div class="empty-state-action">
+        <a href="{{ action_url }}" class="btn btn-primary">
+            {% if action_icon %}<i class='bx {{ action_icon }} me-2'></i>{% endif %}
+            {{ action_text }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.empty-state-icon {
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-icon i {
+    font-size: 4rem;
+    color: var(--sage-green);
+    opacity: 0.3;
+}
+
+.empty-state-title {
+    font-size: 1.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.empty-state-message {
+    color: #999;
+    max-width: 400px;
+    margin: 0 auto 1.5rem;
+    line-height: 1.6;
+}
+
+.empty-state-action {
+    margin-top: 2rem;
+}
+
+.empty-state .btn {
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.empty-state .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+</style>

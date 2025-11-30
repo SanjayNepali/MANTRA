@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Analytics - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Analytics Dashboard</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ total_followers }}</h3>
+                    <p>Total Followers</p>
+                    <small class="text-success">+{{ new_followers_this_week }} this week</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ total_views }}</h3>
+                    <p>Profile Views</p>
+                    <small class="text-muted">Last 30 days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ engagement_rate }}%</h3>
+                    <p>Engagement Rate</p>
+                    <small class="text-info">Average</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>NPR {{ total_revenue }}</h3>
+                    <p>Total Revenue</p>
+                    <small class="text-success">+{{ revenue_this_month }} this month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Follower Growth</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="followerChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top Posts</h5>
+                </div>
+                <div class="card-body">
+                    {% for post in top_posts %}
+                        <div class="mb-2">
+                            <p class="mb-1">{{ post.content|truncatewords:10 }}</p>
+                            <small class="text-muted">
+                                <i class='bx bx-heart'></i> {{ post.likes_count }} 
+                                <i class='bx bx-comment ms-2'></i> {{ post.comments_count }}
+                            </small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('followerChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Followers',
+            data: {{ chart_data|safe }},
+            borderColor: 'rgb(255, 105, 180)',
+            tension: 0.1
+        }]
+    }
+});
+</script>
+{% endblock %}

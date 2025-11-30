@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports Management - SubAdmin | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reports-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .filters-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group button {
+        padding: 0.75rem 2rem;
+        background: var(--sage-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .filter-group button:hover {
+        background: var(--pink);
+    }
+
+    .report-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+
+    .report-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .report-info {
+        flex: 1;
+    }
+
+    .severity-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .severity-critical {
+        background: #FFE4E1;
+        color: #DC3545;
+    }
+
+    .severity-high {
+        background: #FFF3CD;
+        color: #856404;
+    }
+
+    .severity-medium {
+        background: #D1ECF1;
+        color: #0C5460;
+    }
+
+    .severity-low {
+        background: #D4EDDA;
+        color: #155724;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-pending {
+        background: #FFF3CD;
+        color: #856404;
+    }
+
+    .status-reviewing {
+        background: #D1ECF1;
+        color: #0C5460;
+    }
+
+    .status-resolved {
+        background: #D4EDDA;
+        color: #155724;
+    }
+
+    .status-dismissed {
+        background: #E2E3E5;
+        color: #383D41;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .report-meta i {
+        margin-right: 0.25rem;
+    }
+
+    .report-content {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .toxicity-bar {
+        width: 100%;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+
+    .toxicity-fill {
+        height: 100%;
+        transition: width 0.3s;
+    }
+
+    .actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: var(--sage-green);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--sage-dark);
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--sage-green);
+        color: var(--sage-green);
+    }
+
+    .btn-outline:hover {
+        background: var(--sage-green);
+        color: white;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination a {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--brown);
+    }
+
+    .pagination a:hover {
+        background: var(--sage-light);
+    }
+
+    .stats-summary {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+    }
+
+    .stat-item h3 {
+        margin: 0;
+        color: var(--sage-green);
+        font-size: 1.5rem;
+    }
+
+    .stat-item p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem;">
+    <div class="reports-header">
+        <h1><i class='bx bx-flag'></i> Reports Management</h1>
+        <p>Review and moderate reports from your assigned countries</p>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="stats-summary">
+        <div class="stat-item">
+            <h3>{{ total_reports }}</h3>
+            <p>Total Reports</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ reports.paginator.count }}</h3>
+            <p>Filtered Results</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filter-group">
+            <select name="status">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Reviewing</option>
+                <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="dismissed" {% if status_filter == 'dismissed' %}selected{% endif %}>Dismissed</option>
+            </select>
+
+            <select name="type">
+                <option value="all" {% if report_type == 'all' %}selected{% endif %}>All Types</option>
+                <option value="post" {% if report_type == 'post' %}selected{% endif %}>Posts</option>
+                <option value="comment" {% if report_type == 'comment' %}selected{% endif %}>Comments</option>
+                <option value="user" {% if report_type == 'user' %}selected{% endif %}>Users</option>
+                <option value="event" {% if report_type == 'event' %}selected{% endif %}>Events</option>
+                <option value="merchandise" {% if report_type == 'merchandise' %}selected{% endif %}>Merchandise</option>
+            </select>
+
+            <button type="submit">
+                <i class='bx bx-filter'></i> Apply Filters
+            </button>
+        </form>
+    </div>
+
+    <!-- Reports List -->
+    <div class="reports-list">
+        {% if reports %}
+            {% for report in reports %}
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-info">
+                        <h3 style="margin: 0 0 0.5rem 0;">
+                            {{ report.get_report_type_display }} Report #{{ report.id }}
+                        </h3>
+                        <div class="report-meta">
+                            <span><i class='bx bx-user'></i> By: {{ report.reported_by.username }}</span>
+                            {% if report.target_user %}
+                            <span><i class='bx bx-target-lock'></i> Target: {{ report.target_user.username }}</span>
+                            {% endif %}
+                            <span><i class='bx bx-time'></i> {{ report.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="status-badge status-{{ report.status }}">
+                            {{ report.get_status_display }}
+                        </span>
+                        {% if report.severity %}
+                        <span class="severity-badge severity-{{ report.severity|lower }}">
+                            {{ report.severity }} Severity
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="report-content">
+                    <strong>Reason:</strong> {{ report.get_reason_display }}<br>
+                    {% if report.description %}
+                    <strong>Description:</strong> {{ report.description }}
+                    {% endif %}
+                </div>
+
+                {% if report.toxicity_score %}
+                <div>
+                    <small style="color: #6c757d;">Toxicity Score: {{ report.toxicity_score|floatformat:2 }}%</small>
+                    <div class="toxicity-bar">
+                        <div class="toxicity-fill" style="width: {{ report.toxicity_score }}%; background: {% if report.toxicity_score > 75 %}#dc3545{% elif report.toxicity_score > 50 %}#ffc107{% else %}#28a745{% endif %};"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if report.reported_content %}
+                <div class="report-content" style="background: #fff3cd; border-left: 3px solid #ffc107;">
+                    <strong>Reported Content:</strong><br>
+                    {{ report.reported_content }}
+                </div>
+                {% endif %}
+
+                <div class="actions">
+                    <a href="{% url 'subadmin_review_report' report.id %}" class="btn btn-primary">
+                        <i class='bx bx-search-alt'></i> Review Details
+                    </a>
+                    {% if report.status == 'pending' %}
+                    <button class="btn btn-outline quick-assign" data-id="{{ report.id }}">
+                        <i class='bx bx-user-check'></i> Assign to Me
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px;">
+                <i class='bx bx-check-circle' style="font-size: 4rem; color: #28A745;"></i>
+                <h3>No Reports Found</h3>
+                <p style="color: #6c757d;">There are no reports matching your filters.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if reports.has_other_pages %}
+    <div class="pagination">
+        {% if reports.has_previous %}
+        <a href="?page=1&status={{ status_filter }}&type={{ report_type }}">First</a>
+        <a href="?page={{ reports.previous_page_number }}&status={{ status_filter }}&type={{ report_type }}">Previous</a>
+        {% endif %}
+
+        <span style="padding: 0.5rem 1rem;">Page {{ reports.number }} of {{ reports.paginator.num_pages }}</span>
+
+        {% if reports.has_next %}
+        <a href="?page={{ reports.next_page_number }}&status={{ status_filter }}&type={{ report_type }}">Next</a>
+        <a href="?page={{ reports.paginator.num_pages }}&status={{ status_filter }}&type={{ report_type }}">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick assign to reviewer
+    document.querySelectorAll('.quick-assign').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('Assign this report to yourself for review?')) return;
+
+            const reportId = this.dataset.id;
+            handleQuickAction('assign_report', reportId);
+        });
+    });
+
+    function handleQuickAction(action, targetId) {
+        fetch('{% url "subadmin_quick_action" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `action=${action}&target_id=${targetId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred');
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+<!-- templates/errors/403.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>403 - Access Denied - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --sage-green: #87A96B;
+            --brown: #964B00;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #FFF0F5 0%, #E8F5E9 100%);
+        }
+        .error-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-icon {
+            font-size: 8rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 4rem;
+            margin: 0;
+            color: var(--brown);
+        }
+        h2 {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: #666;
+        }
+        p {
+            color: #999;
+            margin-bottom: 2rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--sage-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #73915A;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <i class='bx bx-shield-x error-icon'></i>
+        <h1>403</h1>
+        <h2>Access Denied</h2>
+        <p>Sorry, you don't have permission to access this page.</p>
+        <a href="/" class="btn"><i class='bx bx-home'></i> Go Home</a>
+    </div>
+</body>
+</html>

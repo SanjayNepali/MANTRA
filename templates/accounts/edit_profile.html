@@ -1,0 +1,546 @@
+<!-- templates/accounts/edit_profile.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-profile-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0rem 0rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.edit-form-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Image Upload Section */
+.image-uploads {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--pink-light);
+}
+
+.upload-box {
+    text-align: center;
+}
+
+.upload-label {
+    display: block;
+    font-weight: 600;
+    color: var(--brown);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.image-preview-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.image-preview {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--pink-light);
+    margin: 0 auto;
+    display: block;
+    background: var(--pink-light);
+}
+
+.cover-preview {
+    width: 100%;
+    height: 140px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 4px solid var(--sage-light);
+    background: var(--sage-light);
+}
+
+.upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.upload-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+}
+
+.upload-button i {
+    font-size: 1.2rem;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 2.5rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--pink-light);
+}
+
+.section-title h3 {
+    font-size: 1.4rem;
+    color: var(--brown);
+    margin: 0;
+}
+
+.section-title i {
+    font-size: 1.6rem;
+    color: var(--pink);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 0.875rem 1.125rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--text-primary);
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.1);
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+.char-counter {
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.char-counter.warning {
+    color: var(--warning);
+}
+
+.char-counter.danger {
+    color: var(--danger);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--pink-light);
+}
+
+.btn {
+    padding: 0.875rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.btn i {
+    font-size: 1.2rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.4);
+}
+
+.btn-secondary {
+    background: var(--sage-light);
+    color: var(--sage-green);
+    border: 2px solid var(--sage-green);
+}
+
+.btn-secondary:hover {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--brown);
+}
+
+.btn-outline:hover {
+    background: var(--brown);
+    color: white;
+    border-color: var(--brown);
+}
+
+/* Info Box */
+.info-box {
+    background: var(--sage-light);
+    border-left: 4px solid var(--sage-green);
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.info-box p {
+    margin: 0;
+    color: var(--sage-dark);
+    font-size: 0.95rem;
+}
+
+.info-box i {
+    color: var(--sage-green);
+    margin-right: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .edit-profile-container {
+        padding: 1rem;
+    }
+
+    .edit-form-card {
+        padding: 1.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .image-uploads {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <div class="edit-form-card">
+        <form method="POST" enctype="multipart/form-data" id="editProfileForm">
+            {% csrf_token %}
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p><i class='bx bx-info-circle'></i> Changes will be visible to all users. Keep your profile updated and authentic!</p>
+            </div>
+
+            <!-- Image Uploads -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class='bx bx-image'></i>
+                    <h3>Profile Pictures</h3>
+                </div>
+
+                <div class="image-uploads">
+                    <!-- Profile Picture -->
+                    <div class="upload-box">
+                        <label class="upload-label">Profile Picture</label>
+                        <div class="image-preview-wrapper">
+                            {% if user.profile_picture %}
+                                <img id="profilePreview" src="{{ user.profile_picture.url }}" class="image-preview">
+                            {% else %}
+                                <img id="profilePreview" src="{% static 'images/default-avatar.png' %}" class="image-preview">
+                            {% endif %}
+                        </div>
+                        <label for="profile_picture" class="upload-button">
+                            <i class='bx bx-camera'></i> Choose Photo
+                        </label>
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" onchange="previewImage(this, 'profilePreview')">
+                    </div>
+
+                    <!-- Cover Image -->
+                    <div class="upload-box">
+                        <label class="upload-label">Cover Photo</label>
+                        <div class="image-preview-wrapper">
+                            {% if user.cover_image %}
+                                <img id="coverPreview" src="{{ user.cover_image.url }}" class="cover-preview">
+                            {% else %}
+                                <div id="coverPreview" class="cover-preview"></div>
+                            {% endif %}
+                        </div>
+                        <label for="cover_image" class="upload-button">
+                            <i class='bx bx-image-add'></i> Choose Cover
+                        </label>
+                        <input type="file" id="cover_image" name="cover_image" accept="image/*" onchange="previewImage(this, 'coverPreview')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class='bx bx-user'></i>
+                    <h3>Basic Information</h3>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="form-input" placeholder="Enter your first name">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="form-input" placeholder="Enter your last name">
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-top: 1.5rem;">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" class="form-input" placeholder="your.email@example.com">
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class='bx bx-edit'></i>
+                    <h3>About You</h3>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" class="form-textarea" id="bioTextarea" maxlength="500" placeholder="Tell people about yourself...">{{ user.bio }}</textarea>
+                    <div class="char-counter" id="bioCounter">0/500</div>
+                </div>
+
+                <div class="form-field" style="margin-top: 1.5rem;">
+                    <label class="form-label">Website</label>
+                    <input type="url" name="website" value="{{ user.website }}" class="form-input" placeholder="https://yourwebsite.com">
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class='bx bx-map'></i>
+                    <h3>Location</h3>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label">Country</label>
+                        <input type="text" name="country" value="{{ user.country }}" class="form-input" placeholder="Your country">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" value="{{ user.city }}" class="form-input" placeholder="Your city">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Links (for all user types) -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class='bx bx-link'></i>
+                    <h3>Social Links</h3>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-facebook-circle'></i> Facebook</label>
+                        <input type="url" name="facebook" value="{{ social_links.facebook }}" class="form-input" placeholder="https://facebook.com/username">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-instagram'></i> Instagram</label>
+                        <input type="url" name="instagram" value="{{ social_links.instagram }}" class="form-input" placeholder="https://instagram.com/username">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-twitter'></i> Twitter</label>
+                        <input type="url" name="twitter" value="{{ social_links.twitter }}" class="form-input" placeholder="https://twitter.com/username">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-youtube'></i> YouTube</label>
+                        <input type="url" name="youtube" value="{{ social_links.youtube }}" class="form-input" placeholder="https://youtube.com/channel/...">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-tiktok'></i> TikTok</label>
+                        <input type="url" name="tiktok" value="{{ social_links.tiktok }}" class="form-input" placeholder="https://tiktok.com/@username">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label"><i class='bx bxl-linkedin-square'></i> LinkedIn</label>
+                        <input type="url" name="linkedin" value="{{ social_links.linkedin }}" class="form-input" placeholder="https://linkedin.com/in/username">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class='bx bx-check'></i> Save Changes
+                </button>
+                <a href="{% url 'profile' user.username %}" class="btn btn-outline">
+                    <i class='bx bx-x'></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Image Preview Function
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(previewId);
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                preview.style.backgroundImage = `url(${e.target.result})`;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Character Counter
+const bioTextarea = document.getElementById('bioTextarea');
+const bioCounter = document.getElementById('bioCounter');
+
+function updateCharCounter() {
+    const length = bioTextarea.value.length;
+    const maxLength = bioTextarea.getAttribute('maxlength');
+    bioCounter.textContent = `${length}/${maxLength}`;
+    
+    bioCounter.classList.remove('warning', 'danger');
+    if (length > maxLength * 0.9) {
+        bioCounter.classList.add('danger');
+    } else if (length > maxLength * 0.75) {
+        bioCounter.classList.add('warning');
+    }
+}
+
+bioTextarea.addEventListener('input', updateCharCounter);
+updateCharCounter();
+
+// Form Validation
+document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+    let isValid = true;
+    const requiredFields = ['first_name', 'last_name', 'email'];
+    
+    requiredFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input && !input.value.trim()) {
+            input.style.borderColor = 'var(--danger)';
+            isValid = false;
+        } else if (input) {
+            input.style.borderColor = 'var(--border)';
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields');
+    }
+});
+</script>
+{% endblock %}

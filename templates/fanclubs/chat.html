@@ -1,0 +1,26 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Fan Club Chat - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <div class="card" style="height: 70vh;">
+        <div class="card-header">
+            <h5><i class='bx bx-chat'></i> {{ fanclub.name }} Chat</h5>
+        </div>
+        <div class="card-body" id="chatMessages" style="overflow-y: auto; overflow-x: hidden; flex: 1;">
+            {% for message in messages %}
+            {% include 'components/message_bubble.html' with message=message %}
+            {% endfor %}
+        </div>
+        <div class="card-footer">
+            <form id="chatForm" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" class="form-control" name="message" placeholder="Type a message..." required>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-send'></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

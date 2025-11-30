@@ -1,0 +1,575 @@
+{% load static %}
+<!-- templates/components/sidebar.html -->
+
+<div class="sidebar" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center">
+            <i class='bx bx-star' style="font-size: 2rem; color: var(--pink);"></i>
+            <span class="ms-2 fw-bold" style="color: var(--brown); font-size: 1.25rem;">MANTRA</span>
+        </div>
+        <button class="btn-close-sidebar d-lg-none" onclick="toggleSidebar()">
+            <i class='bx bx-x'></i>
+        </button>
+    </div>
+
+    <!-- User Info -->
+    <div class="sidebar-user">
+        <div class="d-flex align-items-center">
+            <img src="{{ user.get_profile_picture_url }}" alt="{{ user.username }}" class="user-avatar">
+            <div class="ms-3">
+                <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                <small class="text-muted">{{ user.get_user_type_display }}</small>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="quick-stats mt-3">
+            <div class="stat">
+                <span class="value">{{ user.points|default:0 }}</span>
+                <span class="label">Points</span>
+            </div>
+            <div class="stat">
+                <span class="value">{{ user.rank|default:'Unranked' }}</span>
+                <span class="label">Rank</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+        <!-- Dashboard -->
+        <div class="nav-section">
+            <div class="nav-section-title">Main</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class='bx bx-grid-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'profile' username=user.username %}" class="nav-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-user'></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'edit_profile' %}" class="nav-link {% if 'edit_profile' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-edit'></i>
+                        <span>Edit Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Fan Menu -->
+        {% if user.is_fan %}
+        <div class="nav-section">
+            <div class="nav-section-title">Fan Features</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'discover' %}" class="nav-link {% if request.resolver_match.url_name == 'discover' %}active{% endif %}">
+                        <i class='bx bx-compass'></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'my_subscriptions' %}" class="nav-link {% if 'subscription' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-crown'></i>
+                        <span>Subscriptions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'fanclubs' %}" class="nav-link {% if 'fanclub' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-group'></i>
+                        <span>Fan Clubs</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'events' %}" class="nav-link {% if 'event' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-calendar-event'></i>
+                        <span>Events</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'merchandise' %}" class="nav-link {% if 'merchandise' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-shopping-bag'></i>
+                        <span>Merchandise</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'points_history' %}" class="nav-link {% if 'points' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-coin-stack'></i>
+                        <span>Points History</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Celebrity Menu -->
+        {% if user.is_celebrity %}
+        <div class="nav-section">
+            <div class="nav-section-title">Creator Studio</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_posts' %}" class="nav-link {% if 'posts' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-image'></i>
+                        <span>My Posts</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_events' %}" class="nav-link {% if 'events' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-calendar-plus'></i>
+                        <span>My Events</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_merchandise' %}" class="nav-link {% if 'merchandise' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-store'></i>
+                        <span>My Store</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_fanclubs' %}" class="nav-link {% if 'fanclubs' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-group'></i>
+                        <span>Fan Clubs</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Analytics</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_analytics' %}" class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-line-chart'></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_earnings' %}" class="nav-link {% if 'earnings' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-wallet'></i>
+                        <span>Earnings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'celebrity_settings' %}" class="nav-link {% if 'celebrity_settings' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-cog'></i>
+                        <span>Creator Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Admin Menu -->
+        {% if user.is_superuser or user.user_type == 'admin' %}
+        <div class="nav-section">
+            <div class="nav-section-title">Administration</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'admin_dashboard' %}" class="nav-link {% if 'admin_dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-shield'></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'user_management' %}" class="nav-link {% if 'user_management' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-user-circle'></i>
+                        <span>User Management</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'reports_management' %}" class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-flag'></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'system_analytics' %}" class="nav-link {% if 'system_analytics' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-bar-chart-alt-2'></i>
+                        <span>System Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'subadmin_management' %}" class="nav-link {% if 'subadmin' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-user-check'></i>
+                        <span>SubAdmins</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- SubAdmin Menu -->
+        {% if user.user_type == 'subadmin' %}
+        <div class="nav-section">
+            <div class="nav-section-title">Moderation</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'moderation_queue' %}" class="nav-link {% if 'moderation' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-shield-quarter'></i>
+                        <span>Moderation Queue</span>
+                        {% if moderation_count > 0 %}
+                            <span class="badge bg-danger ms-auto">{{ moderation_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'kyc_verification' %}" class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-id-card'></i>
+                        <span>KYC Verification</span>
+                        {% if kyc_pending_count > 0 %}
+                            <span class="badge bg-warning text-dark ms-auto">{{ kyc_pending_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'regional_reports' %}" class="nav-link {% if 'regional' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-map'></i>
+                        <span>Regional Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'activity_reports' %}" class="nav-link {% if 'activity' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-file'></i>
+                        <span>Activity Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Common Links -->
+        <div class="nav-section">
+            <div class="nav-section-title">Communication</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'inbox' %}" class="nav-link {% if 'inbox' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-message-square-dots'></i>
+                        <span>Messages</span>
+                        {% if unread_messages_count > 0 %}
+                            <span class="badge bg-primary ms-auto">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'notifications' %}" class="nav-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-bell'></i>
+                        <span>Notifications</span>
+                        {% if notifications_count > 0 %}
+                            <span class="badge bg-primary ms-auto">{{ notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Settings & Support -->
+        <div class="nav-section">
+            <div class="nav-section-title">Settings</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'settings' %}" class="nav-link {% if 'settings' in request.resolver_match.url_name and 'celebrity_settings' not in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-cog'></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'help' %}" class="nav-link {% if 'help' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class='bx bx-help-circle'></i>
+                        <span>Help & Support</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="nav-link">
+                        <i class='bx bx-log-out'></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="online-status">
+            <span class="status-dot"></span>
+            <span>Online</span>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Sidebar Overlay -->
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<style>
+/* Sidebar Styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    z-index: 1040;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-close-sidebar {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--brown);
+    cursor: pointer;
+}
+
+/* User Section */
+.sidebar-user {
+    padding: 1.5rem;
+    background-color: var(--light-bg);
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.sidebar-user .user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--sage-green);
+}
+
+.sidebar-user .avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--sage-green), var(--pink));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.quick-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.quick-stats .stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-stats .value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--brown);
+}
+
+.quick-stats .label {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* Navigation */
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.nav-section {
+    margin-bottom: 1.5rem;
+}
+
+.nav-section-title {
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin-bottom: 0.25rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--brown);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link i {
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    color: var(--sage-green);
+}
+
+.nav-link span {
+    font-size: 0.925rem;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background-color: var(--light-bg);
+    color: var(--sage-green);
+}
+
+.nav-link.active {
+    background-color: var(--sage-green);
+    color: white;
+}
+
+.nav-link.active i {
+    color: white;
+}
+
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: var(--pink);
+}
+
+.nav-link .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    margin-top: auto;
+}
+
+.online-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+/* Mobile Styles */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1039;
+}
+
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .sidebar-overlay.show {
+        display: block;
+    }
+}
+
+/* Custom Scrollbar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--sage-green);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--sage-green-dark);
+}
+</style>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    
+    sidebar.classList.toggle('show');
+    overlay.classList.toggle('show');
+    
+    // Prevent body scroll when sidebar is open
+    if (sidebar.classList.contains('show')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const isClickInsideSidebar = sidebar.contains(e.target);
+    const isToggleButton = e.target.closest('.btn-toggle-sidebar');
+    
+    if (!isClickInsideSidebar && !isToggleButton && sidebar.classList.contains('show')) {
+        toggleSidebar();
+    }
+});
+</script>

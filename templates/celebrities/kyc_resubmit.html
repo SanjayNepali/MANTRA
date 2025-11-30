@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Resubmit KYC Documents - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class='bx bx-refresh'></i> Resubmit KYC Documents</h4>
+                </div>
+                <div class="card-body">
+                    {% if rejection_notes %}
+                    <div class="alert alert-warning">
+                        <h5><i class='bx bx-info-circle'></i> Additional Documents Required</h5>
+                        <p>{{ rejection_notes }}</p>
+                    </div>
+                    {% elif profile.verification_status == 'rejected' %}
+                    <div class="alert alert-danger">
+                        <h5><i class='bx bx-error'></i> Verification Rejected</h5>
+                        <p>Your previous KYC submission was rejected. Please upload the required documents to continue the verification process.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document Type</label>
+                            <select name="document_type" class="form-select" required>
+                                <option value="">Select Document Type</option>
+                                <option value="passport">Passport</option>
+                                <option value="driving_license">Driving License</option>
+                                <option value="national_id">National ID</option>
+                                <option value="voter_id">Voter ID</option>
+                                <option value="proof_of_address">Proof of Address</option>
+                                <option value="professional_certificate">Professional Certificate</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Document File</label>
+                            <input type="file" name="document_file" class="form-control" accept="image/*,application/pdf" required>
+                            <div class="form-text">Upload clear images or PDF files of your documents</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Document Number (Optional)</label>
+                            <input type="text" name="document_number" class="form-control" placeholder="e.g., Passport number, ID number">
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class='bx bx-info-circle'></i> 
+                            <strong>Important:</strong> Please upload the requested documents. Your KYC application will be reviewed again after submission. Ensure documents are clear and valid.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class='bx bx-upload'></i> Submit Additional Documents
+                            </button>
+                            <a href="{% url 'celebrity_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class='bx bx-arrow-back'></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Uploaded Documents -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class='bx bx-file'></i> Previously Uploaded Documents</h5>
+                </div>
+                <div class="card-body">
+                    {% with documents=user.kyc_docs.all %}
+                        {% if documents %}
+                            <div class="list-group">
+                                {% for doc in documents %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if doc.document_type == 'passport' %}Passport
+                                                {% elif doc.document_type == 'driving_license' %}Driving License
+                                                {% elif doc.document_type == 'national_id' %}National ID
+                                                {% elif doc.document_type == 'voter_id' %}Voter ID
+                                                {% else %}{{ doc.document_type|title }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">Uploaded: {{ doc.uploaded_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <div>
+                                            <a href="{{ doc.document_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class='bx bx-download'></i> View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">No documents uploaded yet.</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

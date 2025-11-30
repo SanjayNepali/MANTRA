@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Notifications - MANTRA{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Notifications</h2>
+    <div class="card">
+        <div class="card-body">
+
+            {% for notification in notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% endif %} p-3 mb-2 rounded">
+                    <div class="d-flex align-items-center">
+                        {% if notification.sender %}
+                            {% if notification.sender.profile_picture %}
+                                <img src="{{ notification.sender.profile_picture.url }}" 
+                                     class="rounded-circle me-3" width="40" height="40">
+                            {% else %}
+                                <img src="{% static 'images/default-avatar.png' %}" 
+                                     class="rounded-circle me-3" width="40" height="40">
+                            {% endif %}
+                        {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class='bx bx-bell'></i>
+                            </div>
+                        {% endif %}
+
+                        <div class="flex-grow-1">
+                            <p class="mb-0">{{ notification.message }}</p>
+                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        </div>
+
+                        {% if not notification.is_read %}
+                            <span class="badge bg-primary">New</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-center text-muted py-4">No notifications yet.</p>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-item.unread {
+    background-color: #f0f8ff;
+}
+</style>
+
+{% endblock %}

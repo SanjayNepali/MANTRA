@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}eSewa Payment - MANTRA{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <img src="{% static 'images/esewa-logo.png' %}" alt="eSewa" height="40">
+                    <h5 class="mt-2">Complete Payment</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ esewa_url }}" method="POST" id="esewaForm">
+                        <!-- v2 API Parameters (RC environment with EPAYTEST) -->
+                        <input type="hidden" name="amount" value="{{ amount }}">
+                        <input type="hidden" name="tax_amount" value="0">
+                        <input type="hidden" name="total_amount" value="{{ amount }}">
+                        <input type="hidden" name="transaction_uuid" value="{{ transaction_id }}">
+                        <input type="hidden" name="product_code" value="{{ merchant_code }}">
+                        <input type="hidden" name="product_service_charge" value="0">
+                        <input type="hidden" name="product_delivery_charge" value="0">
+                        <input type="hidden" name="success_url" value="{{ success_url }}">
+                        <input type="hidden" name="failure_url" value="{{ failure_url }}">
+                        <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code">
+                        <input type="hidden" name="signature" value="{{ signature }}">
+
+                        <div class="text-center">
+                            <p class="mb-2">Payment Details</p>
+                            <p>Amount: <strong>Rs. {{ amount }}</strong></p>
+                            <p class="small text-muted">Transaction ID: {{ transaction_id }}</p>
+                            <button type="submit" class="btn btn-success btn-lg mt-3">
+                                <i class='bx bx-shield-quarter'></i> Pay with eSewa
+                            </button>
+                            <p class="small text-muted mt-2">
+                                You will be redirected to eSewa payment gateway
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

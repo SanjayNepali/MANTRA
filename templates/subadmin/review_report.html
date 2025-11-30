@@ -1,0 +1,383 @@
+<!-- templates/subadmin/review_report.html -->
+{% extends 'base.html' %}
+
+{% block title %}Review Report #{{ report.id|truncatechars:8 }} | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .report-header {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .sentiment-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--pink);
+    }
+    
+    .sentiment-score {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .score-bar {
+        flex: 1;
+        height: 20px;
+        background: var(--light-gray);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .score-fill {
+        height: 100%;
+        transition: width 0.5s ease;
+    }
+    
+    .toxicity-high { background: #DC3545; }
+    .toxicity-medium { background: #FFC107; }
+    .toxicity-low { background: #28A745; }
+    
+    .reported-content {
+        background: #FFF3CD;
+        border: 1px solid #856404;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .user-history {
+        background: var(--light-gray);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .action-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .action-option {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .action-option:hover {
+        border-color: var(--pink);
+        background: var(--pink-light);
+    }
+    
+    .action-option.selected {
+        border-color: var(--pink);
+        background: var(--pink-light);
+    }
+    
+    .severity-indicator {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .high-severity { background: #FFE4E1; color: #DC3545; }
+    .medium-severity { background: #FFF3CD; color: #856404; }
+    .low-severity { background: #D4EDDA; color: #155724; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <!-- Report Header -->
+    <div class="report-header">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h1>Review Report #{{ report.id|truncatechars:8 }}</h1>
+                <p><strong>Type:</strong> {{ report.get_report_type_display }} | 
+                   <strong>Reason:</strong> {{ report.get_reason_display }}</p>
+                <p><strong>Reported by:</strong> {{ report.reported_by.username }} | 
+                   <strong>Date:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
+                {% if report.target_user %}
+                <p><strong>Target User:</strong> {{ report.target_user.username }} 
+                   ({{ report.target_user.get_user_type_display }})</p>
+                {% endif %}
+            </div>
+            <div>
+                <span class="badge" style="background: 
+                    {% if report.status == 'pending' %}orange
+                    {% elif report.status == 'reviewing' %}blue
+                    {% elif report.status == 'resolved' %}green
+                    {% else %}gray{% endif %}; color: white; padding: 0.5rem 1rem;">
+                    {{ report.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-2" style="gap: 2rem;">
+        <!-- Left Column: Report Details & Analysis -->
+        <div>
+            <!-- Report Description -->
+            <div class="card">
+                <h3>Report Description</h3>
+                <p>{{ report.description }}</p>
+                {% if report.screenshot %}
+                <div style="margin-top: 1rem;">
+                    <strong>Evidence:</strong><br>
+                    <img src="{{ report.screenshot.url }}" alt="Evidence" style="max-width: 100%; border-radius: 8px;">
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sentiment Analysis -->
+            <div class="sentiment-card">
+                <h3><i class='bx bx-analyse'></i> Sentiment Analysis</h3>
+                
+                <div class="sentiment-score">
+                    <strong>Sentiment:</strong>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: {{ sentiment_result.sentiment.confidence|floatformat:0 }}%; 
+                            background: {% if sentiment_result.sentiment.label == 'positive' %}#28A745
+                            {% elif sentiment_result.sentiment.label == 'negative' %}#DC3545
+                            {% else %}#6C757D{% endif %};">
+                        </div>
+                    </div>
+                    <span>{{ sentiment_result.sentiment.label|capfirst }} 
+                        ({{ sentiment_result.sentiment.score|floatformat:2 }})</span>
+                </div>
+                
+                <div class="sentiment-score">
+                    <strong>Toxicity:</strong>
+                    <div class="score-bar">
+                        <div class="score-fill toxicity-{{ sentiment_result.toxicity.severity }}" 
+                             style="width: {{ sentiment_result.toxicity.toxicity_score|floatformat:0 }}%;">
+                        </div>
+                    </div>
+                    <span class="severity-indicator {{ sentiment_result.toxicity.severity }}-severity">
+                        {{ sentiment_result.toxicity.severity|upper }}
+                    </span>
+                </div>
+                
+                {% if sentiment_result.toxicity.toxic_words %}
+                <p><strong>Detected toxic words:</strong> 
+                    {% for word in sentiment_result.toxicity.toxic_words %}
+                        <span class="badge" style="background: var(--danger); color: white;">{{ word }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                
+                <div class="sentiment-score">
+                    <strong>Spam Score:</strong>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: {{ sentiment_result.spam.spam_score|floatformat:0 }}%; 
+                            background: {% if sentiment_result.spam.is_spam %}#DC3545{% else %}#28A745{% endif %};">
+                        </div>
+                    </div>
+                    <span>{{ sentiment_result.spam.spam_score|floatformat:2 }}</span>
+                </div>
+                
+                {% if sentiment_result.emotions.primary_emotion != 'neutral' %}
+                <p><strong>Primary Emotion:</strong> {{ sentiment_result.emotions.primary_emotion|capfirst }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Reported Content -->
+            {% if reported_content %}
+            <div class="card">
+                <h3>Reported Content</h3>
+                <div class="reported-content">
+                    {% if reported_content.content %}
+                        <p>{{ reported_content.content|truncatewords:100 }}</p>
+                    {% elif reported_content.caption %}
+                        <p>{{ reported_content.caption }}</p>
+                    {% endif %}
+                    
+                    {% if reported_content.media %}
+                        <img src="{{ reported_content.media.url }}" alt="Content" 
+                             style="max-width: 100%; margin-top: 1rem; border-radius: 8px;">
+                    {% endif %}
+                </div>
+                
+                {% if content_sentiment %}
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--light-gray); border-radius: 8px;">
+                    <strong>Content Analysis:</strong>
+                    <ul style="margin: 0.5rem 0;">
+                        <li>Sentiment: {{ content_sentiment.sentiment.label|capfirst }} 
+                            ({{ content_sentiment.sentiment.score|floatformat:2 }})</li>
+                        <li>Toxicity: {{ content_sentiment.toxicity.severity|upper }} 
+                            ({{ content_sentiment.toxicity.toxicity_score|floatformat:2 }})</li>
+                        <li>Spam: {% if content_sentiment.spam.is_spam %}Yes{% else %}No{% endif %}</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column: User History & Actions -->
+        <div>
+            {% if report.target_user %}
+            <!-- User History -->
+            <div class="card">
+                <h3><i class='bx bx-user'></i> User History</h3>
+                <div class="user-history">
+                    <p><strong>Username:</strong> {{ report.target_user.username }}</p>
+                    <p><strong>Type:</strong> {{ report.target_user.get_user_type_display }}</p>
+                    <p><strong>Joined:</strong> {{ report.target_user.created_at|date:"M d, Y" }}</p>
+                    <p><strong>Points:</strong> {{ report.target_user.points }}</p>
+                    <p><strong>Warnings:</strong> {{ report.target_user.warnings_count }}</p>
+                    <p><strong>Previous Violations:</strong> {{ previous_violations }}</p>
+                    <p><strong>Previous Warnings:</strong> {{ previous_warnings }}</p>
+                    
+                    {% if report.target_user.is_banned %}
+                    <div class="alert alert-danger" style="margin-top: 1rem;">
+                        <strong>User is currently banned</strong>
+                        {% if report.target_user.banned_until %}
+                            until {{ report.target_user.banned_until|date:"M d, Y" }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <h3>Take Action</h3>
+                <form method="POST" id="actionForm">
+                    {% csrf_token %}
+                    
+                    <div class="action-option" data-action="dismiss">
+                        <input type="radio" name="action" value="dismiss" id="dismiss">
+                        <label for="dismiss">
+                            <strong>Dismiss Report</strong><br>
+                            <small>No violation found, report is invalid</small>
+                        </label>
+                    </div>
+                    
+                    <div class="action-option" data-action="delete_content">
+                        <input type="radio" name="action" value="delete_content" id="delete_content">
+                        <label for="delete_content">
+                            <strong>Delete Content Only</strong><br>
+                            <small>Remove the reported content without user penalty</small>
+                        </label>
+                    </div>
+                    
+                    <div class="action-option" data-action="warn_user">
+                        <input type="radio" name="action" value="warn_user" id="warn_user">
+                        <label for="warn_user">
+                            <strong>Issue Warning</strong><br>
+                            <small>Warn user and deduct 20 points</small>
+                        </label>
+                    </div>
+                    
+                    <div class="action-option" data-action="suspend_user">
+                        <input type="radio" name="action" value="suspend_user" id="suspend_user">
+                        <label for="suspend_user">
+                            <strong>Suspend User</strong><br>
+                            <small>Temporary ban with point deduction</small>
+                        </label>
+                        <div id="suspensionDays" style="display: none; margin-top: 0.5rem;">
+                            <label>Days: </label>
+                            <select name="suspension_days">
+                                <option value="3">3 days</option>
+                                <option value="7" selected>7 days</option>
+                                <option value="14">14 days</option>
+                                <option value="30">30 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-option" data-action="ban_user">
+                        <input type="radio" name="action" value="ban_user" id="ban_user">
+                        <label for="ban_user">
+                            <strong>Permanent Ban</strong><br>
+                            <small>Permanently ban the user</small>
+                        </label>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="notes"><strong>Review Notes:</strong></label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                  placeholder="Add notes about your decision..."></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary">Submit Decision</button>
+                        <a href="{% url 'subadmin_reports' %}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle action selection
+    document.querySelectorAll('.action-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.action-option').forEach(o => o.classList.remove('selected'));
+            
+            // Add selection to clicked
+            this.classList.add('selected');
+            
+            // Check the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+            
+            // Show/hide suspension days
+            const suspensionDays = document.getElementById('suspensionDays');
+            if (this.dataset.action === 'suspend_user') {
+                suspensionDays.style.display = 'block';
+            } else {
+                suspensionDays.style.display = 'none';
+            }
+        });
+    });
+    
+    // Confirm dangerous actions
+    document.getElementById('actionForm').addEventListener('submit', function(e) {
+        const selectedAction = document.querySelector('input[name="action"]:checked');
+        
+        if (!selectedAction) {
+            e.preventDefault();
+            alert('Please select an action');
+            return;
+        }
+        
+        if (selectedAction.value === 'ban_user') {
+            if (!confirm('Are you sure you want to permanently ban this user? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        } else if (selectedAction.value === 'suspend_user') {
+            if (!confirm('Are you sure you want to suspend this user?')) {
+                e.preventDefault();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

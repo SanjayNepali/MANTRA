@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Country Analytics - SubAdmin | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        padding: 2rem;
+    }
+
+    .analytics-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stat-card .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--sage-green);
+        margin: 0.5rem 0;
+    }
+
+    .stat-card .label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        height: 400px;
+        position: relative;
+    }
+
+    .chart-container h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+    }
+
+    .date-filter {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .date-filter form {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .date-filter input,
+    .date-filter button {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .date-filter button {
+        background: var(--sage-green);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .date-filter button:hover {
+        background: var(--pink);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h1>Country Analytics</h1>
+        <p>Comprehensive analytics for your assigned countries</p>
+    </div>
+
+    <div class="date-filter">
+        <form method="get">
+            <label>From:</label>
+            <input type="date" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+            <label>To:</label>
+            <input type="date" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+            <button type="submit">
+                <i class='bx bx-filter'></i> Apply Filter
+            </button>
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class='bx bx-user' style="font-size: 2rem; color: var(--sage-green);"></i>
+            <div class="number">{{ total_users }}</div>
+            <div class="label">Total Users</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-star' style="font-size: 2rem; color: var(--pink);"></i>
+            <div class="number">{{ total_celebrities }}</div>
+            <div class="label">Celebrities</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-heart' style="font-size: 2rem; color: #e74c3c;"></i>
+            <div class="number">{{ total_fans }}</div>
+            <div class="label">Fans</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-flag' style="font-size: 2rem; color: #f39c12;"></i>
+            <div class="number">{{ reports_handled }}</div>
+            <div class="label">Reports Handled</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-check-circle' style="font-size: 2rem; color: #27ae60;"></i>
+            <div class="number">{{ kyc_processed }}</div>
+            <div class="label">KYC Processed</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-shield-alt-2' style="font-size: 2rem; color: #3498db;"></i>
+            <div class="number">{{ moderation_actions }}</div>
+            <div class="label">Moderation Actions</div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h3>User Growth Over Time</h3>
+        <div class="chart-wrapper">
+            <canvas id="userGrowthChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h3>Content Moderation Summary</h3>
+        <div class="chart-wrapper">
+            <canvas id="moderationChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h3>Reports by Type</h3>
+        <div class="chart-wrapper">
+            <canvas id="reportTypeChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // User Growth Chart
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: {{ growth_labels|safe }},
+            datasets: [{
+                label: 'Total Users',
+                data: {{ growth_data|safe }},
+                borderColor: 'rgb(107, 142, 35)',
+                backgroundColor: 'rgba(107, 142, 35, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Moderation Chart
+    const moderationCtx = document.getElementById('moderationChart').getContext('2d');
+    new Chart(moderationCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Resolved', 'Dismissed', 'Pending', 'Reviewing'],
+            datasets: [{
+                label: 'Reports',
+                data: {{ moderation_data|safe }},
+                backgroundColor: [
+                    'rgba(39, 174, 96, 0.8)',
+                    'rgba(52, 152, 219, 0.8)',
+                    'rgba(243, 156, 18, 0.8)',
+                    'rgba(155, 89, 182, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Report Type Chart
+    const reportTypeCtx = document.getElementById('reportTypeChart').getContext('2d');
+    new Chart(reportTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ report_type_labels|safe }},
+            datasets: [{
+                data: {{ report_type_data|safe }},
+                backgroundColor: [
+                    'rgba(231, 76, 60, 0.8)',
+                    'rgba(52, 152, 219, 0.8)',
+                    'rgba(46, 204, 113, 0.8)',
+                    'rgba(241, 196, 15, 0.8)',
+                    'rgba(155, 89, 182, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

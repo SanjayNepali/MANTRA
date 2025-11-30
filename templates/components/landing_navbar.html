@@ -1,0 +1,301 @@
+<!-- templates/components/landing_navbar.html -->
+<style>
+    .landing-navbar {
+        background-color: {% if is_hero %}transparent{% else %}var(--white){% endif %};
+        box-shadow: {% if is_hero %}none{% else %}0 2px 4px rgba(0,0,0,0.1){% endif %};
+        padding: 1rem 0;
+        position: {% if is_hero %}absolute{% else %}sticky{% endif %};
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    .landing-navbar.scrolled {
+        background-color: var(--white);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .landing-nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .landing-logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .landing-logo:hover {
+        transform: scale(1.05);
+    }
+
+    .landing-logo i {
+        font-size: 2rem;
+        color: var(--pink);
+    }
+
+    .landing-nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .landing-nav-links li {
+        list-style: none;
+    }
+
+    .landing-nav-links a {
+        color: var(--brown);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0;
+        position: relative;
+        white-space: nowrap;
+    }
+
+    .landing-nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+        transition: width 0.3s ease;
+    }
+
+    .landing-nav-links a:hover {
+        color: var(--pink);
+    }
+
+    .landing-nav-links a:hover::after {
+        width: 100%;
+    }
+
+    .landing-nav-links a i {
+        font-size: 1.2rem;
+    }
+
+    .landing-nav-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .landing-nav-actions .btn {
+        padding: 0.6rem 1.5rem;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .landing-nav-actions .btn-outline {
+        background-color: transparent;
+        border: 2px solid var(--brown);
+        color: var(--brown);
+    }
+
+    .landing-nav-actions .btn-outline:hover {
+        background-color: var(--brown);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(150, 75, 0, 0.3);
+    }
+
+    .landing-nav-actions .btn-primary {
+        background-color: var(--pink);
+        color: white;
+    }
+
+    .landing-nav-actions .btn-primary:hover {
+        background-color: var(--pink-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--brown);
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .landing-nav-container {
+            padding: 0 1.5rem;
+        }
+
+        .landing-nav-links {
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 968px) {
+        .landing-nav-container {
+            padding: 0 1rem;
+        }
+
+        .landing-nav-links {
+            gap: 1rem;
+        }
+
+        .landing-nav-links a {
+            font-size: 0.9rem;
+        }
+
+        .landing-nav-actions .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .mobile-menu-toggle {
+            display: block;
+        }
+
+        .landing-nav-links,
+        .landing-nav-actions {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            flex-direction: column;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            gap: 0.5rem;
+        }
+
+        .landing-nav-links.active,
+        .landing-nav-actions.active {
+            display: flex;
+        }
+
+        .landing-nav-links {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .landing-nav-links a {
+            padding: 0.75rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .landing-nav-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .landing-logo {
+            font-size: 1.5rem;
+        }
+
+        .landing-logo i {
+            font-size: 1.7rem;
+        }
+    }
+</style>
+
+<nav class="landing-navbar">
+    <div class="landing-nav-container">
+        <a href="{% url 'home' %}" class="landing-logo">
+            <i class='bx bx-star'></i>MANTRA
+        </a>
+
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class='bx bx-menu'></i>
+        </button>
+
+        <ul class="landing-nav-links" id="navLinks">
+            <li><a href="{% url 'about' %}"><i class='bx bx-info-circle'></i><span>About</span></a></li>
+            <li><a href="{% url 'careers' %}"><i class='bx bx-briefcase'></i><span>Careers</span></a></li>
+            <li><a href="{% url 'press' %}"><i class='bx bx-news'></i><span>Press</span></a></li>
+            <li><a href="{% url 'contact' %}"><i class='bx bx-envelope'></i><span>Contact</span></a></li>
+            <li><a href="{% url 'privacy' %}"><i class='bx bx-shield-alt-2'></i><span>Privacy</span></a></li>
+            <li><a href="{% url 'terms' %}"><i class='bx bx-file-blank'></i><span>Terms</span></a></li>
+        </ul>
+
+        <div class="landing-nav-actions" id="navActions">
+            <a href="{% url 'login' %}" class="btn btn-outline">
+                <i class='bx bx-log-in'></i> Login
+            </a>
+            <a href="{% url 'signup_choice' %}" class="btn btn-primary">
+                <i class='bx bx-user-plus'></i> Sign Up
+            </a>
+        </div>
+    </div>
+</nav>
+
+<script>
+    function toggleMobileMenu() {
+        const navLinks = document.getElementById('navLinks');
+        const navActions = document.getElementById('navActions');
+        navLinks.classList.toggle('active');
+        navActions.classList.toggle('active');
+    }
+
+    // Add scroll effect for hero navbar
+    {% if is_hero %}
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.landing-navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+    {% endif %}
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const navLinks = document.getElementById('navLinks');
+        const navActions = document.getElementById('navActions');
+        const toggle = document.querySelector('.mobile-menu-toggle');
+        
+        if (!event.target.closest('.landing-nav-container')) {
+            navLinks.classList.remove('active');
+            navActions.classList.remove('active');
+        }
+    });
+</script>

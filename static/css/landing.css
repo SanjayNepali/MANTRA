@@ -1,0 +1,97 @@
+/* static/css/landing.css */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #fff9fb;
+    color: #333;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 6rem;
+    background: linear-gradient(to right, #fff6f7, #ffffff);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.navbar .logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #2b2b2b;
+}
+
+.navbar .logo i {
+    color: #ff8fa3;
+    font-size: 1.8rem;
+    margin-right: 8px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: #ff8fa3;
+}
+
+/* Auth Buttons */
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.auth-buttons .btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 25px;
+    border: 2px solid #ff8fa3;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.auth-buttons .login {
+    color: #ff8fa3;
+    background: transparent;
+}
+
+.auth-buttons .signup {
+    background: #ff8fa3;
+    color: white;
+    border: none;
+}
+
+.auth-buttons .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 1rem 2rem;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .auth-buttons {
+        margin-top: 1rem;
+    }
+}

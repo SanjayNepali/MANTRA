@@ -1,0 +1,25 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Content Library - MANTRA{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <h2><i class='bx bx-library'></i> Content Library</h2>
+
+    <div class="row">
+        {% for content in contents %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <img src="{{ content.thumbnail.url }}" class="card-img-top" alt="{{ content.title }}">
+                <div class="card-body">
+                    <h5>{{ content.title }}</h5>
+                    <p>{{ content.description|truncatewords:20 }}</p>
+                    <a href="{% url 'content_detail' content.id %}" class="btn btn-sm btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

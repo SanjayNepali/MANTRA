@@ -1,0 +1,95 @@
+{% load static %}
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="First">
+                <i class='bx bx-chevrons-left'></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Previous">
+                <i class='bx bx-chevron-left'></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class='bx bx-chevrons-left'></i></span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link"><i class='bx bx-chevron-left'></i></span>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Next">
+                <i class='bx bx-chevron-right'></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Last">
+                <i class='bx bx-chevrons-right'></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class='bx bx-chevron-right'></i></span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link"><i class='bx bx-chevrons-right'></i></span>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="text-center text-muted mt-2">
+        <small>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total)</small>
+    </div>
+</nav>
+
+<style>
+.pagination {
+    gap: 0.25rem;
+}
+
+.page-link {
+    border-radius: 8px !important;
+    border: 1px solid #e0e0e0;
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background: var(--pink-light);
+    border-color: var(--pink);
+    color: var(--pink);
+}
+
+.page-item.active .page-link {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+    color: var(--text-muted);
+}
+</style>
+{% endif %}

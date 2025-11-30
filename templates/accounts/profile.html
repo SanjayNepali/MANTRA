@@ -1,0 +1,1429 @@
+<!-- templates/accounts/profile.html -->
+{% extends 'base.html' %}
+{% load static profile_tags %}
+
+{% block title %}{{ profile_user.get_full_name }} - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* Cover Photo */
+.profile-cover {
+    height: 280px;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 80px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.profile-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+
+
+
+.cover-default {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+}
+
+
+
+
+
+/* Profile Layout */
+.profile-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    margin-top: -100px;
+}
+
+/* Left Column - Main Content */
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Profile Header Card */
+.profile-header-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.profile-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.profile-picture-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-picture {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 5px solid white;
+    object-fit: cover;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: var(--pink-light);
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background: var(--sage-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.verified-badge i {
+    color: white;
+    font-size: 1.3rem;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--brown);
+    font-weight: 700;
+}
+
+.profile-username {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.profile-bio {
+    color: var(--text-primary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2.5rem;
+    padding: 1.25rem 0;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--pink);
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Right Column - Info Card */
+.profile-sidebar {
+    position: sticky;
+    top: 100px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    max-height: 400px;
+}
+
+.info-card h3 {
+    font-size: 1.2rem;
+    color: var(--brown);
+    margin: 0 0 1.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--pink-light);
+}
+
+.info-card h3 i {
+    color: var(--pink);
+    font-size: 1.4rem;
+}
+
+.info-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--pink-light);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-sage {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.badge-pink {
+    background: var(--pink-light);
+    color: var(--pink);
+}
+
+.badge-brown {
+    background: var(--brown-light);
+    color: var(--brown);
+}
+
+/* Subscription Card */
+.subscription-card {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.subscription-card h3 {
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    padding: 0;
+    color: white;
+}
+
+.subscription-card h3 i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.subscription-price {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.subscription-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.subscription-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+.subscription-benefits li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.subscription-benefits li i {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.subscription-stats {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-subscribe {
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    color: var(--pink);
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-subscribe:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-subscribed {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-subscribed:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Action Buttons */
+.profile-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.65rem 1.25rem;
+    border-radius: 25px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+}
+
+.btn-secondary {
+    background: var(--sage-light);
+    color: var(--sage-green);
+    border: 2px solid var(--sage-green);
+}
+
+.btn-secondary:hover {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--brown);
+}
+
+.btn-outline:hover {
+    background: var(--brown);
+    color: white;
+    border-color: var(--brown);
+}
+
+/* Tab Navigation */
+.tab-nav {
+    background: white;
+    border-radius: 16px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--brown);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    background: var(--pink-light);
+    color: var(--pink);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+}
+
+.tab-btn i {
+    font-size: 1.2rem;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Posts Grid */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+.post-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: var(--pink-light);
+}
+
+.post-content {
+    padding: 1.25rem;
+}
+
+.post-text {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.post-time {
+    color: var(--text-secondary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--pink-light);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid var(--pink-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--brown);
+    font-size: 1.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-body {
+    padding: 1.5rem 2rem;
+}
+
+.search-box {
+    margin-bottom: 1.5rem;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.user-item:hover {
+    background: var(--pink-light);
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--brown);
+    margin-bottom: 0.25rem;
+}
+
+.user-username {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-sidebar {
+        position: static;
+    }
+
+    .info-card {
+        max-height: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-cover {
+        height: 220px;
+        border-radius: 0;
+        margin-bottom: 60px;
+    }
+
+    .profile-top {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-picture {
+        width: 130px;
+        height: 130px;
+    }
+
+    .profile-stats {
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+
+    .tab-nav {
+        overflow-x: auto;
+    }
+
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Social Media Icons */
+.info-item a[title]:hover {
+    transform: scale(1.15);
+    filter: brightness(1.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Cover Photo -->
+    <div class="profile-cover">
+        {% if profile_user.cover_image %}
+            <img src="{{ profile_user.cover_image.url }}" alt="Cover">
+        {% else %}
+            <div class="cover-default"></div>
+        {% endif %}
+        {% if profile_user.bio %}
+        <div class="bio-overlay">
+            <p>{{ profile_user.bio }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Profile Content Grid -->
+    <div class="profile-content">
+        <!-- Left Column - Main Content -->
+        <div class="profile-main">
+            <!-- Profile Header Card -->
+            <div class="profile-header-card">
+                <div class="profile-top">
+                    <div class="profile-picture-wrapper">
+                        <img src="{% profile_picture_url profile_user %}" alt="{{ profile_user.get_full_name }}" class="profile-picture">
+
+                        {% if profile_user.is_verified %}
+                            <div class="verified-badge">
+                                <i class='bx bxs-badge-check'></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="profile-name">
+                            <h1>{{ profile_user.get_full_name }}</h1>
+                        </div>
+                        <div class="profile-username">@{{ profile_user.username }}</div>
+
+                        {% if profile_user.bio %}
+                            <div class="profile-bio">{{ profile_user.bio }}</div>
+                        {% endif %} 
+
+                        <div class="profile-stats">
+                            <div class="stat-item" onclick="showFollowersModal()">
+                                <span class="stat-value">{{ followers_count }}</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat-item" onclick="showFollowingModal()">
+                                <span class="stat-value">{{ following_count }}</span>
+                                <span class="stat-label">Following</span>
+                            </div>
+                            {% comment %} <div class="stat-item">
+                                <span class="stat-value">{{ posts_count }}</span>
+                                <span class="stat-label">Posts</span>
+                            </div> {% endcomment %}
+                        </div>
+
+                        <div class="profile-actions">
+                            {% if user != profile_user and user.is_authenticated %}
+                                {% if is_following %}
+                                    <button class="btn btn-secondary" id="follow-btn" onclick="toggleFollow()">
+                                        <i class='bx bx-check'></i> Following
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-primary" id="follow-btn" onclick="toggleFollow()">
+                                        <i class='bx bx-plus'></i> Follow
+                                    </button>
+                                {% endif %}
+
+                                {% if can_message %}
+                                    <a href="#" class="btn btn-outline">
+                                        <i class='bx bx-message'></i> Message
+                                    </a>
+                                {% endif %}
+                            {% comment %} {% elif user == profile_user %}
+                                <a href="{% url 'edit_profile' %}" class="btn btn-outline">
+                                    <i class='bx bx-edit'></i> Edit Profile
+                                </a> {% endcomment %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('posts')">
+                    <i class='bx bx-news'></i> Posts
+                </button>
+
+                {% if profile_user.user_type == 'celebrity' %}
+                    <button class="tab-btn" onclick="switchTab('merchandise')">
+                        <i class='bx bx-shopping-bag'></i> Merchandise
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('events')">
+                        <i class='bx bx-calendar-event'></i> Events
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('fanclub')">
+                        <i class='bx bx-group'></i> Fan Club
+                    </button>
+                {% else %}
+                    <button class="tab-btn" onclick="switchTab('fanclubs')">
+                        <i class='bx bx-group'></i> Fan Clubs
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('subscriptions')">
+                        <i class='bx bx-star'></i> Subscriptions
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Tab Content -->
+            <div id="posts-tab" class="tab-content active">
+                {% if can_view_posts %}
+                    {% if posts %}
+                        <div class="posts-grid">
+                            {% for post in posts %}
+                            <div class="post-card">
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" alt="Post" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <p class="post-text">{{ post.content|truncatewords:20 }}</p>
+                                    <div class="post-meta">
+                                        <span class="post-time">{{ post.created_at|timesince }} ago</span>
+                                        <a href="{% url 'post_detail' post.id %}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-news'></i>
+                            <p>No posts yet</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class='bx bx-lock-alt'></i>
+                        <p>This user's posts are private</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if profile_user.user_type == 'celebrity' %}
+                <!-- Merchandise Tab -->
+                <div id="merchandise-tab" class="tab-content">
+                    {% if merchandise %}
+                        <div class="posts-grid">
+                            {% for item in merchandise %}
+                            <div class="post-card">
+                                {% if item.primary_image %}
+                                    <img src="{{ item.primary_image.url }}" alt="{{ item.name }}" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{{ item.name }}</h4>
+                                    <p class="post-text" style="color: var(--pink); font-weight: 700; font-size: 1.1rem;">NPR {{ item.price }}</p>
+                                    <div class="post-meta">
+                                        <span class="post-time">{{ item.stock_quantity }} in stock</span>
+                                        <a href="{% url 'merchandise_detail' item.slug %}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if merchandise_count > 6 %}
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a href="{% url 'merchandise_list' %}?celebrity={{ profile_user.username }}" class="btn btn-primary">View All ({{ merchandise_count }})</a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-shopping-bag'></i>
+                            <p>No merchandise available yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Events Tab -->
+                <div id="events-tab" class="tab-content">
+                    {% if upcoming_events or past_events %}
+                        {% if upcoming_events %}
+                        <h3 style="margin: 0 0 1rem 0; color: var(--brown);"><i class='bx bx-calendar-star'></i> Upcoming Events</h3>
+                        <div class="posts-grid" style="margin-bottom: 2rem;">
+                            {% for event in upcoming_events %}
+                            <div class="post-card">
+                                {% if event.poster %}
+                                    <img src="{{ event.poster.url }}" alt="{{ event.title }}" class="post-image">
+                                {% elif event.cover_image %}
+                                    <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{{ event.title }}</h4>
+                                    <p class="post-text" style="color: var(--text-muted); font-size: 0.9rem;">
+                                        <i class='bx bx-calendar'></i> {{ event.start_datetime|date:"M d, Y g:i A" }}
+                                    </p>
+                                    <div class="post-meta">
+                                        <span class="post-time">NPR {{ event.ticket_price }}</span>
+                                        <a href="{% url 'event_detail' event.slug %}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if past_events %}
+                        <h3 style="margin: 0 0 1rem 0; color: var(--brown);"><i class='bx bx-calendar-check'></i> Past Events</h3>
+                        <div class="posts-grid">
+                            {% for event in past_events %}
+                            <div class="post-card" style="opacity: 0.7;">
+                                {% if event.poster %}
+                                    <img src="{{ event.poster.url }}" alt="{{ event.title }}" class="post-image">
+                                {% elif event.cover_image %}
+                                    <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{{ event.title }}</h4>
+                                    <p class="post-text" style="color: var(--text-muted); font-size: 0.9rem;">
+                                        <i class='bx bx-calendar'></i> {{ event.start_datetime|date:"M d, Y" }}
+                                    </p>
+                                    <div class="post-meta">
+                                        <span class="post-time" style="color: #6c757d;">Completed</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-calendar-event'></i>
+                            <p>No events scheduled</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Fan Club Tab -->
+                <div id="fanclub-tab" class="tab-content">
+                    {% if celebrity_fanclub %}
+                        <div style="max-width: 600px; margin: 0 auto;">
+                            <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255, 182, 193, 0.1), rgba(135, 169, 107, 0.1)); border-radius: 16px; border: 2px solid var(--pink);">
+                                {% if celebrity_fanclub.icon %}
+                                <img src="{{ celebrity_fanclub.icon.url }}" alt="{{ celebrity_fanclub.name }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 3px solid var(--pink);">
+                                {% else %}
+                                <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--pink); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; font-weight: 700;">
+                                    <i class='bx bx-group'></i>
+                                </div>
+                                {% endif %}
+                                <h3 style="margin: 0 0 0.5rem 0; color: var(--brown);">{{ celebrity_fanclub.name }}</h3>
+                                <p style="margin: 0 0 1.5rem 0; color: var(--text-muted);">{{ celebrity_fanclub.description }}</p>
+
+                                <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+                                    <div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: var(--pink);">{{ celebrity_fanclub.members_count }}</div>
+                                        <div style="color: var(--text-muted);">Members</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: var(--sage-green);">{{ celebrity_fanclub.posts_count|default:0 }}</div>
+                                        <div style="color: var(--text-muted);">Posts</div>
+                                    </div>
+                                </div>
+
+                                {% if not is_own_profile %}
+                                    {% if is_fanclub_member %}
+                                    <a href="{% url 'fanclub_detail' celebrity_fanclub.slug %}" class="btn btn-primary">
+                                        <i class='bx bx-check-circle'></i> View Fan Club
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'join_fanclub' celebrity_fanclub.slug %}" class="btn btn-primary">
+                                        <i class='bx bx-plus-circle'></i> Join Fan Club
+                                    </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'fanclub_detail' celebrity_fanclub.slug %}" class="btn btn-primary">
+                                        <i class='bx bx-cog'></i> Manage Fan Club
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-group'></i>
+                            <p>Fan Club not set up yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <!-- Fan Clubs Tab (for fan users) -->
+                <div id="fanclubs-tab" class="tab-content">
+                    {% if fanclub_memberships %}
+                        <div class="posts-grid">
+                            {% for membership in fanclub_memberships %}
+                            <div class="post-card">
+                                {% if membership.fanclub.icon %}
+                                    <img src="{{ membership.fanclub.icon.url }}" alt="{{ membership.fanclub.name }}" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{{ membership.fanclub.name }}</h4>
+                                    <p class="post-text" style="color: var(--text-muted); font-size: 0.9rem;">{{ membership.fanclub.members_count }} members</p>
+                                    <div class="post-meta">
+                                        <span class="post-time">Joined {{ membership.joined_at|timesince }} ago</span>
+                                        <a href="{% url 'fanclub_detail' membership.fanclub.slug %}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if fanclub_count > 6 %}
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <p style="color: var(--text-muted);">Showing 6 of {{ fanclub_count }} fan clubs</p>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-group'></i>
+                            <p>Not a member of any fan clubs yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Subscriptions Tab (for fan users) -->
+                <div id="subscriptions-tab" class="tab-content">
+                    {% if active_subscriptions %}
+                        <div class="posts-grid">
+                            {% for subscription in active_subscriptions %}
+                            <div class="post-card">
+                                {% if subscription.celebrity.user.avatar %}
+                                    <img src="{{ subscription.celebrity.user.avatar.url }}" alt="{{ subscription.celebrity.user.username }}" class="post-image">
+                                {% endif %}
+                                <div class="post-content">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{{ subscription.celebrity.user.get_full_name|default:subscription.celebrity.user.username }}</h4>
+                                    <p class="post-text" style="color: var(--pink); font-weight: 600;">NPR {{ subscription.amount_paid }}/month</p>
+                                    <div class="post-meta">
+                                        <span class="post-time">Until {{ subscription.end_date|date:"M d, Y" }}</span>
+                                        <a href="{% url 'profile' subscription.celebrity.user.username %}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if subscription_count > 6 %}
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a href="{% url 'my_subscriptions' %}" class="btn btn-primary">View All ({{ subscription_count }})</a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-star'></i>
+                            <p>No active subscriptions</p>
+                            <a href="{% url 'celebrity_list' %}" class="btn btn-primary" style="margin-top: 1rem;">Discover Celebrities</a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Info Card -->
+        <div class="profile-sidebar">
+            <!-- Subscription Card (for celebrities) -->
+            {% if profile_user.user_type == 'celebrity' and celebrity_profile and not is_own_profile %}
+            <div class="subscription-card">
+                <h3><i class='bx bx-crown'></i> VIP Subscription</h3>
+                <p style="margin: 0.5rem 0; opacity: 0.95;">Get exclusive access to {{ profile_user.get_full_name|default:profile_user.username }}'s content</p>
+
+                {% if celebrity_profile.subscription_fee %}
+                <div class="subscription-price">
+                    NPR {{ celebrity_profile.subscription_fee }}
+                    <span>/ month</span>
+                </div>
+                {% endif %}
+
+                <ul class="subscription-benefits">
+                    <li><i class='bx bx-check-circle'></i> Exclusive posts & content</li>
+                    <li><i class='bx bx-check-circle'></i> Early access to updates</li>
+                    <li><i class='bx bx-check-circle'></i> Behind-the-scenes content</li>
+                    <li><i class='bx bx-check-circle'></i> Direct fanclub messaging</li>
+                    <li><i class='bx bx-check-circle'></i> Special merch discounts</li>
+                </ul>
+
+                {% if subscriber_count %}
+                <div class="subscription-stats">
+                    <i class='bx bx-group'></i>
+                    <span>{{ subscriber_count }} active subscriber{{ subscriber_count|pluralize }}</span>
+                </div>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    {% if is_subscribed %}
+                    <button class="btn-subscribe btn-subscribed" disabled>
+                        <i class='bx bx-check-circle'></i> Subscribed
+                    </button>
+                    <p style="margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.9; text-align: center;">
+                        {% if user_subscription %}
+                            Active until {{ user_subscription.end_date|date:"M d, Y" }}
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <a href="{% url 'subscribe_to_celebrity' profile_user.username %}" class="btn-subscribe">
+                        <i class='bx bx-crown'></i> Subscribe Now
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn-subscribe">
+                    <i class='bx bx-log-in'></i> Login to Subscribe
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="info-card">
+                <h3><i class='bx bx-info-circle'></i> Info</h3>
+
+                {% if profile_user.user_type == 'celebrity' and celebrity_profile %}
+                    <div class="info-item">
+                        <span class="info-label">Category</span>
+                        <span class="badge badge-sage">{{ celebrity_profile.get_category_display }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="info-item">
+                    <span class="info-label">Rank</span>
+                    <span class="info-value">{{ profile_user.rank|default:"Beginner" }}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Points</span>
+                    <span class="badge badge-pink">{{ profile_user.points }} pts</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Joined</span>
+                    <span class="info-value">{{ profile_user.date_joined|date:"M Y" }}</span>
+                </div>
+
+                {% if profile_user.user_type == 'celebrity' and celebrity_profile.website %}
+                <div class="info-item">
+                    <span class="info-label">Website</span>
+                    <a href="{{ celebrity_profile.website }}" target="_blank" class="info-value" style="color: var(--pink);">Visit Website</a>
+                </div>
+                {% endif %}
+
+                {% if profile_user.website %}
+                <div class="info-item">
+                    <span class="info-label">Website</span>
+                    <a href="{{ profile_user.website }}" target="_blank" class="info-value" style="color: var(--pink); text-decoration: none;">
+                        <i class='bx bx-link-external'></i> Visit
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if profile_user.social_links %}
+                    {% if profile_user.social_links.facebook or profile_user.social_links.instagram or profile_user.social_links.twitter or profile_user.social_links.youtube or profile_user.social_links.tiktok or profile_user.social_links.linkedin %}
+                    <div class="info-item">
+                        <span class="info-label">Social Media</span>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            {% if profile_user.social_links.facebook %}
+                            <a href="{{ profile_user.social_links.facebook }}" target="_blank" title="Facebook" style="color: #1877F2; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-facebook-circle'></i>
+                            </a>
+                            {% endif %}
+                            {% if profile_user.social_links.instagram %}
+                            <a href="{{ profile_user.social_links.instagram }}" target="_blank" title="Instagram" style="color: #E4405F; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-instagram'></i>
+                            </a>
+                            {% endif %}
+                            {% if profile_user.social_links.twitter %}
+                            <a href="{{ profile_user.social_links.twitter }}" target="_blank" title="Twitter/X" style="color: #1DA1F2; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-twitter'></i>
+                            </a>
+                            {% endif %}
+                            {% if profile_user.social_links.youtube %}
+                            <a href="{{ profile_user.social_links.youtube }}" target="_blank" title="YouTube" style="color: #FF0000; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-youtube'></i>
+                            </a>
+                            {% endif %}
+                            {% if profile_user.social_links.tiktok %}
+                            <a href="{{ profile_user.social_links.tiktok }}" target="_blank" title="TikTok" style="color: #000000; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-tiktok'></i>
+                            </a>
+                            {% endif %}
+                            {% if profile_user.social_links.linkedin %}
+                            <a href="{{ profile_user.social_links.linkedin }}" target="_blank" title="LinkedIn" style="color: #0A66C2; font-size: 1.5rem; transition: all 0.3s;">
+                                <i class='bx bxl-linkedin-square'></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Followers Modal -->
+<div id="followers-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Followers</h2>
+            <button class="modal-close" onclick="closeModal('followers-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-box">
+                <input type="text" id="followers-search" placeholder="Search followers..." onkeyup="filterFollowers()">
+            </div>
+            <div class="user-list" id="followers-list">
+                <p class="text-muted">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Following Modal -->
+<div id="following-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Following</h2>
+            <button class="modal-close" onclick="closeModal('following-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-box">
+                <input type="text" id="following-search" placeholder="Search following..." onkeyup="filterFollowing()">
+            </div>
+            <div class="user-list" id="following-list">
+                <p class="text-muted">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    // Add active class to clicked button
+    event.target.closest('.tab-btn').classList.add('active');
+}
+
+// Modal functions
+function showFollowersModal() {
+    document.getElementById('followers-modal').classList.add('active');
+    loadFollowers();
+}
+
+function showFollowingModal() {
+    document.getElementById('following-modal').classList.add('active');
+    loadFollowing();
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+    }
+}
+
+// Load followers
+function loadFollowers() {
+    fetch('{% url "followers_list" profile_user.username %}?ajax=1')
+        .then(response => response.json())
+        .then(data => {
+            const list = document.getElementById('followers-list');
+            if (data.followers && data.followers.length > 0) {
+                list.innerHTML = data.followers.map(user => `
+                    <div class="user-item">
+                        <img src="${user.profile_picture || '/static/images/default-avatar.png'}" alt="${user.username}" class="user-avatar">
+                        <div class="user-info">
+                            <div class="user-name">${user.full_name}</div>
+                            <div class="user-username">@${user.username}</div>
+                        </div>
+                        <a href="/profile/${user.username}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p class="text-muted">No followers yet</p>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('followers-list').innerHTML = '<p class="text-muted">Failed to load followers</p>';
+        });
+}
+
+// Load following
+function loadFollowing() {
+    fetch('{% url "following_list" profile_user.username %}?ajax=1')
+        .then(response => response.json())
+        .then(data => {
+            const list = document.getElementById('following-list');
+            if (data.following && data.following.length > 0) {
+                list.innerHTML = data.following.map(user => `
+                    <div class="user-item">
+                        <img src="${user.profile_picture || '/static/images/default-avatar.png'}" alt="${user.username}" class="user-avatar">
+                        <div class="user-info">
+                            <div class="user-name">${user.full_name}</div>
+                            <div class="user-username">@${user.username}</div>
+                        </div>
+                        <a href="/profile/${user.username}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p class="text-muted">Not following anyone yet</p>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('following-list').innerHTML = '<p class="text-muted">Failed to load following</p>';
+        });
+}
+
+// Debounce function for search
+let followersSearchTimeout;
+let followingSearchTimeout;
+
+// Filter followers with server-side search
+function filterFollowers() {
+    clearTimeout(followersSearchTimeout);
+    followersSearchTimeout = setTimeout(() => {
+        const searchQuery = document.getElementById('followers-search').value;
+        const url = '{% url "followers_list" profile_user.username %}?ajax=1&search=' + encodeURIComponent(searchQuery);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('followers-list');
+                if (data.followers && data.followers.length > 0) {
+                    list.innerHTML = data.followers.map(user => `
+                        <div class="user-item">
+                            <img src="${user.profile_picture || '/static/images/default-avatar.png'}" alt="${user.username}" class="user-avatar">
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name}</div>
+                                <div class="user-username">@${user.username}</div>
+                            </div>
+                            <a href="/profile/${user.username}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p class="text-muted">No followers found</p>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('followers-list').innerHTML = '<p class="text-muted">Failed to search followers</p>';
+            });
+    }, 300);
+}
+
+// Filter following with server-side search
+function filterFollowing() {
+    clearTimeout(followingSearchTimeout);
+    followingSearchTimeout = setTimeout(() => {
+        const searchQuery = document.getElementById('following-search').value;
+        const url = '{% url "following_list" profile_user.username %}?ajax=1&search=' + encodeURIComponent(searchQuery);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('following-list');
+                if (data.following && data.following.length > 0) {
+                    list.innerHTML = data.following.map(user => `
+                        <div class="user-item">
+                            <img src="${user.profile_picture || '/static/images/default-avatar.png'}" alt="${user.username}" class="user-avatar">
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name}</div>
+                                <div class="user-username">@${user.username}</div>
+                            </div>
+                            <a href="/profile/${user.username}" class="btn btn-outline" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">View</a>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p class="text-muted">No users found</p>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('following-list').innerHTML = '<p class="text-muted">Failed to search following</p>';
+            });
+    }, 300);
+}
+
+// Toggle follow
+function toggleFollow() {
+    const btn = document.getElementById('follow-btn');
+    const isFollowing = btn.innerHTML.includes('Following');
+
+    fetch('{% url "follow_user" profile_user.username %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button text and style
+            if (data.action === 'followed') {
+                btn.innerHTML = '<i class="fas fa-check"></i> Following';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+            } else {
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                btn.classList.remove('btn-outline');
+                btn.classList.add('btn-primary');
+            }
+
+            // Update follower count
+            const followersCountEl = document.querySelector('.stats-item .stats-value');
+            if (followersCountEl) {
+                followersCountEl.textContent = data.followers_count;
+            }
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update follow status');
+    });
+}
+</script>
+{% endblock %}

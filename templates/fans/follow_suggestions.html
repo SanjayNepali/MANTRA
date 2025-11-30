@@ -1,0 +1,532 @@
+<!-- templates/fans/follow_suggestions.html -->
+{% extends 'base.html' %}
+
+{% block title %}Follow Celebrities - MANTRA{% endblock %}
+
+{% block content %}
+<div class="suggestions-container">
+    <div class="suggestions-header">
+        <h1>Follow Your Favorite Celebrities</h1>
+        <p>Follow at least 5 celebrities to get personalized content in your feed</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="follow-progress" style="width: 0%"></div>
+        </div>
+        <p class="progress-text"><span id="follow-count">0</span> / 5 celebrities followed</p>
+    </div>
+
+    <div class="suggestions-tabs">
+        <button class="tab-btn active" data-tab="recommended">Recommended</button>
+        <button class="tab-btn" data-tab="top">Top Celebrities</button>
+        <button class="tab-btn" data-tab="new">New Celebrities</button>
+        <button class="tab-btn" data-tab="categories">By Category</button>
+    </div>
+
+    <!-- Recommended Tab -->
+    <div class="tab-content active" id="recommended-tab">
+        <h2>Recommended For You</h2>
+        <div class="celebrities-grid">
+            {% for rec in recommendations %}
+            <div class="celebrity-card" data-celebrity-id="{{ rec.recommended_celebrity.id }}">
+                <div class="celebrity-image">
+                    {% if rec.recommended_celebrity.profile_picture %}
+                        <img src="{{ rec.recommended_celebrity.profile_picture.url }}" alt="{{ rec.recommended_celebrity.username }}">
+                    {% else %}
+                        <div class="default-avatar">{{ rec.recommended_celebrity.username.0|upper }}</div>
+                    {% endif %}
+                    {% if rec.recommended_celebrity.is_verified %}
+                        <i class='bx bxs-badge-check verified-badge'></i>
+                    {% endif %}
+                </div>
+                <h3>{{ rec.recommended_celebrity.get_full_name }}</h3>
+                <p class="username">@{{ rec.recommended_celebrity.username }}</p>
+                {% if rec.recommended_celebrity.celebrity_profile %}
+                    <p class="category">{{ rec.recommended_celebrity.celebrity_profile.get_category_display }}</p>
+                {% endif %}
+                <p class="followers">{{ rec.recommended_celebrity.total_followers|default:0 }} followers</p>
+                <button class="btn btn-follow" onclick="followCelebrity('{{ rec.recommended_celebrity.id }}')">
+                    <i class='bx bx-plus'></i> Follow
+                </button>
+            </div>
+            {% empty %}
+            <p class="no-results">No recommendations available yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Celebrities Tab -->
+    <div class="tab-content" id="top-tab">
+        <h2>Top Celebrities</h2>
+        <div class="celebrities-grid">
+            {% for celebrity in top_celebrities %}
+            <div class="celebrity-card" data-celebrity-id="{{ celebrity.id }}">
+                <div class="celebrity-image">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}">
+                    {% else %}
+                        <div class="default-avatar">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+                    {% if celebrity.is_verified %}
+                        <i class='bx bxs-badge-check verified-badge'></i>
+                    {% endif %}
+                </div>
+                <h3>{{ celebrity.get_full_name }}</h3>
+                <p class="username">@{{ celebrity.username }}</p>
+                {% if celebrity.celebrity_profile %}
+                    <p class="category">{{ celebrity.celebrity_profile.get_category_display }}</p>
+                {% endif %}
+                <p class="followers">{{ celebrity.total_followers|default:0 }} followers</p>
+                <button class="btn btn-follow" onclick="followCelebrity('{{ celebrity.id }}')">
+                    <i class='bx bx-plus'></i> Follow
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- New Celebrities Tab -->
+    <div class="tab-content" id="new-tab">
+        <h2>New Celebrities</h2>
+        <div class="celebrities-grid">
+            {% for celebrity in new_celebrities %}
+            <div class="celebrity-card" data-celebrity-id="{{ celebrity.id }}">
+                <div class="celebrity-image">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}">
+                    {% else %}
+                        <div class="default-avatar">{{ celebrity.username.0|upper }}</div>
+                    {% endif %}
+                    {% if celebrity.is_verified %}
+                        <i class='bx bxs-badge-check verified-badge'></i>
+                    {% endif %}
+                    <span class="new-badge">NEW</span>
+                </div>
+                <h3>{{ celebrity.get_full_name }}</h3>
+                <p class="username">@{{ celebrity.username }}</p>
+                {% if celebrity.celebrity_profile %}
+                    <p class="category">{{ celebrity.celebrity_profile.get_category_display }}</p>
+                {% endif %}
+                <p class="followers">{{ celebrity.total_followers|default:0 }} followers</p>
+                <button class="btn btn-follow" onclick="followCelebrity('{{ celebrity.id }}')">
+                    <i class='bx bx-plus'></i> Follow
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Categories Tab -->
+    <div class="tab-content" id="categories-tab">
+        <h2>Browse by Category</h2>
+        <div class="categories-list">
+            {% for category_value, category_name in categories %}
+            <a href="{% url 'discover_celebrities' %}?category={{ category_value }}" class="category-item">
+                <i class='bx bx-category'></i>
+                <span>{{ category_name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Skip for Now</a>
+        <button class="btn btn-primary" id="continue-btn" onclick="continueToDashboard()">
+            Continue to Dashboard
+        </button>
+    </div>
+</div>
+
+<style>
+.suggestions-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.suggestions-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.suggestions-header h1 {
+    font-size: 2.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.suggestions-header > p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+    height: 10px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    max-width: 400px;
+    margin: 1rem auto;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--sage-green));
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.suggestions-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    color: var(--pink);
+}
+
+.tab-btn.active {
+    color: var(--pink);
+    border-bottom-color: var(--pink);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h2 {
+    font-size: 1.8rem;
+    color: var(--brown);
+    margin-bottom: 1.5rem;
+}
+
+.celebrities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.celebrity-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 10px var(--shadow);
+    transition: all 0.3s ease;
+}
+
+.celebrity-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px var(--shadow);
+}
+
+.celebrity-image {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1rem;
+}
+
+.celebrity-image img,
+.default-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.default-avatar {
+    background: var(--pink-light);
+    color: var(--pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: var(--sage-green);
+    font-size: 1.5rem;
+    background: white;
+    border-radius: 50%;
+}
+
+.new-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--pink);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.celebrity-card h3 {
+    font-size: 1.1rem;
+    color: var(--brown);
+    margin-bottom: 0.25rem;
+}
+
+.username {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.category {
+    color: var(--sage-green);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.followers {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-follow {
+    width: 100%;
+    background: var(--pink);
+    color: white;
+}
+
+.btn-follow:hover {
+    background: var(--pink-dark);
+    transform: scale(1.05);
+}
+
+.btn-follow.following {
+    background: var(--sage-light);
+    color: var(--sage-green);
+}
+
+.categories-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.category-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--brown);
+    text-decoration: none;
+    box-shadow: 0 2px 10px var(--shadow);
+    transition: all 0.3s ease;
+}
+
+.category-item:hover {
+    background: var(--pink-light);
+    transform: translateX(5px);
+}
+
+.category-item i {
+    font-size: 2rem;
+    color: var(--pink);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--sage-dark);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--brown);
+    border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+    border-color: var(--brown);
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .celebrities-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .suggestions-header h1 {
+        font-size: 2rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+let followedCount = 0;
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        this.classList.add('active');
+        document.getElementById(this.dataset.tab + '-tab').classList.add('active');
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function followCelebrity(celebrityId) {
+    const card = document.querySelector(`[data-celebrity-id="${celebrityId}"]`);
+    const btn = card.querySelector('.btn-follow');
+
+    fetch('{% url "follow_celebrity_ajax" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `celebrity_id=${celebrityId}&action=follow`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'followed') {
+            btn.classList.add('following');
+            btn.innerHTML = '<i class="bx bx-check"></i> Following';
+            btn.onclick = () => unfollowCelebrity(celebrityId);
+
+            followedCount++;
+            updateProgress();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function unfollowCelebrity(celebrityId) {
+    const card = document.querySelector(`[data-celebrity-id="${celebrityId}"]`);
+    const btn = card.querySelector('.btn-follow');
+
+    fetch('{% url "follow_celebrity_ajax" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `celebrity_id=${celebrityId}&action=unfollow`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'unfollowed') {
+            btn.classList.remove('following');
+            btn.innerHTML = '<i class="bx bx-plus"></i> Follow';
+            btn.onclick = () => followCelebrity(celebrityId);
+
+            followedCount = Math.max(0, followedCount - 1);
+            updateProgress();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function updateProgress() {
+    const progress = Math.min((followedCount / 5) * 100, 100);
+    document.getElementById('follow-progress').style.width = progress + '%';
+    document.getElementById('follow-count').textContent = followedCount;
+
+    const continueBtn = document.getElementById('continue-btn');
+    if (followedCount >= 5) {
+        continueBtn.disabled = false;
+        continueBtn.style.opacity = '1';
+    } else {
+        continueBtn.disabled = true;
+        continueBtn.style.opacity = '0.5';
+    }
+}
+
+function continueToDashboard() {
+    if (followedCount >= 5) {
+        window.location.href = '{% url "dashboard" %}';
+    } else {
+        alert('Please follow at least 5 celebrities to continue');
+    }
+}
+
+// Initialize
+updateProgress();
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mock Payment - MANTRA{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header text-center bg-warning">
+                    <i class='bx bx-test-tube' style="font-size: 2rem;"></i>
+                    <h5 class="mt-2">Mock Payment Mode (Testing)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Development Mode:</strong> This is a simulated payment for testing purposes.
+                    </div>
+
+                    <h6>Payment Details</h6>
+                    <table class="table">
+                        <tr>
+                            <th>Transaction ID:</th>
+                            <td>{{ payment.transaction_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Amount:</th>
+                            <td>Rs. {{ payment.amount }}</td>
+                        </tr>
+                        <tr>
+                            <th>Payment Type:</th>
+                            <td>{{ payment.payment_type|title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td><span class="badge bg-warning">Pending</span></td>
+                        </tr>
+                    </table>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-3">Simulate payment outcome:</p>
+                        <form method="GET" action="{% url 'mock_payment_process' %}" class="d-inline">
+                            <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                            <input type="hidden" name="status" value="success">
+                            <button type="submit" class="btn btn-success btn-lg me-2">
+                                <i class='bx bx-check-circle'></i> Simulate Success
+                            </button>
+                        </form>
+
+                        <form method="GET" action="{% url 'mock_payment_process' %}" class="d-inline">
+                            <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                            <input type="hidden" name="status" value="failure">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class='bx bx-x-circle'></i> Simulate Failure
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="alert alert-warning mt-4">
+                        <small>
+                            <strong>Note:</strong> In production, disable mock mode by setting <code>ESEWA_MOCK_MODE=False</code>
+                            in your settings and configure real eSewa credentials.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

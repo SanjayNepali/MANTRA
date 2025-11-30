@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.success-container {
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    text-align: center;
+}
+
+.success-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    animation: scaleIn 0.5s ease;
+}
+
+.success-icon i {
+    font-size: 4rem;
+    color: white;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 3rem;
+}
+
+.success-content h1 {
+    color: var(--brown);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.success-content p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.payment-details {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.payment-details-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.payment-details-row:last-child {
+    border-bottom: none;
+}
+
+.payment-details-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.payment-details-value {
+    color: var(--brown);
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn-custom {
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.btn-primary-custom {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary-custom:hover {
+    background: var(--sage-green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(135, 169, 107, 0.3);
+}
+
+.btn-secondary-custom {
+    background: white;
+    color: var(--brown);
+    border: 2px solid #e0e0e0;
+}
+
+.btn-secondary-custom:hover {
+    background: var(--bg-light);
+    border-color: var(--sage-green);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-icon">
+        <i class='bx bx-check'></i>
+    </div>
+
+    <div class="success-content">
+        <h1>Payment Successful!</h1>
+        <p>Your payment has been processed successfully. Thank you for your purchase.</p>
+
+        {% if payment %}
+        <div class="payment-details">
+            <div class="payment-details-row">
+                <span class="payment-details-label">Transaction ID:</span>
+                <span class="payment-details-value">{{ payment.transaction_id }}</span>
+            </div>
+            <div class="payment-details-row">
+                <span class="payment-details-label">Amount:</span>
+                <span class="payment-details-value">Rs. {{ payment.amount }}</span>
+            </div>
+            <div class="payment-details-row">
+                <span class="payment-details-label">Payment Method:</span>
+                <span class="payment-details-value">{{ payment.payment_method|title }}</span>
+            </div>
+            <div class="payment-details-row">
+                <span class="payment-details-label">Payment Type:</span>
+                <span class="payment-details-value">{{ payment.payment_type|title }}</span>
+            </div>
+            <div class="payment-details-row">
+                <span class="payment-details-label">Date:</span>
+                <span class="payment-details-value">{{ payment.completed_at|date:"F d, Y H:i" }}</span>
+            </div>
+            <div class="payment-details-row">
+                <span class="payment-details-label">Status:</span>
+                <span class="payment-details-value">
+                    <span class="badge bg-success">{{ payment.status|title }}</span>
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <a href="{% url 'payment_history' %}" class="btn-custom btn-secondary-custom">
+                <i class='bx bx-history'></i>
+                View History
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn-custom btn-primary-custom">
+                <i class='bx bx-home'></i>
+                Go to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

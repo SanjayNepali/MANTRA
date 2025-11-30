@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% block title %}Merchandise - MANTRA{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.merch-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 10px;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    color: var(--brown);
+}
+
+/* Filters */
+.filters-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filters-row input,
+.filters-row select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    font-size: 1rem;
+}
+
+.filters-row input:focus,
+.filters-row select:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+/* Scroll Section */
+.scroll-container {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--pink);
+    border-radius: 10px;
+}
+
+/* Product Card */
+.product-card {
+    flex: 0 0 260px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .3s ease, box-shadow .3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.product-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.product-name {
+    font-weight: 700;
+    color: var(--brown);
+    margin-top: 0.5rem;
+}
+
+.price {
+    color: var(--pink);
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.product-creator {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a, .pagination span {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--brown);
+    text-decoration: none;
+    transition: all .3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+.pagination .current {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .merch-page {
+        padding: 1rem;
+        padding-top: 80px;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .product-card {
+        flex: 0 0 200px;
+    }
+
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="merch-page">
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filters-row" id="merch-filter-form">
+            <input type="text" name="search" placeholder="Search merchandise..." value="{{ search_query|default:'' }}" onkeypress="if(event.key === 'Enter') this.form.submit();">
+            <select name="category" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort" onchange="this.form.submit()">
+                <option value="-created_at" {% if current_sort == '-created_at' or not current_sort %}selected{% endif %}>Newest</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+                <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+            </select>
+            <button type="submit" style="padding: 0.75rem 2rem; background: var(--sage-green); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600;">Search</button>
+        </form>
+    </div>
+
+    <!-- Top Merchandise -->
+    {% if top_items %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2>🏆 Top Merchandise</h2>
+        </div>
+        <div class="scroll-container">
+            {% for item in top_items %}
+                <a href="{% url 'merchandise_detail' item.slug %}" class="product-card">
+                    {% if item.primary_image %}
+                        <img src="{{ item.primary_image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
+                    {% endif %}
+                    <div class="product-name">{{ item.name }}</div>
+                    <div class="product-creator">By {{ item.celebrity.get_full_name|default:item.celebrity.username }}</div>
+                    <div class="price">NPR {{ item.price }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Trending Merchandise -->
+    {% if trending_items %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2>🔥 Trending This Month</h2>
+        </div>
+        <div class="scroll-container">
+            {% for item in trending_items %}
+                <a href="{% url 'merchandise_detail' item.slug %}" class="product-card">
+                    {% if item.primary_image %}
+                        <img src="{{ item.primary_image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
+                    {% endif %}
+                    <div class="product-name">{{ item.name }}</div>
+                    <div class="product-creator">By {{ item.celebrity.get_full_name|default:item.celebrity.username }}</div>
+                    <div class="price">NPR {{ item.price }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommended Merchandise -->
+    {% if recommended_items %}
+    <div class="section-card">
+        <div class="section-header">
+            <h2>⭐ Recommended for You</h2>
+        </div>
+        <div class="scroll-container">
+            {% for item in recommended_items %}
+                <a href="{% url 'merchandise_detail' item.slug %}" class="product-card">
+                    {% if item.primary_image %}
+                        <img src="{{ item.primary_image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
+                    {% endif %}
+                    <div class="product-name">{{ item.name }}</div>
+                    <div class="product-creator">By {{ item.celebrity.get_full_name|default:item.celebrity.username }}</div>
+                    <div class="price">NPR {{ item.price }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Merchandise -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2>🛍 All Merchandise</h2>
+        </div>
+        {% if items %}
+            <div class="grid">
+                {% for item in items %}
+                    <a href="{% url 'merchandise_detail' item.slug %}" class="product-card">
+                        {% if item.primary_image %}
+                            <img src="{{ item.primary_image.url }}" alt="{{ item.name }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
+                        {% endif %}
+                        <div class="product-name">{{ item.name }}</div>
+                        <div class="product-creator">By {{ item.celebrity.get_full_name|default:item.celebrity.username }}</div>
+                        <div class="price">NPR {{ item.price }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            {% if items.has_other_pages %}
+            <div class="pagination">
+                {% if items.has_previous %}
+                    <a href="?page={{ items.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">‹ Prev</a>
+                {% endif %}
+                <span class="current">Page {{ items.number }} of {{ items.paginator.num_pages }}</span>
+                {% if items.has_next %}
+                    <a href="?page={{ items.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Next ›</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state text-center text-muted">
+                <i class='bx bx-shopping-bag' style="font-size:4rem; opacity:0.4;"></i>
+                <p>No merchandise found matching your filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

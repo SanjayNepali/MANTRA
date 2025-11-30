@@ -1,0 +1,313 @@
+<!-- templates/press.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press & Media - MANTRA</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    {% load static %}
+    <style>
+        :root {
+            --pink: #FFB6C1;
+            --pink-dark: #FF91AC;
+            --pink-light: #FFF0F5;
+            --sage-green: #87A96B;
+            --sage-light: #E8F5E9;
+            --sage-dark: #73915A;
+            --brown: #964B00;
+            --brown-dark: #7A3D00;
+            --white: #FFFFFF;
+            --dark-text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+            --light-gray: #F8F9FA;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .content-section h3 {
+            font-size: 1.8rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-section h3 i {
+            color: var(--pink);
+        }
+
+        .content-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .press-kit-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .press-kit-item {
+            background: var(--light-gray);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--dark-text);
+        }
+
+        .press-kit-item:hover {
+            background: var(--pink-light);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .press-kit-item i {
+            font-size: 1.8rem;
+            color: var(--sage-green);
+        }
+
+        .press-kit-item .item-content {
+            flex: 1;
+        }
+
+        .press-kit-item .item-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .press-kit-item .item-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .contact-box {
+            background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .contact-box h4 {
+            color: var(--brown);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .contact-box p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-box a {
+            color: var(--pink);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-box a:hover {
+            color: var(--pink-dark);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-item h4 {
+            font-size: 2rem;
+            color: var(--pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .content-container {
+                padding: 2rem 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/landing_navbar.html' with is_hero=False %}
+
+    <div class="content-container">
+        <div class="page-header">
+            <h1>Press & Media</h1>
+            <p>Media resources and information about MANTRA</p>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-info-circle'></i> About MANTRA</h3>
+            <p>MANTRA is revolutionizing fan-celebrity interactions by providing a secure, innovative platform for authentic connections. We connect millions of fans with their favorite celebrities through exclusive content, virtual events, and direct engagement opportunities.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h4>50K+</h4>
+                    <p>Active Users</p>
+                </div>
+                <div class="stat-item">
+                    <h4>1000+</h4>
+                    <p>Celebrities</p>
+                </div>
+                <div class="stat-item">
+                    <h4>500+</h4>
+                    <p>Fan Clubs</p>
+                </div>
+                <div class="stat-item">
+                    <h4>10K+</h4>
+                    <p>Daily Posts</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-package'></i> Press Kit</h3>
+            <p>Download our press kit for logos, brand guidelines, and official materials.</p>
+            
+            <div class="press-kit-list">
+                <a href="#" class="press-kit-item">
+                    <i class='bx bx-download'></i>
+                    <div class="item-content">
+                        <div class="item-title">Logo Pack (ZIP)</div>
+                        <div class="item-desc">High-resolution logos in various formats</div>
+                    </div>
+                </a>
+
+                <a href="#" class="press-kit-item">
+                    <i class='bx bx-download'></i>
+                    <div class="item-content">
+                        <div class="item-title">Brand Guidelines (PDF)</div>
+                        <div class="item-desc">Official brand colors, typography, and usage guidelines</div>
+                    </div>
+                </a>
+
+                <a href="#" class="press-kit-item">
+                    <i class='bx bx-download'></i>
+                    <div class="item-content">
+                        <div class="item-title">Press Release (PDF)</div>
+                        <div class="item-desc">Latest company news and announcements</div>
+                    </div>
+                </a>
+
+                <a href="#" class="press-kit-item">
+                    <i class='bx bx-download'></i>
+                    <div class="item-content">
+                        <div class="item-title">Screenshots (ZIP)</div>
+                        <div class="item-desc">Platform screenshots and product images</div>
+                    </div>
+                </a>
+
+                <a href="#" class="press-kit-item">
+                    <i class='bx bx-download'></i>
+                    <div class="item-content">
+                        <div class="item-title">Fact Sheet (PDF)</div>
+                        <div class="item-desc">Company overview and key statistics</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-envelope'></i> Media Contact</h3>
+            <p>For press inquiries, interviews, or additional information, please contact our media team.</p>
+            
+            <div class="contact-box">
+                <h4>Press Relations</h4>
+                <p><strong>Email:</strong> <a href="mailto:press@mantra.com">press@mantra.com</a></p>
+                <p><strong>Phone:</strong> +977 (1) 234-5678</p>
+                <p><strong>Address:</strong> Kathmandu, Nepal</p>
+                <p style="margin-top: 1rem; font-size: 0.9rem;">We typically respond to media inquiries within 24 hours.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3><i class='bx bx-news'></i> Recent Coverage</h3>
+            <p>MANTRA has been featured in leading publications and media outlets. Stay tuned for the latest news and updates about our platform.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,604 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ fanclub.name }} - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --pink: #FFB6C1;
+    --pink-light: #FFE4E9;
+    --sage-green: #87A96B;
+    --sage-light: #c5d5b0;
+    --sage-dark: #6b8a52;
+    --brown: #964B00;
+    --border: #e0e0e0;
+    --text-secondary: #666;
+    --text-muted: #999;
+}
+
+.fanclub-header {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+    margin-bottom: 100px;
+}
+
+.fanclub-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fanclub-info-container {
+    position: relative;
+    max-width: 1200px;
+    margin: -120px auto 0;
+    padding: 0 2rem;
+}
+
+.fanclub-main-info {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.fanclub-icon-wrapper {
+    flex-shrink: 0;
+}
+
+.fanclub-icon {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.fanclub-icon-default {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--sage-green) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 5px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.fanclub-icon-default i {
+    font-size: 4rem;
+    color: white;
+}
+
+.fanclub-details {
+    flex: 1;
+}
+
+.fanclub-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fanclub-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-official {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
+}
+
+.badge-exclusive {
+    background: linear-gradient(135deg, var(--pink) 0%, #ff1493 100%);
+    color: white;
+}
+
+.badge-private {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.celebrity-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.celebrity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.celebrity-name {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.fanclub-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--pink);
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.fanclub-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--pink);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #ff9fb0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+}
+
+.btn-success {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-success:hover {
+    background: var(--sage-dark);
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: white;
+    color: var(--brown);
+    border: 2px solid var(--border);
+}
+
+.btn-outline:hover {
+    border-color: var(--pink);
+    color: var(--pink);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.fanclub-content {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.content-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.content-card h3 {
+    color: var(--brown);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.welcome-message {
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.1) 0%, rgba(135, 169, 107, 0.1) 100%);
+    border-left: 4px solid var(--pink);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.welcome-message h3 {
+    color: var(--brown);
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.welcome-message p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.info-section {
+    margin-bottom: 2rem;
+}
+
+.info-section h4 {
+    color: var(--brown);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-section p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-card h4 {
+    color: var(--brown);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+}
+
+.info-list-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.info-list-value {
+    color: var(--brown);
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .fanclub-header {
+        height: 250px;
+        margin-bottom: 80px;
+    }
+
+    .fanclub-info-container {
+        padding: 0 1rem;
+    }
+
+    .fanclub-main-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .fanclub-icon,
+    .fanclub-icon-default {
+        width: 120px;
+        height: 120px;
+    }
+
+    .fanclub-name {
+        font-size: 1.5rem;
+        flex-direction: column;
+    }
+
+    .fanclub-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .fanclub-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Fanclub Header with Cover -->
+<div class="fanclub-header">
+    {% if fanclub.cover_image %}
+        <img src="{{ fanclub.cover_image.url }}" alt="{{ fanclub.name }}" class="fanclub-cover">
+    {% endif %}
+</div>
+
+<!-- Main Info Card -->
+<div class="fanclub-info-container">
+    <div class="fanclub-main-info">
+        <!-- Fanclub Icon -->
+        <div class="fanclub-icon-wrapper">
+            {% if fanclub.icon %}
+                <img src="{{ fanclub.icon.url }}" alt="{{ fanclub.name }}" class="fanclub-icon">
+            {% else %}
+                <div class="fanclub-icon-default">
+                    <i class='bx bx-group'></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Fanclub Details -->
+        <div class="fanclub-details">
+            <div class="fanclub-name">
+                {{ fanclub.name }}
+                {% if fanclub.is_official %}
+                    <span class="fanclub-badge badge-official">
+                        <i class='bx bx-check-shield'></i> Official
+                    </span>
+                {% endif %}
+                {% if fanclub.club_type == 'exclusive' %}
+                    <span class="fanclub-badge badge-exclusive">
+                        <i class='bx bx-star'></i> Exclusive
+                    </span>
+                {% endif %}
+                {% if fanclub.is_private %}
+                    <span class="fanclub-badge badge-private">
+                        <i class='bx bx-lock-alt'></i> Private
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Celebrity Info -->
+            <div class="celebrity-info">
+                {% if fanclub.celebrity.profile_picture %}
+                    <img src="{{ fanclub.celebrity.profile_picture.url }}" alt="{{ fanclub.celebrity.username }}" class="celebrity-avatar">
+                {% endif %}
+                <span class="celebrity-name">
+                    Created by <a href="{% url 'profile' fanclub.celebrity.username %}" style="color: var(--pink); font-weight: 600;">{{ fanclub.celebrity.get_full_name|default:fanclub.celebrity.username }}</a>
+                </span>
+            </div>
+
+            <!-- Description -->
+            <p style="color: var(--text-secondary); line-height: 1.6; margin: 1rem 0;">
+                {{ fanclub.description }}
+            </p>
+
+            <!-- Stats -->
+            <div class="fanclub-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ fanclub.members_count }}</span>
+                    <span class="stat-label">Members</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ fanclub.posts_count }}</span>
+                    <span class="stat-label">Posts</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" style="color: var(--sage-green);">{{ fanclub.active_members_count }}</span>
+                    <span class="stat-label">Active</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="fanclub-actions">
+                {% if user == fanclub.celebrity %}
+                    <!-- Celebrity actions -->
+                    <a href="{% url 'edit_fanclub' fanclub.slug %}" class="btn btn-primary">
+                        <i class='bx bx-edit'></i> Edit Fanclub
+                    </a>
+                    {% if fanclub.group_chat %}
+                    <a href="{% url 'conversation' fanclub.group_chat.id %}" class="btn btn-success">
+                        <i class='bx bx-message'></i> Post Update
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <!-- Member/Non-member actions -->
+                    {% if is_member %}
+                        <button class="btn btn-success" disabled>
+                            <i class='bx bx-check-circle'></i> Member
+                        </button>
+                        {% if fanclub.group_chat %}
+                        <a href="{% url 'conversation' fanclub.group_chat.id %}" class="btn btn-primary">
+                            <i class='bx bx-message-square-dots'></i> View Updates
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'leave_fanclub' fanclub.slug %}" class="btn btn-outline">
+                            <i class='bx bx-exit'></i> Leave
+                        </a>
+                    {% else %}
+                        <a href="{% url 'join_fanclub' fanclub.slug %}" class="btn btn-primary">
+                            <i class='bx bx-plus-circle'></i> Join Fanclub
+                        </a>
+                        <a href="{% url 'profile' fanclub.celebrity.username %}" class="btn btn-outline">
+                            <i class='bx bx-user'></i> View Profile
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Section -->
+<div class="fanclub-content">
+    <!-- Welcome Message -->
+    {% if fanclub.welcome_message %}
+    <div class="welcome-message">
+        <h3><i class='bx bx-message-square-detail'></i> Welcome Message</h3>
+        <p>{{ fanclub.welcome_message }}</p>
+    </div>
+    {% endif %}
+
+    <div class="content-grid">
+        <!-- Main Content -->
+        <div>
+            {% if is_member %}
+                <div class="content-card">
+                    <h3><i class='bx bx-news'></i> Recent Updates</h3>
+                    {% if fanclub.group_chat %}
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            View all updates and messages from {{ fanclub.celebrity.get_full_name|default:fanclub.celebrity.username }} in the group chat.
+                        </p>
+                        <a href="{% url 'conversation' fanclub.group_chat.id %}" class="btn btn-primary">
+                            <i class='bx bx-message-square-dots'></i> Open Group Chat
+                        </a>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-message-x'></i>
+                            <p>Group chat not available yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="content-card">
+                    <h3><i class='bx bx-info-circle'></i> About This Fanclub</h3>
+                    <div class="info-section">
+                        <h4><i class='bx bx-star'></i> What You Get</h4>
+                        <p>Join this fanclub to get exclusive access to:</p>
+                        <ul style="color: var(--text-secondary); line-height: 1.8;">
+                            <li>Direct updates from {{ fanclub.celebrity.get_full_name|default:fanclub.celebrity.username }}</li>
+                            <li>Exclusive content and announcements</li>
+                            <li>Connect with other fans</li>
+                            <li>Group chat access</li>
+                            {% if fanclub.club_type == 'exclusive' %}
+                            <li><strong>Exclusive member-only content</strong></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <a href="{% url 'join_fanclub' fanclub.slug %}" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                            <i class='bx bx-plus-circle'></i> Join Now
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Club Info -->
+            <div class="sidebar-card">
+                <h4><i class='bx bx-info-circle'></i> Club Information</h4>
+                <ul class="info-list">
+                    <li>
+                        <span class="info-list-label">Type</span>
+                        <span class="info-list-value">{{ fanclub.get_club_type_display }}</span>
+                    </li>
+                    <li>
+                        <span class="info-list-label">Visibility</span>
+                        <span class="info-list-value">
+                            {% if fanclub.is_private %}Private{% else %}Public{% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="info-list-label">Created</span>
+                        <span class="info-list-value">{{ fanclub.created_at|date:"M d, Y" }}</span>
+                    </li>
+                    {% if fanclub.requires_approval %}
+                    <li>
+                        <span class="info-list-label">Membership</span>
+                        <span class="info-list-value">Requires Approval</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Rules (if any) -->
+            {% if fanclub.rules %}
+            <div class="sidebar-card">
+                <h4><i class='bx bx-list-check'></i> Fanclub Rules</h4>
+                <p style="color: var(--text-secondary); line-height: 1.6; white-space: pre-line;">{{ fanclub.rules }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

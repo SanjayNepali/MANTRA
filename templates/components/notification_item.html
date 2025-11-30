@@ -1,0 +1,225 @@
+{% load static %}
+
+<!-- Notification Item Component -->
+<div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+     data-notification-id="{{ notification.id }}">
+
+    <div class="notification-avatar">
+        {% if notification.actor %}
+            <img src="{{ notification.actor.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+                 alt="{{ notification.actor.get_full_name }}">
+        {% else %}
+            <div class="notification-icon-wrapper bg-{{ notification.notification_type }}">
+                {% if notification.notification_type == 'follow' %}
+                    <i class='bx bx-user-plus'></i>
+                {% elif notification.notification_type == 'like' %}
+                    <i class='bx bx-heart'></i>
+                {% elif notification.notification_type == 'comment' %}
+                    <i class='bx bx-comment'></i>
+                {% elif notification.notification_type == 'subscription' %}
+                    <i class='bx bx-star'></i>
+                {% elif notification.notification_type == 'message' %}
+                    <i class='bx bx-envelope'></i>
+                {% elif notification.notification_type == 'event' %}
+                    <i class='bx bx-calendar'></i>
+                {% elif notification.notification_type == 'purchase' %}
+                    <i class='bx bx-shopping-bag'></i>
+                {% elif notification.notification_type == 'payment' %}
+                    <i class='bx bx-money'></i>
+                {% else %}
+                    <i class='bx bx-bell'></i>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="notification-content">
+        <div class="notification-text">
+            {% if notification.actor %}
+                <a href="{% url 'profile' notification.actor.username %}" class="notification-actor">
+                    {{ notification.actor.get_full_name }}
+                </a>
+            {% endif %}
+            <span class="notification-message">{{ notification.message }}</span>
+        </div>
+
+        <div class="notification-meta">
+            <span class="notification-time">
+                <i class='bx bx-time-five'></i> {{ notification.created_at|timesince }} ago
+            </span>
+
+            {% if notification.notification_type %}
+            <span class="notification-type-badge badge-{{ notification.notification_type }}">
+                {{ notification.notification_type|title }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="notification-actions">
+        {% if not notification.is_read %}
+        <button class="btn-icon mark-read-btn"
+                data-notification-id="{{ notification.id }}"
+                title="Mark as read">
+            <i class='bx bx-check'></i>
+        </button>
+        {% endif %}
+
+        {% if notification.link %}
+        <a href="{{ notification.link }}" class="btn-icon" title="View">
+            <i class='bx bx-right-arrow-alt'></i>
+        </a>
+        {% endif %}
+
+        <button class="btn-icon delete-notification-btn"
+                data-notification-id="{{ notification.id }}"
+                title="Delete">
+            <i class='bx bx-x'></i>
+        </button>
+    </div>
+</div>
+
+<style>
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+    background: #fafafa;
+}
+
+.notification-item.unread {
+    background: #fff9f9;
+    border-left: 3px solid var(--pink);
+}
+
+.notification-avatar {
+    flex-shrink: 0;
+}
+
+.notification-avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.notification-icon-wrapper.bg-follow { background: #3b82f6; }
+.notification-icon-wrapper.bg-like { background: #ef4444; }
+.notification-icon-wrapper.bg-comment { background: var(--sage-green); }
+.notification-icon-wrapper.bg-subscription { background: var(--pink); }
+.notification-icon-wrapper.bg-message { background: #8b5cf6; }
+.notification-icon-wrapper.bg-event { background: #f59e0b; }
+.notification-icon-wrapper.bg-purchase { background: #10b981; }
+.notification-icon-wrapper.bg-payment { background: #06b6d4; }
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-text {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.notification-actor {
+    font-weight: 600;
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.notification-actor:hover {
+    color: var(--pink);
+    text-decoration: underline;
+}
+
+.notification-message {
+    color: var(--text-secondary);
+}
+
+.notification-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.notification-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.notification-type-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-follow { background: #dbeafe; color: #1e40af; }
+.badge-like { background: #fee2e2; color: #991b1b; }
+.badge-comment { background: #e8f4e8; color: #15803d; }
+.badge-subscription { background: #ffe4e6; color: #be123c; }
+.badge-message { background: #ede9fe; color: #5b21b6; }
+.badge-event { background: #fef3c7; color: #92400e; }
+.badge-purchase { background: #d1fae5; color: #065f46; }
+.badge-payment { background: #cffafe; color: #164e63; }
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-icon:hover {
+    background: #f0f0f0;
+    color: var(--brown);
+}
+
+.delete-notification-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.mark-read-btn:hover {
+    background: #d1fae5;
+    color: #059669;
+}
+</style>

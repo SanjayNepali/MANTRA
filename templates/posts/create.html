@@ -1,0 +1,1048 @@
+<!-- templates/posts/create.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Post - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.create-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.create-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.create-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.create-header h4 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.create-body {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.1);
+}
+
+textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.char-counter.warning {
+    color: var(--pink);
+    font-weight: 600;
+}
+
+.media-preview {
+    margin-top: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-preview img,
+.media-preview video {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+}
+
+.remove-media {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.remove-media:hover {
+    background: var(--pink);
+    transform: scale(1.1);
+}
+
+.analysis-panel {
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--sage-light) 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+.analysis-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.analysis-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.analysis-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.analysis-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.analysis-value.positive {
+    color: var(--sage-green);
+}
+
+.analysis-value.negative {
+    color: var(--pink);
+}
+
+.analysis-value.neutral {
+    color: var(--brown);
+}
+
+.analysis-value.safe {
+    color: #28a745;
+}
+
+.analysis-value.warning {
+    color: #ffc107;
+}
+
+.analysis-value.low {
+    color: #ffc107;
+}
+
+.analysis-value.medium {
+    color: #ff9800;
+}
+
+.analysis-value.high {
+    color: #dc3545;
+}
+
+.warning-box {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.warning-box h5 {
+    margin: 0 0 0.5rem 0;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.warning-box ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.error-box {
+    background: #F8D7DA;
+    border-left: 4px solid #DC3545;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #721C24;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btn-analyze {
+    background: var(--sage-green);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.btn-analyze:hover {
+    background: var(--sage-dark);
+}
+
+.btn-analyze:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+}
+
+.preview-mode {
+    background: var(--pink-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.preview-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+}
+
+.alert-flagged {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #856404;
+}
+
+.alert-flagged h5 {
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-warning {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #856404;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--pink);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .create-container {
+        margin: 1rem 0.5rem;
+    }
+    
+    .create-body {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-container">
+    <div class="create-card">
+        <div class="create-header">
+            <h4>
+                <i class='bx bx-edit'></i>
+                Create Post
+            </h4>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="previewBtn">
+                <i class='bx bx-show'></i> Preview
+            </button>
+        </div>
+
+        <div class="create-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}error-box{% else %}warning-box{% endif %}">
+                        <h5>
+                            <i class='bx {% if message.tags == "error" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+                            {{ message.tags|title }}
+                        </h5>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Flagged Content Warning (No blocking, just warning) -->
+            <div id="flaggedAlert" class="alert-warning" style="display: none;">
+                <h5><i class='bx bx-info-circle'></i> Content Flagged for Review</h5>
+                <p id="flaggedReason"></p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
+                    Your post will be published, but has been flagged for moderator review.
+                </p>
+            </div>
+
+            <!-- Content Warnings -->
+            <div id="warningsContainer"></div>
+
+            <!-- Content Analysis Results -->
+            <div id="analysisResults" class="analysis-panel">
+                <div class="analysis-title">
+                    <i class='bx bx-brain'></i>
+                    AI Content Analysis
+                </div>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <div class="analysis-label">Sentiment</div>
+                        <div class="analysis-value" id="sentimentValue">--</div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">Toxicity Level</div>
+                        <div class="analysis-value" id="toxicityValue">--</div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">Spam Score</div>
+                        <div class="analysis-value" id="spamValue">--</div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">Engagement Score</div>
+                        <div class="analysis-value" id="engagementValue">--</div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">Predicted Likes</div>
+                        <div class="analysis-value" id="likesValue">--</div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">Viral Potential</div>
+                        <div class="analysis-value" id="viralValue">--</div>
+                    </div>
+                </div>
+
+                <!-- Toxicity Warning -->
+                <div id="toxicityWarning" style="display: none; margin-top: 1rem; padding: 1rem; background: #FFF3CD; border-left: 4px solid #FFC107; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #856404; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class='bx bx-error-circle'></i>
+                        Content Warning
+                    </h5>
+                    <p id="toxicityMessage" style="margin: 0; color: #856404;"></p>
+                    <div id="toxicWordsDisplay" style="margin-top: 0.5rem; display: none;">
+                        <strong style="color: #856404;">Detected words:</strong>
+                        <span id="toxicWordsList" style="color: #856404;"></span>
+                    </div>
+                </div>
+
+                <!-- Spam Warning -->
+                <div id="spamWarning" style="display: none; margin-top: 1rem; padding: 1rem; background: #F8D7DA; border-left: 4px solid #DC3545; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #721c24; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class='bx bx-block'></i>
+                        Potential Spam Detected
+                    </h5>
+                    <p id="spamMessage" style="margin: 0; color: #721c24;"></p>
+                </div>
+            </div>
+
+            <!-- Preview Mode -->
+            <div id="previewMode" class="preview-mode">
+                <div class="preview-header">
+                    <img src="{{ user.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                         alt="{{ user.username }}" 
+                         class="preview-avatar">
+                    <div>
+                        <strong>{{ user.get_full_name }}</strong>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Just now</div>
+                    </div>
+                </div>
+                <div class="preview-content" id="previewContent"></div>
+                <div id="previewMedia"></div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="createForm">
+                {% csrf_token %}
+                <input type="hidden" name="confirm_warnings" id="confirmWarnings" value="false">
+
+                <!-- Content Field -->
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}" class="form-label">
+                        What's on your mind?
+                    </label>
+                    {{ form.content }}
+                    <div class="char-counter">
+                        <span id="charCount">0</span> / 5000 characters
+                    </div>
+                    {% if form.content.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.content.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Image Upload -->
+                {% if form.image %}
+                <div class="form-group">
+                    <label for="{{ form.image.id_for_label }}" class="form-label">
+                        Add Image (Optional)
+                    </label>
+                    {{ form.image }}
+                    <div id="imagePreview" class="media-preview" style="display: none;">
+                        <img src="" alt="Preview">
+                        <button type="button" class="remove-media" onclick="clearImagePreview()">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                    {% if form.image.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.image.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Video Upload -->
+                {% if form.video %}
+                <div class="form-group">
+                    <label for="{{ form.video.id_for_label }}" class="form-label">
+                        Add Video (Optional)
+                    </label>
+                    {{ form.video }}
+                    <div id="videoPreview" class="media-preview" style="display: none;">
+                        <video controls>
+                            <source src="" type="video/mp4">
+                        </video>
+                        <button type="button" class="remove-media" onclick="clearVideoPreview()">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                    {% if form.video.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.video.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Post Type -->
+                <div class="form-group">
+                    <label for="{{ form.post_type.id_for_label }}" class="form-label">
+                        Post Type
+                    </label>
+                    {{ form.post_type }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Choose what type of post this is (regular, announcement, merch, event, etc.)
+                    </small>
+                    {% if form.post_type.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.post_type.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Merch Category (for merch posts) -->
+                {% if form.merch_category %}
+                <div class="form-group" id="merchCategoryGroup" style="display: none;">
+                    <label for="{{ form.merch_category.id_for_label }}" class="form-label">
+                        <i class='bx bx-shopping-bag'></i> Merchandise Category
+                    </label>
+                    {{ form.merch_category }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Select the category for your merchandise post
+                    </small>
+                    {% if form.merch_category.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.merch_category.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Related Merchandise -->
+                {% if form.related_merchandise_id %}
+                <div class="form-group" id="relatedMerchGroup" style="display: none;">
+                    <label for="{{ form.related_merchandise_id.id_for_label }}" class="form-label">
+                        <i class='bx bx-link'></i> Link to Merchandise (Optional)
+                    </label>
+                    {{ form.related_merchandise_id }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Link this post to one of your merchandise items
+                    </small>
+                    {% if form.related_merchandise_id.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.related_merchandise_id.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Related Event -->
+                {% if form.related_event_id %}
+                <div class="form-group" id="relatedEventGroup" style="display: none;">
+                    <label for="{{ form.related_event_id.id_for_label }}" class="form-label">
+                        <i class='bx bx-calendar-event'></i> Link to Event (Optional)
+                    </label>
+                    {{ form.related_event_id }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Link this post to one of your upcoming events
+                    </small>
+                    {% if form.related_event_id.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.related_event_id.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Exclusive Content (for celebrities) -->
+                {% if form.is_exclusive %}
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.is_exclusive }}
+                        <label class="form-check-label" for="{{ form.is_exclusive.id_for_label }}">
+                            <i class='bx bxs-crown'></i> Exclusive Content (Subscribers Only)
+                        </label>
+                    </div>
+                    {% if form.is_exclusive.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.is_exclusive.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Tags -->
+                {% if form.tags %}
+                <div class="form-group">
+                    <label for="{{ form.tags.id_for_label }}" class="form-label">
+                        Tags (Optional)
+                    </label>
+                    {{ form.tags }}
+                    <small style="color: var(--text-muted); font-size: 0.85rem;">
+                        Separate tags with commas (e.g., music, concert, live)
+                    </small>
+                    {% if form.tags.errors %}
+                        <div style="color: var(--pink); font-size: 0.85rem; margin-top: 0.5rem;">
+                            {{ form.tags.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn-analyze" id="analyzeBtn" onclick="analyzeContent()">
+                        <i class='bx bx-brain'></i> Analyze Content
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn">
+                        <i class='bx bx-send'></i> Post
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class='bx bx-x'></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const contentField = document.getElementById('{{ form.content.id_for_label }}');
+const charCount = document.getElementById('charCount');
+const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+const imagePreview = document.getElementById('imagePreview');
+const videoInput = document.getElementById('{{ form.video.id_for_label }}');
+const videoPreview = document.getElementById('videoPreview');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const submitBtn = document.getElementById('submitBtn');
+const analysisPanel = document.getElementById('analysisResults');
+const flaggedAlert = document.getElementById('flaggedAlert');
+const warningsContainer = document.getElementById('warningsContainer');
+
+// Character counter
+contentField.addEventListener('input', function() {
+    const count = this.value.length;
+    charCount.textContent = count;
+    
+    if (count > 4500) {
+        charCount.parentElement.classList.add('warning');
+    } else {
+        charCount.parentElement.classList.remove('warning');
+    }
+    
+    // Auto-save to localStorage
+    localStorage.setItem('post_create_draft', this.value);
+});
+
+// Initialize character count
+charCount.textContent = contentField.value.length;
+
+// Image preview
+if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.querySelector('img').src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Video preview
+if (videoInput) {
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('video/')) {
+            const url = URL.createObjectURL(file);
+            videoPreview.querySelector('video source').src = url;
+            videoPreview.querySelector('video').load();
+            videoPreview.style.display = 'block';
+        }
+    });
+}
+
+// Clear image preview
+function clearImagePreview() {
+    imagePreview.style.display = 'none';
+    imageInput.value = '';
+}
+
+// Clear video preview
+function clearVideoPreview() {
+    videoPreview.style.display = 'none';
+    videoInput.value = '';
+}
+
+// Analyze content using AI algorithms
+// Analyze content using AI algorithms
+function analyzeContent() {
+    const content = contentField.value.trim();
+    
+    if (!content) {
+        alert('Please enter some content to analyze');
+        return;
+    }
+    
+    // Show loading state
+    analyzeBtn.disabled = true;
+    analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+    
+    analysisPanel.style.display = 'block';
+    
+    // Use the correct URL - either use the named URL or direct path
+    fetch("{% url 'analyze_content_api' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Reset button
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = '<i class="bx bx-brain"></i> Analyze Content';
+
+        if (data.success) {
+            // Update sentiment
+            const sentimentValue = document.getElementById('sentimentValue');
+            const sentimentLabel = data.sentiment.label.charAt(0).toUpperCase() + data.sentiment.label.slice(1);
+            sentimentValue.textContent = sentimentLabel;
+            sentimentValue.className = `analysis-value ${data.sentiment.label}`;
+
+            // Update toxicity level
+            const toxicityValue = document.getElementById('toxicityValue');
+            if (data.toxicity && data.toxicity.is_toxic) {
+                const severity = data.toxicity.severity || 'low';
+                toxicityValue.textContent = severity.charAt(0).toUpperCase() + severity.slice(1);
+                toxicityValue.className = `analysis-value ${severity}`;
+            } else {
+                toxicityValue.textContent = 'Safe';
+                toxicityValue.className = 'analysis-value safe';
+            }
+
+            // Update spam score
+            const spamValue = document.getElementById('spamValue');
+            if (data.spam && data.spam.is_spam) {
+                spamValue.textContent = Math.round(data.spam.spam_score * 100) + '%';
+                spamValue.className = 'analysis-value warning';
+            } else {
+                spamValue.textContent = 'Clean';
+                spamValue.className = 'analysis-value safe';
+            }
+
+            // Update engagement metrics (if they exist)
+            if (data.engagement) {
+                if (document.getElementById('engagementValue')) {
+                    document.getElementById('engagementValue').textContent =
+                        data.engagement.engagement_score || 'N/A';
+                }
+                if (document.getElementById('likesValue')) {
+                    document.getElementById('likesValue').textContent =
+                        data.engagement.predicted_likes || '0';
+                }
+                if (document.getElementById('viralValue')) {
+                    document.getElementById('viralValue').textContent =
+                        (data.engagement.viral_potential || '0') + '%';
+                }
+            }
+
+            // Handle toxicity warning
+            const toxicityWarning = document.getElementById('toxicityWarning');
+            const toxicityMessage = document.getElementById('toxicityMessage');
+            const toxicWordsDisplay = document.getElementById('toxicWordsDisplay');
+            const toxicWordsList = document.getElementById('toxicWordsList');
+
+            if (data.toxicity && data.toxicity.is_toxic) {
+                const severity = data.toxicity.severity || 'low';
+                let message = '';
+
+                if (severity === 'high') {
+                    message = 'This content contains highly toxic language. A SubAdmin will be notified to review this post if published.';
+                } else if (severity === 'medium') {
+                    message = 'This content may be offensive to some users. A SubAdmin will be notified to review this post if published.';
+                } else {
+                    message = 'This content contains mildly toxic language. Consider revising for better engagement.';
+                }
+
+                toxicityMessage.textContent = message;
+
+                // Display toxic words if available
+                if (data.toxicity.toxic_words && data.toxicity.toxic_words.length > 0) {
+                    toxicWordsList.textContent = data.toxicity.toxic_words.join(', ');
+                    toxicWordsDisplay.style.display = 'block';
+                } else {
+                    toxicWordsDisplay.style.display = 'none';
+                }
+
+                toxicityWarning.style.display = 'block';
+            } else {
+                toxicityWarning.style.display = 'none';
+            }
+
+            // Handle spam warning
+            const spamWarning = document.getElementById('spamWarning');
+            const spamMessage = document.getElementById('spamMessage');
+
+            if (data.spam && data.spam.is_spam) {
+                const spamScore = Math.round(data.spam.spam_score * 100);
+                spamMessage.textContent = `This content has a ${spamScore}% spam likelihood. Consider making it more personal and less promotional.`;
+                spamWarning.style.display = 'block';
+            } else {
+                spamWarning.style.display = 'none';
+            }
+
+            // Handle content moderation (flagging, not blocking)
+            if (data.moderation && data.moderation.should_flag) {
+                showFlaggedAlert(data.moderation.flag_reason, data.moderation.flag_severity);
+                // Don't disable submit - user can still post
+                submitBtn.disabled = false;
+            } else {
+                if (flaggedAlert) {
+                    flaggedAlert.style.display = 'none';
+                }
+                submitBtn.disabled = false;
+            }
+
+            // Show general warnings if any
+            if (data.warnings && data.warnings.length > 0) {
+                showWarnings(data);
+            }
+
+        } else {
+            alert('Failed to analyze content: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = '<i class="bx bx-brain"></i> Analyze Content';
+        alert('Failed to analyze content. Please check if the API endpoint is available.');
+    });
+}
+
+// Show flagged content alert (warning, not blocking)
+function showFlaggedAlert(reason, severity) {
+    flaggedAlert.style.display = 'block';
+    flaggedAlert.className = 'alert-flagged';
+
+    // Update severity styling
+    if (severity === 'high') {
+        flaggedAlert.style.borderLeftColor = '#FF6B6B';
+        flaggedAlert.style.background = '#FFE5E5';
+    } else if (severity === 'medium') {
+        flaggedAlert.style.borderLeftColor = '#FFC107';
+        flaggedAlert.style.background = '#FFF3CD';
+    }
+
+    document.getElementById('flaggedReason').textContent = reason;
+}
+
+// Show content warnings
+function showWarnings(data) {
+    warningsContainer.innerHTML = '';
+    
+    const warnings = [];
+    
+    if (data.toxicity.is_toxic && data.toxicity.severity !== 'low') {
+        warnings.push({
+            type: 'toxicity',
+            message: `Potentially toxic content detected (${data.toxicity.severity} severity)`,
+            details: data.toxicity.toxic_words.slice(0, 3)
+        });
+    }
+    
+    if (data.spam.is_spam && data.spam.spam_score > 0.6) {
+        warnings.push({
+            type: 'spam',
+            message: 'Content may be flagged as spam',
+            details: data.spam.indicators.slice(0, 2)
+        });
+    }
+    
+    if (data.sentiment.score < -0.5) {
+        warnings.push({
+            type: 'sentiment',
+            message: 'Content has strong negative sentiment',
+            details: ['Consider making your message more positive']
+        });
+    }
+    
+    if (warnings.length > 0) {
+        const warningBox = document.createElement('div');
+        warningBox.className = 'warning-box';
+        warningBox.innerHTML = `
+            <h5><i class='bx bx-info-circle'></i> Content Warnings</h5>
+            <p>We detected some issues with your content:</p>
+            <ul>
+                ${warnings.map(warning => `<li>${warning.message}</li>`).join('')}
+            </ul>
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="confirmWarningsCheckbox">
+                <label class="form-check-label" for="confirmWarningsCheckbox">
+                    I understand the warnings and want to post anyway
+                </label>
+            </div>
+        `;
+        warningsContainer.appendChild(warningBox);
+        
+        // Add event listener for confirmation checkbox
+        document.getElementById('confirmWarningsCheckbox').addEventListener('change', function() {
+            document.getElementById('confirmWarnings').value = this.checked;
+        });
+    }
+}
+
+// Preview toggle
+document.getElementById('previewBtn').addEventListener('click', function() {
+    const previewMode = document.getElementById('previewMode');
+    const form = document.getElementById('createForm');
+    
+    if (previewMode.style.display === 'none') {
+        // Show preview
+        const content = contentField.value;
+        document.getElementById('previewContent').textContent = content;
+        
+        // Show media previews
+        const previewMedia = document.getElementById('previewMedia');
+        previewMedia.innerHTML = '';
+        
+        if (imagePreview.style.display !== 'none') {
+            const imgClone = imagePreview.cloneNode(true);
+            imgClone.querySelector('.remove-media').remove();
+            previewMedia.appendChild(imgClone);
+        }
+        
+        if (videoPreview.style.display !== 'none') {
+            const videoClone = videoPreview.cloneNode(true);
+            videoClone.querySelector('.remove-media').remove();
+            previewMedia.appendChild(videoClone);
+        }
+        
+        previewMode.style.display = 'block';
+        form.style.display = 'none';
+        this.innerHTML = '<i class="bx bx-edit"></i> Edit';
+    } else {
+        // Hide preview
+        previewMode.style.display = 'none';
+        form.style.display = 'block';
+        this.innerHTML = '<i class="bx bx-show"></i> Preview';
+    }
+});
+
+// Form validation
+document.getElementById('createForm').addEventListener('submit', function(e) {
+    const content = contentField.value.trim();
+    const hasImage = imageInput && imageInput.files.length > 0;
+    const hasVideo = videoInput && videoInput.files.length > 0;
+    
+    if (!content && !hasImage && !hasVideo) {
+        e.preventDefault();
+        alert('Please provide either text content, an image, or a video for your post.');
+        return false;
+    }
+    
+    if (content && content.length < 2) {
+        e.preventDefault();
+        alert('Post content must be at least 2 characters long.');
+        return false;
+    }
+    
+    // Clear draft on successful submit
+    localStorage.removeItem('post_create_draft');
+});
+
+// Restore draft on page load
+window.addEventListener('load', function() {
+    const draft = localStorage.getItem('post_create_draft');
+    if (draft && !contentField.value) {
+        if (confirm('Restore unsaved draft?')) {
+            contentField.value = draft;
+            charCount.textContent = draft.length;
+        }
+    }
+});
+
+// Auto-analyze when content reaches certain length
+contentField.addEventListener('input', function() {
+    const content = this.value.trim();
+    if (content.length >= 50 && content.length <= 1000) {
+        // Debounce analysis
+        clearTimeout(window.analysisTimeout);
+        window.analysisTimeout = setTimeout(() => {
+            if (!analyzeBtn.disabled) {
+                analyzeContent();
+            }
+        }, 2000);
+    }
+});
+
+// Toggle merch/event fields based on post_type selection
+const postTypeField = document.getElementById('{{ form.post_type.id_for_label }}');
+const merchCategoryGroup = document.getElementById('merchCategoryGroup');
+const relatedMerchGroup = document.getElementById('relatedMerchGroup');
+const relatedEventGroup = document.getElementById('relatedEventGroup');
+
+if (postTypeField && (merchCategoryGroup || relatedMerchGroup || relatedEventGroup)) {
+    function togglePostTypeFields() {
+        const selectedType = postTypeField.value;
+
+        // Hide all special fields first
+        if (merchCategoryGroup) merchCategoryGroup.style.display = 'none';
+        if (relatedMerchGroup) relatedMerchGroup.style.display = 'none';
+        if (relatedEventGroup) relatedEventGroup.style.display = 'none';
+
+        // Show relevant fields based on post type
+        if (selectedType === 'merch') {
+            if (merchCategoryGroup) merchCategoryGroup.style.display = 'block';
+            if (relatedMerchGroup) relatedMerchGroup.style.display = 'block';
+        } else if (selectedType === 'event') {
+            if (relatedEventGroup) relatedEventGroup.style.display = 'block';
+        }
+    }
+
+    // Run on page load to handle pre-selected values
+    togglePostTypeFields();
+
+    // Run when post type changes
+    postTypeField.addEventListener('change', togglePostTypeFields);
+}
+</script>
+{% endblock %}

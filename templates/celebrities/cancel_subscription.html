@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancel Subscription - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.cancel-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.cancel-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.warning-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2.5rem;
+}
+
+.celebrity-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-light);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.celebrity-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.celebrity-details h3 {
+    margin: 0 0 0.25rem 0;
+    color: var(--brown);
+}
+
+.celebrity-details p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.warning-list {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+.warning-list h4 {
+    margin: 0 0 0.75rem 0;
+    color: #856404;
+    font-size: 1rem;
+}
+
+.warning-list ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #856404;
+}
+
+.warning-list li {
+    margin: 0.5rem 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: white;
+}
+
+.btn-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
+}
+
+.btn-back {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(135, 169, 107, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cancel-container">
+    <div class="cancel-card">
+        <div class="cancel-header">
+            <div class="warning-icon">
+                <i class='bx bx-error-circle'></i>
+            </div>
+            <h2 style="margin: 0 0 0.5rem 0;">Cancel Subscription?</h2>
+            <p style="margin: 0; color: var(--text-muted);">Are you sure you want to cancel this subscription?</p>
+        </div>
+
+        <div class="celebrity-info">
+            {% if celebrity.avatar %}
+            <img src="{{ celebrity.avatar.url }}" alt="{{ celebrity.username }}" class="celebrity-avatar">
+            {% else %}
+            <div class="celebrity-avatar" style="background: var(--pink); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">
+                {{ celebrity.username|first|upper }}
+            </div>
+            {% endif %}
+            <div class="celebrity-details">
+                <h3>{{ celebrity.get_full_name|default:celebrity.username }}</h3>
+                <p>@{{ celebrity.username }}</p>
+            </div>
+        </div>
+
+        <div class="warning-list">
+            <h4><i class='bx bx-info-circle'></i> What you'll lose:</h4>
+            <ul>
+                <li>Access to exclusive content and posts</li>
+                <li>Priority support and interactions</li>
+                <li>Subscriber-only perks and discounts</li>
+                <li>Early access to new content and events</li>
+            </ul>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin: 1rem 0;">
+            Your subscription will remain active until <strong>{{ subscription.end_date|date:"M d, Y" }}</strong>
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="action-buttons">
+                <a href="{% url 'my_subscriptions' %}" class="btn btn-back">
+                    <i class='bx bx-arrow-back'></i> Keep Subscription
+                </a>
+                <button type="submit" class="btn btn-cancel">
+                    <i class='bx bx-x-circle'></i> Cancel Subscription
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

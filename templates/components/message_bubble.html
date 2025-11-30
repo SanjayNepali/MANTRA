@@ -1,0 +1,321 @@
+{% load static %}
+
+<!-- Message Bubble Component -->
+<div class="message-bubble {% if message.sender == user %}sent{% else %}received{% endif %} {% if message.is_read %}read{% else %}unread{% endif %}"
+     data-message-id="{{ message.id }}">
+
+    {% if message.sender != user %}
+    <div class="message-avatar">
+        <img src="{{ message.sender.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+             alt="{{ message.sender.get_full_name }}">
+    </div>
+    {% endif %}
+
+    <div class="message-content-wrapper">
+        {% if message.sender != user %}
+        <div class="message-sender-name">{{ message.sender.get_full_name }}</div>
+        {% endif %}
+
+        <div class="message-content">
+            {% if message.reply_to %}
+            <div class="message-reply-preview">
+                <i class='bx bx-reply'></i>
+                <div class="reply-content">
+                    <span class="reply-sender">{{ message.reply_to.sender.get_full_name }}</span>
+                    <p class="reply-text">{{ message.reply_to.content|truncatewords:10 }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if message.content %}
+            <p class="message-text">{{ message.content|urlize|linebreaks }}</p>
+            {% endif %}
+
+            {% if message.image %}
+            <div class="message-image">
+                <img src="{{ message.image.url }}" alt="Attachment" class="img-fluid">
+            </div>
+            {% endif %}
+
+            {% if message.file %}
+            <div class="message-file">
+                <i class='bx bx-file'></i>
+                <a href="{{ message.file.url }}" download class="file-link">
+                    {{ message.file.name|basename }}
+                </a>
+                <span class="file-size">{{ message.file.size|filesizeformat }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="message-meta">
+            <span class="message-time">
+                {{ message.created_at|date:"h:i A" }}
+            </span>
+
+            {% if message.sender == user %}
+                {% if message.is_read %}
+                <span class="message-status read" title="Read">
+                    <i class='bx bx-check-double'></i>
+                </span>
+                {% else %}
+                <span class="message-status sent" title="Sent">
+                    <i class='bx bx-check'></i>
+                </span>
+                {% endif %}
+            {% endif %}
+
+            {% if message.is_edited %}
+            <span class="message-edited" title="Edited">
+                <i class='bx bx-edit-alt'></i> Edited
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="message-actions">
+            <button class="message-action-btn reply-btn" data-message-id="{{ message.id }}" title="Reply">
+                <i class='bx bx-reply'></i>
+            </button>
+
+            {% if message.sender == user %}
+            <button class="message-action-btn edit-btn" data-message-id="{{ message.id }}" title="Edit">
+                <i class='bx bx-edit'></i>
+            </button>
+            <button class="message-action-btn delete-btn" data-message-id="{{ message.id }}" title="Delete">
+                <i class='bx bx-trash'></i>
+            </button>
+            {% else %}
+            <button class="message-action-btn report-btn" data-message-id="{{ message.id }}" title="Report">
+                <i class='bx bx-flag'></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if message.sender == user %}
+    <div class="message-avatar">
+        <img src="{{ user.profile_picture.url|default:'/static/images/default-avatar.png' }}"
+             alt="{{ user.get_full_name }}">
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.message-bubble {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    align-items: flex-end;
+}
+
+.message-bubble.sent {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    flex-shrink: 0;
+}
+
+.message-avatar img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.message-content-wrapper {
+    max-width: 65%;
+    position: relative;
+}
+
+.message-bubble.sent .message-content-wrapper {
+    align-items: flex-end;
+}
+
+.message-sender-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.message-content {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.message-bubble.sent .message-content {
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    color: white;
+}
+
+.message-bubble.received .message-content {
+    background: #f5f5f5;
+    color: var(--brown);
+}
+
+.message-reply-preview {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.message-bubble.sent .message-reply-preview {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.reply-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.reply-sender {
+    font-weight: 600;
+    display: block;
+}
+
+.reply-text {
+    margin: 0;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-text {
+    margin: 0;
+    line-height: 1.5;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.message-image {
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.message-image img {
+    max-width: 100%;
+    display: block;
+}
+
+.message-file {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.message-bubble.sent .message-file {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.message-file i {
+    font-size: 1.5rem;
+}
+
+.file-link {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    font-weight: 600;
+}
+
+.file-link:hover {
+    text-decoration: underline;
+}
+
+.file-size {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    padding: 0 0.5rem;
+}
+
+.message-bubble.sent .message-meta {
+    justify-content: flex-end;
+}
+
+.message-time {
+    color: var(--text-secondary);
+}
+
+.message-status {
+    display: flex;
+    align-items: center;
+}
+
+.message-status.read {
+    color: var(--sage-green);
+}
+
+.message-status.sent {
+    color: var(--text-secondary);
+}
+
+.message-edited {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.message-actions {
+    display: none;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.message-bubble:hover .message-actions {
+    display: flex;
+}
+
+.message-bubble.sent .message-actions {
+    justify-content: flex-end;
+}
+
+.message-action-btn {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.message-action-btn:hover {
+    background: #f5f5f5;
+    color: var(--brown);
+    border-color: var(--sage-green);
+}
+
+.delete-btn:hover {
+    background: #fee2e2;
+    border-color: #dc2626;
+    color: #dc2626;
+}
+</style>

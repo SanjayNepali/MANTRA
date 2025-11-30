@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management - SubAdmin | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-management {
+        padding: 2rem;
+    }
+
+    .filters {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .user-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .user-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .user-table th {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .user-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .user-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .badge-verified {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-celebrity {
+        background: #e7c8ff;
+        color: #6f42c1;
+    }
+
+    .badge-fan {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        margin: 0 0.25rem;
+        transition: all 0.3s;
+    }
+
+    .btn-view {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #138496;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .search-box input,
+    .search-box select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .search-box button {
+        padding: 0.75rem 2rem;
+        background: var(--sage-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-box button:hover {
+        background: var(--pink);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-management">
+    <h1>User Management</h1>
+    <p class="subtitle">Manage users in your assigned countries</p>
+
+    <div class="filters">
+        <form method="get" class="search-box">
+            <input type="text" name="search" placeholder="Search by username or email..." value="{{ search_query }}">
+            <select name="user_type">
+                <option value="all">All Types</option>
+                <option value="fan" {% if user_type_filter == 'fan' %}selected{% endif %}>Fans</option>
+                <option value="celebrity" {% if user_type_filter == 'celebrity' %}selected{% endif %}>Celebrities</option>
+            </select>
+            <select name="status">
+                <option value="all">All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+                <option value="banned" {% if status_filter == 'banned' %}selected{% endif %}>Banned</option>
+            </select>
+            <button type="submit">
+                <i class='bx bx-search'></i> Search
+            </button>
+        </form>
+    </div>
+
+    <div class="user-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Points</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <strong>{{ user.username }}</strong>
+                        {% if user.is_verified %}
+                        <span class="badge badge-verified">✓ Verified</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge badge-{{ user.user_type }}">
+                            {{ user.get_user_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.is_banned and user.banned_until %}
+                        <span style="color: orange;">● Suspended</span>
+                        <small style="display: block; color: #666;">Until {{ user.banned_until|date:"M d, Y" }}</small>
+                        {% elif user.is_banned %}
+                        <span style="color: red;">● Banned</span>
+                        {% elif user.is_active %}
+                        <span style="color: green;">● Active</span>
+                        {% else %}
+                        <span style="color: gray;">● Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at|date:"M d, Y" }}</td>
+                    <td>{{ user.points }}</td>
+                    <td>
+                        <a href="{% url 'subadmin_user_profile' user.id %}" class="action-btn btn-view">
+                            <i class='bx bx-show'></i> View Profile
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem;">
+                        No users found in your assigned countries.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if users.has_other_pages %}
+    <div class="pagination" style="margin-top: 2rem; text-align: center;">
+        {% if users.has_previous %}
+        <a href="?page={{ users.previous_page_number }}&search={{ search_query }}&user_type={{ user_type_filter }}&status={{ status_filter }}">Previous</a>
+        {% endif %}
+
+        <span>Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+
+        {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}&search={{ search_query }}&user_type={{ user_type_filter }}&status={{ status_filter }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

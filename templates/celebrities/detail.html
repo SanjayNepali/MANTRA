@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ celebrity.get_full_name }} - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="{{ celebrity.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                         class="rounded-circle" width="150" height="150">
+                </div>
+                <div class="col-md-9">
+                    <h2>{{ celebrity.get_full_name }}</h2>
+                    <p class="text-muted">@{{ celebrity.username }}</p>
+                    {% if celebrity.is_verified %}
+                        <span class="badge bg-primary">Verified Celebrity</span>
+                    {% endif %}
+                    <p>{{ celebrity.bio }}</p>
+                    <div class="d-flex gap-3">
+                        <div><strong>{{ celebrity.total_followers }}</strong> Followers</div>
+                        <div><strong>{{ celebrity.total_posts }}</strong> Posts</div>
+                    </div>
+                    {% if user.is_authenticated %}
+                        {% if user != celebrity %}
+                            {% if is_following %}
+                                <button class="btn btn-secondary mt-3">Following</button>
+                            {% else %}
+                                <form method="POST" action="{% url 'follow_user' celebrity.username %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h4>Recent Posts</h4>
+        {% for post in celebrity.posts.all|slice:":10" %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <p>{{ post.content|truncatewords:50 }}</p>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-sm btn-primary">View Post</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>No posts yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

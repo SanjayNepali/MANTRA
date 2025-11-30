@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}My Subscriptions - MANTRA{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>My Subscriptions</h2>
+    <div class="row">
+        {% for subscription in subscriptions %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ subscription.celebrity.user.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                                 class="rounded-circle me-2" width="60" height="60">
+                            <div>
+                                <h6>{{ subscription.celebrity.user.get_full_name }}</h6>
+                                <p class="text-muted mb-0">@{{ subscription.celebrity.user.username }}</p>
+                            </div>
+                        </div>
+                        <p class="small">Subscribed: {{ subscription.start_date|date:"M d, Y" }}</p>
+                        <p class="small">Expires: {{ subscription.end_date|date:"M d, Y" }}</p>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-success">Active</span>
+                            <a href="{% url 'profile' subscription.celebrity.user.username %}" class="btn btn-sm btn-primary">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>You don't have any active subscriptions.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

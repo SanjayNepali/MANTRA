@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 70px;
+}
+
+.dashboard-sidebar {
+    width: 260px;
+    background: white;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+    position: fixed;
+    left: 0;
+    top: 70px;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+.dashboard-sidebar.mobile-hidden {
+    transform: translateX(-100%);
+}
+
+.dashboard-main {
+    flex: 1;
+    margin-left: 260px;
+    padding: 2rem;
+    background: var(--bg-light, #f8f9fa);
+    min-height: calc(100vh - 70px);
+}
+
+.mobile-sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: var(--sage-green);
+    color: white;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 200;
+    cursor: pointer;
+}
+
+@media (max-width: 968px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .dashboard-sidebar.mobile-visible {
+        transform: translateX(0);
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+    }
+
+    .mobile-sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="dashboardSidebar">
+        {% include 'components/sidebar.html' %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        {% block dashboard_content %}
+        <!-- Dashboard content goes here -->
+        {% endblock %}
+    </main>
+
+    <!-- Mobile Sidebar Toggle -->
+    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()">
+        <i class='bx bx-menu'></i>
+    </button>
+</div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    sidebar.classList.toggle('mobile-visible');
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 968) {
+        const sidebar = document.getElementById('dashboardSidebar');
+        const toggle = document.querySelector('.mobile-sidebar-toggle');
+
+        if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+            sidebar.classList.remove('mobile-visible');
+        }
+    }
+});
+</script>
+{% endblock %}

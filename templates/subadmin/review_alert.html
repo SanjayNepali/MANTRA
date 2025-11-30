@@ -1,0 +1,599 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Alert - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.review-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.back-link:hover {
+    color: var(--sage-green);
+}
+
+.review-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.alert-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.alert-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge.severity-critical {
+    background: #dc3545;
+    color: white;
+}
+
+.badge.severity-high {
+    background: #ff9800;
+    color: white;
+}
+
+.badge.severity-medium {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge.type {
+    background: var(--sage-light);
+    color: var(--sage-dark);
+}
+
+.user-card {
+    display: flex;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.user-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.user-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.content-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.content-section h3 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.3rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flagged-content {
+    background: #fff5f5;
+    border-left: 4px solid #dc3545;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.content-text {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.toxic-words-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.toxic-word {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.metric-card {
+    background: var(--bg-light);
+    padding: 1.25rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.metric-value.danger {
+    color: #dc3545;
+}
+
+.metric-value.warning {
+    color: #ff9800;
+}
+
+.metric-value.safe {
+    color: #28a745;
+}
+
+.history-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.history-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.history-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.history-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--sage-green);
+    border: 2px solid white;
+}
+
+.history-item.violation::before {
+    background: #dc3545;
+}
+
+.history-date {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.history-content {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.action-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.action-form h3 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.3rem;
+    color: var(--brown);
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-btn {
+    padding: 1.25rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.action-btn:hover {
+    border-color: var(--sage-green);
+    background: var(--sage-light);
+}
+
+.action-btn.selected {
+    border-color: var(--sage-green);
+    background: var(--sage-light);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.action-btn .action-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.action-btn .action-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.action-btn.danger:hover {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.action-btn.danger.selected {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--pink);
+}
+
+.form-group input[type="number"] {
+    width: 150px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.submit-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--sage-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--sage-dark);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e0e0e0;
+    color: var(--brown);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+@media (max-width: 768px) {
+    .review-container {
+        padding: 0 1rem;
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .user-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .submit-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <!-- Back Link -->
+    <a href="{% url 'moderation_queue' %}" class="back-link">
+        <i class='bx bx-arrow-back'></i> Back to Queue
+    </a>
+
+    <!-- Alert Header -->
+    <div class="review-header">
+        <div class="alert-status">
+            <div class="alert-badges">
+                <span class="badge severity-{{ alert.severity }}">{{ alert.severity }} Risk</span>
+                <span class="badge type">{{ alert.get_alert_type_display }}</span>
+                {% if alert.is_repeat_offender %}
+                <span class="badge" style="background: #dc3545; color: white;">Repeat Offender</span>
+                {% endif %}
+            </div>
+            <small style="color: var(--text-muted);">Created {{ alert.created_at|timesince }} ago</small>
+        </div>
+
+        <div class="user-card">
+            {% if alert.content_author.profile_picture %}
+            <img src="{{ alert.content_author.profile_picture.url }}" alt="{{ alert.content_author.username }}" class="user-avatar">
+            {% else %}
+            <div class="user-avatar" style="background: var(--bg-light); display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-user' style="font-size: 3rem; color: var(--text-muted);"></i>
+            </div>
+            {% endif %}
+            <div class="user-info">
+                <h2>@{{ alert.content_author.username }}</h2>
+                <p style="color: var(--text-secondary); margin: 0;">{{ alert.content_author.get_full_name|default:"No full name" }}</p>
+                <div class="user-meta">
+                    <div class="user-meta-item">
+                        <i class='bx bx-map'></i>
+                        <span>{{ alert.content_author.country|default:"Unknown" }}</span>
+                    </div>
+                    <div class="user-meta-item">
+                        <i class='bx bx-error-circle'></i>
+                        <span>{{ alert.user_previous_violations }} Previous Violations</span>
+                    </div>
+                    <div class="user-meta-item">
+                        <i class='bx bx-calendar'></i>
+                        <span>Joined {{ alert.content_author.created_at|date:"M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flagged Content -->
+    <div class="content-section">
+        <h3><i class='bx bx-flag'></i> Flagged Content</h3>
+        <div class="flagged-content">
+            <div class="content-text">{{ alert.content_text }}</div>
+            {% if alert.toxic_words %}
+            <div>
+                <strong style="font-size: 0.95rem; margin-bottom: 0.5rem; display: block;">Detected Toxic Words:</strong>
+                <div class="toxic-words-grid">
+                    {% for word in alert.toxic_words %}
+                    <span class="toxic-word">{{ word }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- AI Analysis Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Toxicity Score</div>
+                <div class="metric-value {% if alert.toxicity_score > 0.7 %}danger{% elif alert.toxicity_score > 0.4 %}warning{% else %}safe{% endif %}">
+                    {{ alert.toxicity_score|floatformat:2 }}
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Sentiment Score</div>
+                <div class="metric-value">{{ alert.sentiment_score|floatformat:2 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Content Type</div>
+                <div class="metric-value" style="font-size: 1.2rem;">{{ alert.content_type|title }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User History -->
+    {% if previous_alerts %}
+    <div class="content-section">
+        <h3><i class='bx bx-history'></i> Violation History</h3>
+        <div class="history-timeline">
+            {% for prev_alert in previous_alerts %}
+            <div class="history-item violation">
+                <div class="history-date">{{ prev_alert.created_at|date:"M d, Y" }}</div>
+                <div class="history-content">
+                    <strong>{{ prev_alert.get_alert_type_display }}</strong> - {{ prev_alert.get_action_taken_display }}
+                    {% if prev_alert.moderator_notes %}
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+                        {{ prev_alert.moderator_notes|truncatewords:20 }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Form -->
+    <div class="action-form">
+        <h3><i class='bx bx-shield-alt-2'></i> Take Action</h3>
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="action-buttons">
+                <label class="action-btn">
+                    <input type="radio" name="action" value="none" style="display: none;" onchange="toggleAction(this)">
+                    <i class='bx bx-check-circle' style="color: #28a745;"></i>
+                    <div class="action-title">No Action</div>
+                    <div class="action-desc">Dismiss this alert</div>
+                </label>
+
+                <label class="action-btn">
+                    <input type="radio" name="action" value="warned" style="display: none;" onchange="toggleAction(this)">
+                    <i class='bx bx-error' style="color: #ffc107;"></i>
+                    <div class="action-title">Warn User</div>
+                    <div class="action-desc">Send warning message</div>
+                </label>
+
+                <label class="action-btn danger">
+                    <input type="radio" name="action" value="content_removed" style="display: none;" onchange="toggleAction(this)">
+                    <i class='bx bx-trash' style="color: #ff9800;"></i>
+                    <div class="action-title">Remove Content</div>
+                    <div class="action-desc">Delete this post/comment</div>
+                </label>
+
+                <label class="action-btn danger">
+                    <input type="radio" name="action" value="user_suspended" style="display: none;" onchange="toggleAction(this)">
+                    <i class='bx bx-time-five' style="color: #ff5722;"></i>
+                    <div class="action-title">Suspend User</div>
+                    <div class="action-desc">Temporary account ban</div>
+                </label>
+
+                <label class="action-btn danger">
+                    <input type="radio" name="action" value="user_banned" style="display: none;" onchange="toggleAction(this)">
+                    <i class='bx bx-block' style="color: #dc3545;"></i>
+                    <div class="action-title">Ban User</div>
+                    <div class="action-desc">Permanent account ban</div>
+                </label>
+            </div>
+
+            <div id="suspensionDaysField" style="display: none;" class="form-group">
+                <label>Suspension Duration (Days)</label>
+                <input type="number" name="suspension_days" value="7" min="1" max="365">
+            </div>
+
+            <div class="form-group">
+                <label>Moderator Notes (Required)</label>
+                <textarea name="notes" placeholder="Provide details about your decision..." required></textarea>
+            </div>
+
+            <div class="submit-actions">
+                <a href="{% url 'moderation_queue' %}" class="btn btn-secondary">
+                    <i class='bx bx-x'></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class='bx bx-check'></i> Submit Decision
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleAction(radio) {
+    // Remove selected class from all buttons
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+
+    // Add selected class to clicked button
+    radio.closest('.action-btn').classList.add('selected');
+
+    // Show/hide suspension days field
+    const suspensionField = document.getElementById('suspensionDaysField');
+    if (radio.value === 'user_suspended') {
+        suspensionField.style.display = 'block';
+    } else {
+        suspensionField.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

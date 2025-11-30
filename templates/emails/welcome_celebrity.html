@@ -1,0 +1,60 @@
+<!-- templates/emails/welcome_celebrity.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #9caf88, #d4a5a5); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: white; padding: 30px; border: 1px solid #eee; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; padding: 12px 30px; background: #9caf88; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to MANTRA, Celebrity!</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hi {{ user.first_name|default:user.username }},</h2>
+            
+            <p>Welcome to MANTRA - where you can connect with your fans like never before!</p>
+            
+            <p>As a celebrity on MANTRA, you can:</p>
+            <ul>
+                <li>Build your fanbase</li>
+                <li>Create exclusive content for subscribers</li>
+                <li>Host events and sell tickets</li>
+                <li>Launch your merchandise store</li>
+                <li>Interact directly with fans</li>
+                <li>Track your analytics and earnings</li>
+            </ul>
+            
+            <p><strong>Next Steps:</strong></p>
+            <ol>
+                <li>Complete your profile setup</li>
+                <li>Upload KYC documents for verification</li>
+                <li>Set up your subscription tiers</li>
+                <li>Create your first post</li>
+            </ol>
+            
+            <p>You've earned <strong>50 welcome points</strong> as a celebrity!</p>
+            
+            <center>
+                <a href="http://127.0.0.1:8000/celebrities/dashboard/" class="button">Go to Dashboard</a>
+            </center>
+            
+            <p>Our team will review your KYC documents shortly. Once verified, you'll unlock all features!</p>
+            
+            <p>Best regards,<br>The MANTRA Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 MANTRA. All rights reserved.</p>
+            <p>You're receiving this email because you signed up as a celebrity on MANTRA.</p>
+        </div>
+    </div>
+</body>
+</html>

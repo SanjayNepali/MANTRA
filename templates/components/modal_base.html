@@ -1,0 +1,285 @@
+{% load static %}
+
+<!-- Modal Base Component -->
+<div class="modal fade" id="{{ modal_id|default:'baseModal' }}" tabindex="-1"
+     aria-labelledby="{{ modal_id|default:'baseModal' }}Label" aria-hidden="true"
+     data-bs-backdrop="{{ backdrop|default:'true' }}" data-bs-keyboard="{{ keyboard|default:'true' }}">
+
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable {{ modal_size|default:'' }}">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                {% if modal_icon %}
+                <div class="modal-icon">
+                    <i class='bx {{ modal_icon }}'></i>
+                </div>
+                {% endif %}
+
+                <h5 class="modal-title" id="{{ modal_id|default:'baseModal' }}Label">
+                    {% block modal_title %}{{ modal_title|default:'Modal Title' }}{% endblock %}
+                </h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                {% block modal_body %}
+                    {{ modal_body|default:'Modal content goes here.' }}
+                {% endblock %}
+            </div>
+
+            <!-- Modal Footer -->
+            {% if show_footer|default:True %}
+            <div class="modal-footer">
+                {% block modal_footer %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class='bx bx-x'></i> {{ cancel_text|default:'Cancel' }}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="{{ modal_id|default:'baseModal' }}ConfirmBtn">
+                        <i class='bx bx-check'></i> {{ confirm_text|default:'Confirm' }}
+                    </button>
+                {% endblock %}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Header Styling */
+.modal-header {
+    background: linear-gradient(135deg, var(--pink), #ff9fb0);
+    color: white;
+    border-bottom: none;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.modal-title {
+    flex: 1;
+    margin: 0;
+    font-weight: 700;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+/* Modal Body Styling */
+.modal-body {
+    padding: 2rem;
+    color: var(--brown);
+}
+
+/* Modal Footer Styling */
+.modal-footer {
+    background: #fafafa;
+    border-top: 1px solid #e0e0e0;
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+}
+
+/* Modal Sizes */
+.modal-sm .modal-dialog {
+    max-width: 400px;
+}
+
+.modal-lg .modal-dialog {
+    max-width: 900px;
+}
+
+.modal-xl .modal-dialog {
+    max-width: 1200px;
+}
+
+.modal-fullscreen .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Modal Content */
+.modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Animations */
+.modal.fade .modal-dialog {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Scrollable Modal */
+.modal-dialog-scrollable .modal-body {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+/* Centered Modal */
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+}
+
+/* Custom Backdrop */
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+/* Modal Variants */
+.modal-success .modal-header {
+    background: linear-gradient(135deg, var(--sage-green), #729956);
+}
+
+.modal-danger .modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.modal-warning .modal-header {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.modal-info .modal-header {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+/* Modal Form Elements */
+.modal-body .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.modal-body .form-label {
+    font-weight: 600;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem;
+}
+
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 0.2rem rgba(255, 182, 193, 0.25);
+}
+
+/* Modal Loading State */
+.modal-loading .modal-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.modal-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: var(--pink);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+}
+</style>
+
+<script>
+// Modal Helper Functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-close modal after success
+    window.closeModalAfterSuccess = function(modalId, delay = 2000) {
+        setTimeout(function() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+            if (modal) {
+                modal.hide();
+            }
+        }, delay);
+    };
+
+    // Show loading state in modal
+    window.setModalLoading = function(modalId, isLoading) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            if (isLoading) {
+                modal.classList.add('modal-loading');
+                const body = modal.querySelector('.modal-body');
+                body.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+            } else {
+                modal.classList.remove('modal-loading');
+            }
+        }
+    };
+
+    // Show success message in modal
+    window.showModalSuccess = function(modalId, message) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const body = modal.querySelector('.modal-body');
+            body.innerHTML = `
+                <div class="text-center py-4">
+                    <i class='bx bx-check-circle' style='font-size: 4rem; color: var(--sage-green);'></i>
+                    <h4 class="mt-3">${message}</h4>
+                </div>
+            `;
+            closeModalAfterSuccess(modalId, 2000);
+        }
+    };
+
+    // Show error message in modal
+    window.showModalError = function(modalId, message) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const body = modal.querySelector('.modal-body');
+            body.innerHTML = `
+                <div class="text-center py-4">
+                    <i class='bx bx-error-circle' style='font-size: 4rem; color: #ef4444;'></i>
+                    <h4 class="mt-3">${message}</h4>
+                </div>
+            `;
+        }
+    };
+});
+</script>

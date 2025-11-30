@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activity Reports - SubAdmin | MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reports-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .reports-header {
+        background: linear-gradient(135deg, var(--sage-green) 0%, var(--pink) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .date-filter {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--brown);
+    }
+
+    .form-group input {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--sage-green);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--sage-dark);
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--brown);
+        margin: 0.5rem 0;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .report-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .report-section h3 {
+        margin-top: 0;
+        color: var(--brown);
+        border-bottom: 2px solid var(--sage-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .summary-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .summary-value {
+        color: var(--brown);
+    }
+
+    .actions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .actions-table th {
+        background: var(--sage-light);
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--sage-green);
+    }
+
+    .actions-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .actions-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-ban {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .badge-resolved {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .generate-section {
+        background: var(--sage-light);
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .generate-section h4 {
+        margin-top: 0;
+        color: var(--brown);
+    }
+
+    .toxicity-meter {
+        width: 100%;
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        margin-top: 0.5rem;
+    }
+
+    .toxicity-fill {
+        height: 100%;
+        transition: width 0.5s;
+    }
+
+    .toxicity-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 600;
+        color: #000;
+        z-index: 1;
+        text-shadow: 0 0 3px #fff;
+    }
+
+    @media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-table {
+            font-size: 0.875rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+    <div class="reports-header">
+        <h1><i class='bx bx-file'></i> Activity Reports</h1>
+        <p>Generate and view your SubAdmin activity reports for {{ report_data.region }}</p>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="date-filter">
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <label for="from">From Date:</label>
+                <input type="date" id="from" name="from" value="{{ date_from|date:'Y-m-d' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="to">To Date:</label>
+                <input type="date" id="to" name="to" value="{{ date_to|date:'Y-m-d' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-filter'></i> Apply Filter
+            </button>
+
+            <a href="?from={{ date_from|date:'Y-m-d' }}&to={{ date_to|date:'Y-m-d' }}&generate=true" class="btn btn-success">
+                <i class='bx bx-send'></i> Generate & Send to Admin
+            </a>
+        </form>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class='bx bx-flag stat-icon' style="color: var(--pink);"></i>
+            <div class="stat-number">{{ report_data.reports_resolved }}</div>
+            <div class="stat-label">Reports Resolved</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-id-card stat-icon' style="color: var(--sage-green);"></i>
+            <div class="stat-number">{{ report_data.kyc_processed }}</div>
+            <div class="stat-label">KYC Processed</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-error stat-icon' style="color: #ffc107;"></i>
+            <div class="stat-number">{{ report_data.warnings_issued }}</div>
+            <div class="stat-label">Warnings Issued</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-user-x stat-icon' style="color: #dc3545;"></i>
+            <div class="stat-number">{{ report_data.temp_bans }}</div>
+            <div class="stat-label">Temporary Bans</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-shield-x stat-icon' style="color: #000;"></i>
+            <div class="stat-number">{{ report_data.perm_bans }}</div>
+            <div class="stat-label">Permanent Bans</div>
+        </div>
+
+        <div class="stat-card">
+            <i class='bx bx-user-plus stat-icon' style="color: #17a2b8;"></i>
+            <div class="stat-number">{{ report_data.new_users }}</div>
+            <div class="stat-label">New Users</div>
+        </div>
+    </div>
+
+    <!-- Report Summary -->
+    <div class="report-section">
+        <h3><i class='bx bx-info-circle'></i> Report Summary</h3>
+
+        <div class="summary-grid">
+            <div class="summary-label">Report Period:</div>
+            <div class="summary-value">{{ report_data.period }}</div>
+
+            <div class="summary-label">Region:</div>
+            <div class="summary-value">{{ report_data.region }}</div>
+
+            <div class="summary-label">Assigned Countries:</div>
+            <div class="summary-value">{{ report_data.assigned_areas|join:", "|default:"None" }}</div>
+
+            <div class="summary-label">Total Users:</div>
+            <div class="summary-value">{{ report_data.new_users }} new, {{ report_data.active_users }} active</div>
+
+            <div class="summary-label">Average Toxicity:</div>
+            <div class="summary-value">
+                {{ report_data.avg_toxicity }}%
+                <div class="toxicity-meter">
+                    <div class="toxicity-label">{{ report_data.avg_toxicity }}%</div>
+                    <div class="toxicity-fill" style="width: {{ report_data.avg_toxicity }}%; background: {% if report_data.avg_toxicity < 25 %}#28a745{% elif report_data.avg_toxicity < 50 %}#ffc107{% elif report_data.avg_toxicity < 75 %}#fd7e14{% else %}#dc3545{% endif %};"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Actions -->
+    <div class="report-section">
+        <h3><i class='bx bx-list-ul'></i> Recent Moderation Actions</h3>
+
+        {% if report_data.detailed_actions %}
+        <table class="actions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Action Type</th>
+                    <th>Target User</th>
+                    <th>Reason</th>
+                    <th>Related Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for action in report_data.detailed_actions %}
+                <tr>
+                    <td>{{ action.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if action.action_type == 'warning' %}
+                        <span class="badge badge-warning">Warning</span>
+                        {% elif 'ban' in action.action_type %}
+                        <span class="badge badge-ban">{{ action.get_action_type_display }}</span>
+                        {% else %}
+                        <span class="badge badge-resolved">{{ action.get_action_type_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ action.target_user.username }}</strong>
+                        <br>
+                        <small style="color: #6c757d;">{{ action.target_user.email }}</small>
+                    </td>
+                    <td>{{ action.reason|truncatewords:10 }}</td>
+                    <td>
+                        {% if action.report %}
+                        <a href="{% url 'subadmin_review_report' action.report.id %}">
+                            #{{ action.report.id|slice:":8" }}
+                        </a>
+                        {% else %}
+                        <span style="color: #ccc;">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #6c757d; padding: 2rem;">
+            <i class='bx bx-info-circle' style="font-size: 2rem;"></i>
+            <br>
+            No moderation actions in this period
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Generate Report -->
+    <div class="generate-section">
+        <h4>Submit Activity Report to Admin</h4>
+        <p style="color: #6c757d; margin-bottom: 1rem;">
+            Click the "Generate & Send to Admin" button above to compile this report and send it to the admin team for review.
+        </p>
+        <p style="font-size: 0.875rem; color: #6c757d;">
+            <i class='bx bx-info-circle'></i> Reports are automatically reviewed by admins and used for performance evaluation.
+        </p>
+    </div>
+</div>
+{% endblock %}

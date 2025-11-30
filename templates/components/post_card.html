@@ -1,0 +1,345 @@
+{% load static %}
+<!-- Reusable Post Card Component -->
+
+<div class="post-card" data-post-id="{{ post.id }}">
+    <!-- Post Header -->
+    <div class="post-header">
+        <div class="post-author">
+            <a href="{% url 'profile' post.author.username %}">
+                {% if post.author.profile_picture %}
+                <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.username }}" class="author-avatar">
+                {% else %}
+                <div class="author-avatar-placeholder">
+                    <i class='bx bx-user'></i>
+                </div>
+                {% endif %}
+            </a>
+            <div class="author-info">
+                <a href="{% url 'profile' post.author.username %}" class="author-name">
+                    {{ post.author.get_full_name }}
+                    {% if post.author.is_verified %}
+                    <i class='bx bxs-badge-check verified-badge' title="Verified"></i>
+                    {% endif %}
+                </a>
+                <div class="post-meta">
+                    <span class="post-time">{{ post.created_at|timesince }} ago</span>
+                    {% if post.visibility %}
+                    <span class="post-visibility">
+                        <i class='bx bx-{{ post.visibility }}'></i>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="post-menu">
+            <button class="post-menu-btn" onclick="togglePostMenu({{ post.id }})">
+                <i class='bx bx-dots-horizontal-rounded'></i>
+            </button>
+            <div class="post-menu-dropdown" id="postMenu{{ post.id }}">
+                {% if user == post.author %}
+                <a href="{% url 'edit_post' post.id %}">
+                    <i class='bx bx-edit'></i> Edit
+                </a>
+                <a href="{% url 'delete_post' post.id %}" class="text-danger">
+                    <i class='bx bx-trash'></i> Delete
+                </a>
+                {% else %}
+                <a href="{% url 'report_post' post.id %}">
+                    <i class='bx bx-flag'></i> Report
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Post Content -->
+    <div class="post-content">
+        <p class="post-text">{{ post.content|linebreaks }}</p>
+
+        {% if post.image %}
+        <div class="post-image">
+            <img src="{{ post.image.url }}" alt="Post image" onclick="openImageModal('{{ post.image.url }}')">
+        </div>
+        {% endif %}
+
+        {% if post.video %}
+        <div class="post-video">
+            <video controls>
+                <source src="{{ post.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        {% endif %}
+
+        {% if post.hashtags %}
+        <div class="post-hashtags">
+            {% for hashtag in post.hashtags %}
+            <a href="{% url 'search' %}?q=%23{{ hashtag }}" class="hashtag">#{{ hashtag }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Post Stats -->
+    <div class="post-stats">
+        <span class="stat-item">
+            <i class='bx bx-heart'></i> {{ post.likes_count|default:0 }}
+        </span>
+        <span class="stat-item">
+            <i class='bx bx-comment'></i> {{ post.comments_count|default:0 }}
+        </span>
+        <span class="stat-item">
+            <i class='bx bx-share'></i> {{ post.shares_count|default:0 }}
+        </span>
+    </div>
+
+    <!-- Post Actions -->
+    {% if user.is_authenticated %}
+    <div class="post-actions">
+        <button class="action-btn {% if post.is_liked_by_user %}active{% endif %}"
+                onclick="toggleLike({{ post.id }})">
+            <i class='bx {% if post.is_liked_by_user %}bxs-heart{% else %}bx-heart{% endif %}'></i>
+            <span>Like</span>
+        </button>
+        <button class="action-btn" onclick="focusComment({{ post.id }})">
+            <i class='bx bx-comment'></i>
+            <span>Comment</span>
+        </button>
+        <button class="action-btn" onclick="sharePost({{ post.id }})">
+            <i class='bx bx-share'></i>
+            <span>Share</span>
+        </button>
+        <button class="action-btn" onclick="bookmarkPost({{ post.id }})">
+            <i class='bx {% if post.is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+            <span>Save</span>
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.post-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.post-author {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.author-avatar, .author-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-avatar-placeholder {
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+}
+
+.author-info {
+    flex: 1;
+}
+
+.author-name {
+    font-weight: 600;
+    color: var(--brown);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.author-name:hover {
+    color: var(--sage-green);
+}
+
+.verified-badge {
+    color: #1da1f2;
+    font-size: 1.1rem;
+}
+
+.post-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.post-menu {
+    position: relative;
+}
+
+.post-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.5rem;
+}
+
+.post-menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 150px;
+    z-index: 10;
+}
+
+.post-menu-dropdown.show {
+    display: block;
+}
+
+.post-menu-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.post-menu-dropdown a:hover {
+    background: var(--bg-light);
+}
+
+.post-menu-dropdown a:first-child {
+    border-radius: 12px 12px 0 0;
+}
+
+.post-menu-dropdown a:last-child {
+    border-radius: 0 0 12px 12px;
+}
+
+.post-content {
+    margin-bottom: 1rem;
+}
+
+.post-text {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.post-image, .post-video {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.post-image img, .post-video video {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+.post-hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.hashtag {
+    color: var(--sage-green);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.hashtag:hover {
+    color: var(--sage-green-dark);
+}
+
+.post-stats {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-item i {
+    font-size: 1.1rem;
+}
+
+.post-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--bg-light);
+    color: var(--sage-green);
+}
+
+.action-btn.active {
+    color: #e74c3c;
+}
+
+.action-btn.active i {
+    animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+</style>

@@ -1,0 +1,551 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inbox - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.inbox-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.inbox-header h1 {
+    font-size: 2rem;
+    color: var(--brown);
+    margin: 0;
+}
+
+.new-message-btn {
+    background: var(--sage-green);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.new-message-btn:hover {
+    background: var(--sage-dark);
+    color: white;
+}
+
+.search-box {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.search-box form {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--sage-green);
+}
+
+.search-box button {
+    padding: 0.75rem 1.5rem;
+    background: var(--sage-green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-box button:hover {
+    background: var(--sage-dark);
+}
+
+.message-requests-banner {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.message-requests-banner h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.message-requests-banner .badge {
+    background: white;
+    color: #ff9800;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+.message-requests-banner a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.conversations-list {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.conversation-item:hover {
+    background: var(--bg-light);
+}
+
+.conversation-item:last-child {
+    border-bottom: none;
+}
+
+.conversation-avatar {
+    position: relative;
+    margin-right: 1rem;
+}
+
+.conversation-avatar img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.conversation-avatar .default-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sage-light) 0%, var(--sage-green) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e0e0e0;
+}
+
+.conversation-avatar .default-avatar i {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.unread-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #dc3545;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 2px solid white;
+}
+
+.conversation-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.conversation-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.conversation-username {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.conversation-badges {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.conversation-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-fanclub {
+    background: linear-gradient(135deg, var(--pink) 0%, #ff1493 100%);
+    color: white;
+}
+
+.badge-group {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--sage-dark) 100%);
+    color: white;
+}
+
+.conversation-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.conversation-preview {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.start-conversation-btn {
+    background: var(--sage-green);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.start-conversation-btn:hover {
+    background: var(--sage-dark);
+    color: white;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .inbox-container {
+        padding: 0 1rem;
+    }
+
+    .inbox-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .conversation-item {
+        padding: 1rem;
+    }
+
+    .conversation-avatar img,
+    .conversation-avatar .default-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .conversation-name {
+        font-size: 0.95rem;
+    }
+
+    .conversation-preview {
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inbox-container">
+    <!-- Header -->
+    <div class="inbox-header">
+        <h1><i class='bx bx-message-square-dots'></i> Messages</h1>
+        <a href="#" class="new-message-btn" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+            <i class='bx bx-plus'></i> New Message
+        </a>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <form method="get">
+            <input type="text"
+                   name="search"
+                   placeholder="Search conversations by name or username..."
+                   value="{{ search_query }}">
+            <button type="submit">
+                <i class='bx bx-search'></i> Search
+            </button>
+            {% if search_query %}
+            <a href="{% url 'inbox' %}" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                <i class='bx bx-x'></i> Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Message Requests Banner -->
+    {% if message_requests_count > 0 %}
+    <div class="message-requests-banner">
+        <h3>
+            <i class='bx bx-bell'></i>
+            You have <span class="badge">{{ message_requests_count }}</span> message request{{ message_requests_count|pluralize }}
+        </h3>
+        <a href="#message-requests">View Requests</a>
+    </div>
+    {% endif %}
+
+    <!-- Conversations List -->
+    <div class="conversations-list">
+        {% if conversations %}
+            {% for conv_data in conversations %}
+            <a href="{% url 'conversation' conv_data.conversation.id %}" class="conversation-item">
+                <!-- Avatar -->
+                <div class="conversation-avatar">
+                    {% if conv_data.display_image %}
+                        <img src="{{ conv_data.display_image }}" alt="{{ conv_data.display_name }}">
+                    {% else %}
+                        <div class="default-avatar">
+                            {% if conv_data.is_group %}
+                                <i class='bx bx-group'></i>
+                            {% else %}
+                                <i class='bx bx-user'></i>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if conv_data.unread_count > 0 %}
+                        <span class="unread-badge">{{ conv_data.unread_count }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Content -->
+                <div class="conversation-content">
+                    <div class="conversation-header">
+                        <div class="conversation-name">
+                            {{ conv_data.display_name }}
+                            {% if not conv_data.is_group and conv_data.display_username %}
+                                <span class="conversation-username">{{ conv_data.display_username }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="conversation-badges">
+                            {% if conv_data.is_fanclub %}
+                                <span class="conversation-badge badge-fanclub">Fanclub</span>
+                            {% elif conv_data.is_group %}
+                                <span class="conversation-badge badge-group">Group</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="conversation-preview">{{ conv_data.last_message }}</div>
+                        <div class="conversation-time">{{ conv_data.last_message_time|timesince }} ago</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class='bx bx-message-square-x'></i>
+                <h3>No conversations yet</h3>
+                <p>{% if search_query %}No conversations match your search.{% else %}Start messaging your followers and the celebrities you follow!{% endif %}</p>
+                {% if not search_query %}
+                <a href="#" class="start-conversation-btn" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                    <i class='bx bx-plus-circle'></i> Start a Conversation
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Message Requests Section -->
+    {% if message_requests %}
+    <div style="margin-top: 2rem;" id="message-requests">
+        <h2 style="color: var(--brown); margin-bottom: 1rem;">
+            <i class='bx bx-bell'></i> Message Requests
+        </h2>
+        <div class="conversations-list">
+            {% for request in message_requests %}
+            <div class="conversation-item" style="display: flex; justify-content: space-between;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <!-- Avatar -->
+                    <div class="conversation-avatar">
+                        {% if request.from_user.profile_picture %}
+                            <img src="{{ request.from_user.profile_picture.url }}" alt="{{ request.from_user.username }}">
+                        {% else %}
+                            <div class="default-avatar">
+                                <i class='bx bx-user'></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content -->
+                    <div class="conversation-content">
+                        <div class="conversation-name">
+                            {{ request.from_user.get_full_name|default:request.from_user.username }}
+                            <span class="conversation-username">@{{ request.from_user.username }}</span>
+                        </div>
+                        <div class="conversation-preview">{{ request.message|default:"Wants to send you a message" }}</div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <form method="post" action="{% url 'handle_message_request' request.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" style="background: var(--sage-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            <i class='bx bx-check'></i> Accept
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'handle_message_request' request.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            <i class='bx bx-x'></i> Decline
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- New Message Modal -->
+<div class="modal fade" id="newMessageModal" tabindex="-1" aria-labelledby="newMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newMessageModalLabel">Start New Conversation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="user-search" class="form-control mb-3" placeholder="Search followers and following...">
+                <div id="user-list" style="max-height: 400px; overflow-y: auto;">
+                    {% if mutual_follows %}
+                        {% for user in mutual_follows %}
+                        <a href="{% url 'start_conversation' user.username %}" class="conversation-item" style="border-bottom: 1px solid #f0f0f0;">
+                            <div class="conversation-avatar">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                                {% else %}
+                                    <div class="default-avatar">
+                                        <i class='bx bx-user'></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="conversation-content">
+                                <div class="conversation-name">
+                                    {{ user.get_full_name|default:user.username }}
+                                    <span class="conversation-username">@{{ user.username }}</span>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding: 2rem 1rem;">
+                            <i class='bx bx-user-x' style="font-size: 2rem;"></i>
+                            <p>No mutual followers to message</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality in new message modal
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('user-search');
+    const userList = document.getElementById('user-list');
+
+    if (searchInput && userList) {
+        const users = userList.querySelectorAll('.conversation-item');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+
+            users.forEach(user => {
+                const name = user.querySelector('.conversation-name').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    user.style.display = 'flex';
+                } else {
+                    user.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,294 @@
+<!-- templates/posts/report.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Post - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.report-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.report-header {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.report-header i {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.report-body {
+    padding: 2rem;
+}
+
+.post-preview {
+    background: var(--pink-light);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.post-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.post-preview-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-preview-content {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.reason-options {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.reason-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reason-option:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.reason-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.reason-option.selected {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.reason-icon {
+    font-size: 1.5rem;
+    color: var(--pink);
+}
+
+.reason-content h6 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+}
+
+.reason-content small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.warning-notice {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.report-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-card">
+        <div class="report-header">
+            <i class='bx bx-error-circle'></i>
+            <h4>Report This Post</h4>
+            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">
+                Help us keep MANTRA safe and respectful
+            </p>
+        </div>
+
+        <div class="report-body">
+            <!-- Post Preview -->
+            <div class="post-preview">
+                <div class="post-preview-header">
+                    <img src="{{ post.author.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                         alt="{{ post.author.username }}" 
+                         class="post-preview-avatar">
+                    <strong style="font-size: 0.9rem;">{{ post.author.username }}</strong>
+                    <small style="color: var(--text-muted);">{{ post.created_at|timesince }} ago</small>
+                </div>
+                <div class="post-preview-content">{{ post.content }}</div>
+            </div>
+
+            <form method="POST" id="reportForm">
+                {% csrf_token %}
+
+                <h5 style="margin-bottom: 1rem;">Why are you reporting this post?</h5>
+
+                <div class="reason-options">
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="spam" required>
+                        <i class='bx bx-envelope reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Spam</h6>
+                            <small>Repetitive content or misleading information</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="harassment" required>
+                        <i class='bx bx-angry reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Harassment or Bullying</h6>
+                            <small>Targeting or attacking someone</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="hate_speech" required>
+                        <i class='bx bx-message-square-x reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Hate Speech</h6>
+                            <small>Promotes hatred or discrimination</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="violence" required>
+                        <i class='bx bx-shield-x reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Violence or Dangerous Content</h6>
+                            <small>Promotes violence or harmful behavior</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="nudity" required>
+                        <i class='bx bx-low-vision reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Nudity or Sexual Content</h6>
+                            <small>Inappropriate sexual content</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="false_info" required>
+                        <i class='bx bx-error reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>False Information</h6>
+                            <small>Deliberately misleading or false</small>
+                        </div>
+                    </label>
+
+                    <label class="reason-option">
+                        <input type="radio" name="reason" value="other" required>
+                        <i class='bx bx-dots-horizontal-rounded reason-icon'></i>
+                        <div class="reason-content">
+                            <h6>Other</h6>
+                            <small>Something else</small>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">
+                        Additional Details (Optional)
+                    </label>
+                    <textarea class="form-control" 
+                              name="description" 
+                              id="description"
+                              rows="4" 
+                              placeholder="Provide more context about why you're reporting this post..."></textarea>
+                </div>
+
+                <div class="warning-notice">
+                    <i class='bx bx-info-circle'></i>
+                    <strong>Note:</strong> Your report will be reviewed by our team. 
+                    False reports may result in action against your account.
+                </div>
+
+                <div class="report-actions">
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-secondary" style="flex: 1;">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="flex: 2;">
+                        <i class='bx bx-send'></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Highlight selected reason
+document.querySelectorAll('.reason-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.reason-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        this.querySelector('input[type="radio"]').checked = true;
+    });
+});
+
+// Form validation
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    const selectedReason = document.querySelector('input[name="reason"]:checked');
+    if (!selectedReason) {
+        e.preventDefault();
+        alert('Please select a reason for reporting this post');
+        return false;
+    }
+    
+    // If "Other" is selected, require description
+    if (selectedReason.value === 'other') {
+        const description = document.getElementById('description').value.trim();
+        if (!description) {
+            e.preventDefault();
+            alert('Please provide additional details when selecting "Other"');
+            document.getElementById('description').focus();
+            return false;
+        }
+    }
+    
+    return confirm('Are you sure you want to report this post? Our team will review it shortly.');
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,322 @@
+<!-- templates/search/search_results.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Results - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.search-header {
+    margin-bottom: 2rem;
+}
+
+.search-header h1 {
+    font-size: 2rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+}
+
+.search-query {
+    color: var(--pink);
+}
+
+.search-tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.tab-btn {
+    padding: 1rem 2rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: var(--pink);
+    border-bottom-color: var(--pink);
+}
+
+.tab-btn:hover {
+    color: var(--pink);
+}
+
+.search-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.result-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.user-result {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--pink-light);
+}
+
+.user-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--brown);
+}
+
+.user-info p {
+    margin: 0.25rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.verified-badge {
+    color: var(--sage-green);
+    font-size: 1.2rem;
+}
+
+.match-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.match-score i {
+    color: var(--pink);
+}
+
+.empty-results {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-results i {
+    font-size: 5rem;
+    color: var(--pink-light);
+    margin-bottom: 1rem;
+}
+
+.ai-suggestions {
+    background: var(--sage-light);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.ai-suggestions h3 {
+    color: var(--sage-green);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.suggestion-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.suggestion-tag {
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 20px;
+    text-decoration: none;
+    color: var(--brown);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.suggestion-tag:hover {
+    background: var(--sage-green);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <div class="search-header">
+        <h1>Search Results for "<span class="search-query">{{ query }}</span>"</h1>
+        <p>Found {{ total_results }} results</p>
+    </div>
+
+    <!-- Celebrities Section (with AI Matching Score) -->
+    {% if celebrities %}
+    <div class="search-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class='bx bx-star'></i> Celebrities ({{ celebrities|length }})
+            </h2>
+        </div>
+        <div class="results-grid">
+            {% for celebrity in celebrities %}
+            <a href="{% url 'profile' celebrity.username %}" class="result-card">
+                <div class="user-result">
+                    {% if celebrity.profile_picture %}
+                        <img src="{{ celebrity.profile_picture.url }}" alt="{{ celebrity.username }}" class="user-avatar">
+                    {% else %}
+                        <div class="user-avatar" style="display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: var(--pink);">
+                            {{ celebrity.username.0|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="user-info">
+                        <h3>
+                            {{ celebrity.get_full_name|default:celebrity.username }}
+                            {% if celebrity.is_verified %}
+                                <i class='bx bxs-badge-check verified-badge'></i>
+                            {% endif %}
+                        </h3>
+                        <p>@{{ celebrity.username }}</p>
+                        <p>{{ celebrity.total_followers|default:0 }} followers</p>
+                        <!-- AI Matching Score -->
+                        {% if celebrity.match_score %}
+                        <div class="match-score">
+                            <i class='bx bx-brain'></i>
+                            <span>{{ celebrity.match_score }}% match for you</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Fans Section -->
+    {% if fans %}
+    <div class="search-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class='bx bx-user'></i> Fans ({{ fans|length }})
+            </h2>
+        </div>
+        <div class="results-grid">
+            {% for fan in fans %}
+            <a href="{% url 'profile' fan.username %}" class="result-card">
+                <div class="user-result">
+                    {% if fan.profile_picture %}
+                        <img src="{{ fan.profile_picture.url }}" alt="{{ fan.username }}" class="user-avatar">
+                    {% else %}
+                        <div class="user-avatar" style="display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: var(--sage-green);">
+                            {{ fan.username.0|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="user-info">
+                        <h3>{{ fan.get_full_name|default:fan.username }}</h3>
+                        <p>@{{ fan.username }}</p>
+                        <p>{{ fan.total_following|default:0 }} following</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Posts Section -->
+    {% if posts %}
+    <div class="search-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class='bx bx-news'></i> Posts ({{ posts|length }})
+            </h2>
+        </div>
+        <div class="results-grid">
+            {% for post in posts %}
+            <a href="{% url 'post_detail' post.id %}" class="result-card">
+                <div class="post-header">
+                    <strong>@{{ post.author.username }}</strong>
+                    <span class="text-muted">• {{ post.created_at|timesince }} ago</span>
+                </div>
+                <p>{{ post.content|truncatewords:30 }}</p>
+                <div style="display: flex; gap: 1rem; color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
+                    <span><i class='bx bx-heart'></i> {{ post.likes_count }}</span>
+                    <span><i class='bx bx-comment'></i> {{ post.comments_count }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if total_results == 0 %}
+    <div class="empty-results">
+        <i class='bx bx-search-alt'></i>
+        <h2>No results found</h2>
+        <p>Try adjusting your search terms or browse our categories</p>
+        <div style="margin-top: 2rem;">
+            <a href="{% url 'celebrity_list' %}" class="btn btn-primary" style="margin-right: 1rem;">Browse Celebrities</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Go to Home</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- AI-Powered Suggestions -->
+    {% if ai_suggestions %}
+    <div class="ai-suggestions">
+        <h3><i class='bx bx-brain'></i> You might also be interested in:</h3>
+        <div class="suggestion-list">
+            {% for suggestion in ai_suggestions %}
+            <a href="?q={{ suggestion }}" class="suggestion-tag">{{ suggestion }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

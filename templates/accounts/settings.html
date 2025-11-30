@@ -1,0 +1,800 @@
+<!-- templates/accounts/settings.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - MANTRA{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Tabs */
+.settings-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.settings-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tab-button {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.tab-button i {
+    font-size: 1.3rem;
+}
+
+.tab-button:hover {
+    color: var(--pink);
+    background: var(--pink-light);
+}
+
+.tab-button.active {
+    color: var(--pink);
+    border-bottom-color: var(--pink);
+    background: var(--pink-light);
+}
+
+/* Tab Content */
+.settings-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: none;
+}
+
+.settings-card.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Setting Sections */
+.setting-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--pink-light);
+}
+
+.setting-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+    font-size: 1.4rem;
+    color: var(--brown);
+    margin: 0;
+}
+
+.section-header i {
+    font-size: 1.6rem;
+    color: var(--pink);
+}
+
+.section-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* Setting Items */
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background: var(--pink-light);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.setting-item:hover {
+    background: var(--sage-light);
+}
+
+.setting-info {
+    flex: 1;
+}
+
+.setting-title {
+    font-weight: 600;
+    color: var(--brown);
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.setting-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border);
+    transition: 0.3s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--sage-green);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(28px);
+}
+
+/* Radio Options */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--pink);
+}
+
+.radio-option.selected {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+/* Select Dropdown */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-input {
+    width: 100%;
+    padding: 0.875rem 1.125rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+.select-input:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.1);
+}
+
+/* Danger Zone */
+.danger-zone {
+    background: #fff5f5;
+    border: 2px solid var(--danger);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.danger-zone .section-header h3 {
+    color: var(--danger);
+}
+
+.danger-zone .section-header i {
+    color: var(--danger);
+}
+
+.danger-zone .section-description {
+    color: #c53030;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c53030;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* Buttons */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--pink-light);
+}
+
+.btn {
+    padding: 0.875rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.btn i {
+    font-size: 1.2rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.4);
+}
+
+.btn-secondary {
+    background: var(--sage-light);
+    color: var(--sage-green);
+    border: 2px solid var(--sage-green);
+}
+
+.btn-secondary:hover {
+    background: var(--sage-green);
+    color: white;
+}
+
+/* Info Alert */
+.info-alert {
+    background: var(--sage-light);
+    border-left: 4px solid var(--sage-green);
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.info-alert p {
+    margin: 0;
+    color: var(--sage-dark);
+    font-size: 0.95rem;
+}
+
+.info-alert i {
+    color: var(--sage-green);
+    margin-right: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 1rem;
+    }
+
+    .settings-card {
+        padding: 1.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .toggle-switch {
+        align-self: flex-end;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Tabs -->
+    <div class="settings-tabs">
+        <button class="tab-button active" data-tab="privacy">
+            <i class='bx bx-lock-alt'></i> Privacy
+        </button>
+        <button class="tab-button" data-tab="notifications">
+            <i class='bx bx-bell'></i> Notifications
+        </button>
+        <button class="tab-button" data-tab="account">
+            <i class='bx bx-user-circle'></i> Account
+        </button>
+        <button class="tab-button" data-tab="security">
+            <i class='bx bx-shield'></i> Security
+        </button>
+    </div>
+
+    <form method="POST" id="settingsForm">
+        {% csrf_token %}
+
+        <!-- Privacy Settings -->
+        <div class="settings-card active" data-content="privacy">
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-show'></i>
+                    <h3>Profile Visibility</h3>
+                </div>
+                <p class="section-description">Control who can see your profile and content</p>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Public Profile</div>
+                        <div class="setting-subtitle">Allow anyone to view your profile</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="public_profile" {% if user.public_profile %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Show Activity Status</div>
+                        <div class="setting-subtitle">Let others see when you're online</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_activity" {% if user.show_activity %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Show Following List</div>
+                        <div class="setting-subtitle">Allow others to see who you follow</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_following" {% if user.show_following %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-message'></i>
+                    <h3>Messaging Privacy</h3>
+                </div>
+                <p class="section-description">Choose who can send you messages</p>
+
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="message_privacy" value="everyone" {% if user.message_privacy == 'everyone' %}checked{% endif %}>
+                        <div class="setting-info">
+                            <div class="setting-title">Everyone</div>
+                            <div class="setting-subtitle">Anyone can message you</div>
+                        </div>
+                    </label>
+
+                    <label class="radio-option">
+                        <input type="radio" name="message_privacy" value="following" {% if user.message_privacy == 'following' %}checked{% endif %}>
+                        <div class="setting-info">
+                            <div class="setting-title">People I Follow</div>
+                            <div class="setting-subtitle">Only accounts you follow</div>
+                        </div>
+                    </label>
+
+                    <label class="radio-option">
+                        <input type="radio" name="message_privacy" value="none" {% if user.message_privacy == 'none' %}checked{% endif %}>
+                        <div class="setting-info">
+                            <div class="setting-title">No One</div>
+                            <div class="setting-subtitle">Disable all messages</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="settings-card" data-content="notifications">
+            <div class="info-alert">
+                <p><i class='bx bx-info-circle'></i> Manage how you receive notifications across MANTRA</p>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-bell'></i>
+                    <h3>Push Notifications</h3>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">New Followers</div>
+                        <div class="setting-subtitle">When someone follows you</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notify_followers" {% if user.notify_followers %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Likes & Comments</div>
+                        <div class="setting-subtitle">When someone interacts with your posts</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notify_interactions" {% if user.notify_interactions %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Messages</div>
+                        <div class="setting-subtitle">When you receive new messages</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notify_messages" {% if user.notify_messages %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Event Updates</div>
+                        <div class="setting-subtitle">Reminders about events you're attending</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notify_events" {% if user.notify_events %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-envelope'></i>
+                    <h3>Email Notifications</h3>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Weekly Digest</div>
+                        <div class="setting-subtitle">Summary of your activity and updates</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="email_digest" {% if user.email_digest %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Promotional Emails</div>
+                        <div class="setting-subtitle">Special offers and updates</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="email_promotions" {% if user.email_promotions %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="settings-card" data-content="account">
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-palette'></i>
+                    <h3>Appearance</h3>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Theme</div>
+                        <div class="setting-subtitle">Choose your preferred color scheme</div>
+                    </div>
+                    <div class="select-wrapper" style="max-width: 200px;">
+                        <select name="theme" class="select-input">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-globe'></i>
+                    <h3>Language & Region</h3>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Language</div>
+                        <div class="setting-subtitle">Choose your display language</div>
+                    </div>
+                    <div class="select-wrapper" style="max-width: 200px;">
+                        <select name="language" class="select-input">
+                            <option value="en">English</option>
+                            <option value="ne">नेपाली</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Timezone</div>
+                        <div class="setting-subtitle">Your local timezone</div>
+                    </div>
+                    <div class="select-wrapper" style="max-width: 250px;">
+                        <select name="timezone" class="select-input">
+                            <option value="Asia/Kathmandu">Asia/Kathmandu (NPT)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="danger-zone">
+                <div class="section-header">
+                    <i class='bx bx-error-circle'></i>
+                    <h3>Danger Zone</h3>
+                </div>
+                <p class="section-description">Irreversible and destructive actions</p>
+
+                <div class="setting-item" style="background: white;">
+                    <div class="setting-info">
+                        <div class="setting-title">Deactivate Account</div>
+                        <div class="setting-subtitle">Temporarily disable your account</div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="confirmDeactivate()">
+                        Deactivate
+                    </button>
+                </div>
+
+                <div class="setting-item" style="background: white;">
+                    <div class="setting-info">
+                        <div class="setting-title">Delete Account</div>
+                        <div class="setting-subtitle">Permanently delete your account and all data</div>
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="settings-card" data-content="security">
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-key'></i>
+                    <h3>Password</h3>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Change Password</div>
+                        <div class="setting-subtitle">Update your password regularly for security</div>
+                    </div>
+                    <a href="{% url 'change_password' %}" class="btn btn-secondary">
+                        Change
+                    </a>
+                </div>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-shield-quarter'></i>
+                    <h3>Two-Factor Authentication</h3>
+                </div>
+                <p class="section-description">Add an extra layer of security to your account</p>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">2FA Status</div>
+                        <div class="setting-subtitle">{% if user.two_factor_enabled %}Currently enabled{% else %}Not enabled{% endif %}</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="two_factor" {% if user.two_factor_enabled %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-section">
+                <div class="section-header">
+                    <i class='bx bx-devices'></i>
+                    <h3>Active Sessions</h3>
+                </div>
+                <p class="section-description">Manage devices where you're logged in</p>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Current Device</div>
+                        <div class="setting-subtitle">Last active: Just now</div>
+                    </div>
+                    <span class="badge badge-sage" style="padding: 0.5rem 1rem;">Active</span>
+                </div>
+
+                <button type="button" class="btn btn-secondary" style="margin-top: 1rem;">
+                    <i class='bx bx-log-out-circle'></i> Sign Out Other Devices
+                </button>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-check'></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Tab Switching
+const tabButtons = document.querySelectorAll('.tab-button');
+const settingsCards = document.querySelectorAll('.settings-card');
+
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-tab');
+        
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        settingsCards.forEach(card => card.classList.remove('active'));
+        
+        button.classList.add('active');
+        document.querySelector(`[data-content="${targetTab}"]`).classList.add('active');
+    });
+});
+
+// Radio button styling
+document.querySelectorAll('.radio-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+        if (this.checked) {
+            this.closest('.radio-option').classList.add('selected');
+        }
+    });
+    
+    if (radio.checked) {
+        radio.closest('.radio-option').classList.add('selected');
+    }
+});
+
+// Confirmation Dialogs
+function confirmDeactivate() {
+    if (confirm('Are you sure you want to deactivate your account? You can reactivate it anytime.')) {
+        window.location.href = '{% url "deactivate_account" %}';
+    }
+}
+
+function confirmDelete() {
+    if (confirm('WARNING: This will permanently delete your account and all associated data. This action cannot be undone. Are you absolutely sure?')) {
+        window.location.href = '{% url "delete_account" %}';
+    }
+}
+
+// Form Submission
+document.getElementById('settingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Add your form submission logic here
+    alert('Settings saved successfully!');
+});
+</script>
+{% endblock %}

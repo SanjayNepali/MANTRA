@@ -1075,3 +1075,84 @@ def my_subscriptions(request):
     }
 
     return render(request, 'celebrities/my_subscriptions.html', context)
+
+@login_required
+def celebrity_posts(request):
+    """View for celebrities to manage their posts"""
+    if request.user.user_type != 'celebrity':
+        messages.error(request, 'Access restricted to celebrities only')
+        return redirect('dashboard')
+    
+    # Get the celebrity's posts
+    from apps.posts.models import Post
+    
+    posts = Post.objects.filter(
+        author=request.user,
+        is_active=True
+    ).order_by('-created_at')
+    
+    # Get stats
+    total_posts = posts.count()
+    total_likes = sum(post.likes.count() for post in posts)
+    total_comments = sum(post.comments.count() for post in posts)
+    
+    context = {
+        'posts': posts,
+        'total_posts': total_posts,
+        'total_likes': total_likes,
+        'total_comments': total_comments,
+    }
+    
+    return render(request, 'celebrities/posts.html', context)
+
+@login_required
+def celebrity_events(request):
+    """Celebrity events management view"""
+    if request.user.user_type != 'celebrity':
+        return HttpResponseForbidden()
+    
+    from apps.events.models import Event
+    events = Event.objects.filter(host=request.user).order_by('-date')
+    
+    return render(request, 'celebrities/events.html', {'events': events})
+
+@login_required
+def celebrity_merchandise(request):
+    """Celebrity merchandise management view"""
+    if request.user.user_type != 'celebrity':
+        return HttpResponseForbidden()
+    
+    from apps.merchandise.models import Product
+    products = Product.objects.filter(seller=request.user).order_by('-created_at')
+    
+    return render(request, 'celebrities/merchandise.html', {'products': products})
+
+@login_required
+def celebrity_fanclubs(request):
+    """Celebrity fanclubs management view"""
+    if request.user.user_type != 'celebrity':
+        return HttpResponseForbidden()
+    
+    from apps.fanclubs.models import FanClub
+    fanclubs = FanClub.objects.filter(celebrity=request.user).order_by('-created_at')
+    
+    return render(request, 'celebrities/fanclubs.html', {'fanclubs': fanclubs})
+
+@login_required
+def celebrity_settings(request):
+    """Celebrity settings management view"""
+    if request.user.user_type != 'celebrity':
+        return HttpResponseForbidden()
+    
+    profile = request.user.celebrity_profile
+    
+    if request.method == 'POST':
+        # Handle form submissions for settings
+        # You'll need to create a CelebritySettingsForm for this
+        pass
+    
+    context = {
+        'profile': profile,
+    }
+    
+    return render(request, 'celebrities/settings.html', context)

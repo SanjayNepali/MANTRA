@@ -178,16 +178,25 @@ def create_fanclub(request):
         messages.error(request, 'Only celebrities can create fanclubs')
         return redirect('fanclub_list')
     
-    # Check if user already has fanclubs
-    existing_default = FanClub.objects.filter(
+    # Check if user already has an official fanclub
+    official_fanclub = FanClub.objects.filter(
         celebrity=request.user,
-        club_type='default'
-    ).exists()
+        is_official=True
+    ).first()
     
-    existing_exclusive = FanClub.objects.filter(
+    if official_fanclub:
+        messages.info(request, 'You already have an official fan club. You can edit it below.')
+        return redirect('edit_fanclub', slug=official_fanclub.slug)
+    
+    # For non-official fanclubs, check limits
+    existing_count = FanClub.objects.filter(
         celebrity=request.user,
-        club_type='exclusive'
-    ).exists()
+        is_official=False
+    ).count()
+    
+    if existing_count >= 3:  # Limit to 3 additional fanclubs
+        messages.error(request, 'You can only create up to 3 additional fanclubs besides your official one')
+        return redirect('fanclub_list')
     
     if request.method == 'POST':
         form = FanClubCreateForm(request.POST, request.FILES)
@@ -195,16 +204,7 @@ def create_fanclub(request):
         if form.is_valid():
             fanclub = form.save(commit=False)
             fanclub.celebrity = request.user
-            
-            # Check club type limits
-            if fanclub.club_type == 'default' and existing_default:
-                messages.error(request, 'You already have a default fanclub')
-                return redirect('fanclub_list')
-            
-            if fanclub.club_type == 'exclusive' and existing_exclusive:
-                messages.error(request, 'You already have an exclusive fanclub')
-                return redirect('fanclub_list')
-            
+            fanclub.is_official = False  # Additional fanclubs are not official
             fanclub.save()
             
             # Auto-join creator as admin
@@ -225,12 +225,10 @@ def create_fanclub(request):
     
     context = {
         'form': form,
-        'has_default': existing_default,
-        'has_exclusive': existing_exclusive
+        'existing_count': existing_count
     }
     
     return render(request, 'fanclubs/create.html', context)
-
 
 @login_required
 def edit_fanclub(request, slug):

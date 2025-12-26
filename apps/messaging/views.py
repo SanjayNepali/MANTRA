@@ -224,11 +224,19 @@ def send_message(request, conversation_id):
         return JsonResponse({'error': 'Access denied'}, status=403)
 
     # Check fanclub posting restrictions
-    if conversation.is_fanclub and conversation.fanclub_celebrity:
-        if request.user != conversation.fanclub_celebrity:
-            return JsonResponse({
-                'error': 'Only the celebrity can post in this fanclub'
-            }, status=403)
+    if conversation.is_fanclub:
+        try:
+            fanclub = conversation.fanclub
+            if not fanclub.can_post(request.user):
+                return JsonResponse({
+                    'error': 'Only the celebrity can post updates in this official fan club'
+                }, status=403)
+        except:
+            # If fanclub doesn't exist or can't be accessed
+            if conversation.fanclub_celebrity and request.user != conversation.fanclub_celebrity:
+                return JsonResponse({
+                    'error': 'Only the celebrity can post in this fanclub'
+                }, status=403)
 
     content = request.POST.get('content', '').strip()
 

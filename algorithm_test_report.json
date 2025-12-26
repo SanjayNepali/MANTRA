@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-12-25T23:50:51.862796",
+  "tests": {
+    "smoke": "5/5",
+    "unit": "FAILED",
+    "django": "PASSED"
+  },
+  "coverage": {
+    "total": 22.723091076356944,
+    "files": {}
+  },
+  "benchmarks": {
+    "collaborative_filtering": "COMPLETED"
+  },
+  "status": "FAILED"
+}

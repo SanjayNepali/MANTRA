@@ -3,29 +3,106 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.text import slugify
+from django.db import transaction  # ADD THIS
 from apps.accounts.models import User
 from .models import CelebrityProfile, Subscription, CelebrityAchievement
+
 
 @receiver(post_save, sender=User)
 def create_celebrity_profile(sender, instance, created, **kwargs):
     """Create celebrity profile when celebrity user is created"""
     if created and instance.user_type == 'celebrity':
-        CelebrityProfile.objects.get_or_create(
-            user=instance,
-            defaults={'categories': [instance.category] if hasattr(instance, 'category') else []}
+        with transaction.atomic():  # ADD TRANSACTION
+            profile, _ = CelebrityProfile.objects.get_or_create(
+                user=instance,
+                defaults={'categories': [instance.category] if hasattr(instance, 'category') else []}
+            )
+            
+            # Create default achievements
+            create_default_achievements(instance)
+            
+            # Create official fanclub automatically
+            create_official_fanclub(instance)
+
+
+def create_official_fanclub(user):
+    """Create official fanclub for celebrity - DUPLICATE PREVENTION"""
+    from apps.fanclubs.models import FanClub, FanClubMembership
+    
+    # Check if official fanclub already exists
+    existing_official = FanClub.objects.filter(
+        celebrity=user,
+        is_official=True
+    ).first()
+    
+    if existing_official:
+        return existing_official
+    
+    # Check by slug pattern too (extra safety)
+    base_slug = slugify(f"{user.username}-official-fan-club")
+    existing_by_slug = FanClub.objects.filter(
+        celebrity=user,
+        slug__startswith=base_slug
+    ).first()
+    
+    if existing_by_slug:
+        if not existing_by_slug.is_official:
+            existing_by_slug.is_official = True
+            existing_by_slug.save(update_fields=['is_official'])
+        return existing_by_slug
+    
+    # Use transaction with select_for_update to prevent race conditions
+    with transaction.atomic():
+        # Double-check with row lock to prevent concurrent creation
+        existing_check = FanClub.objects.select_for_update().filter(
+            celebrity=user,
+            is_official=True
+        ).first()
+        
+        if existing_check:
+            return existing_check
+        
+        fanclub_name = f"{user.get_full_name() or user.username}'s Official Fan Club"
+        fanclub_slug = slugify(f"{user.username}-official-fan-club")
+        
+        # Ensure unique slug
+        counter = 1
+        original_slug = fanclub_slug
+        while FanClub.objects.filter(slug=fanclub_slug).exists():
+            fanclub_slug = f"{original_slug}-{counter}"
+            counter += 1
+        
+        fanclub = FanClub.objects.create(
+            celebrity=user,
+            name=fanclub_name,
+            slug=fanclub_slug,
+            description=f"Official fan club for {user.get_full_name() or user.username}. Join to get exclusive updates and connect with other fans!",
+            welcome_message=f"Welcome to {user.get_full_name() or user.username}'s official fan club! 🎉",
+            club_type='default',
+            is_official=True,
+            is_active=True,
+            is_private=False,
+            visibility='public',
+            requires_approval=False,
+            allow_member_posts=False,  # Only celebrity can post
+            allow_member_invites=True
         )
         
-        # Create default achievements
-        create_default_achievements(instance)
-
+        # Auto-join celebrity as admin
+        FanClubMembership.objects.create(
+            user=user,
+            fanclub=fanclub,
+            role='admin',
+            status='active'
+        )
+        
+        return fanclub
 
 
 def create_default_achievements(user):
     """Create default achievements for new celebrities"""
-    profile = user.celebrity_profile
-    
     achievements_data = [
-        # Followers milestones
         {
             'title': 'First Fan',
             'description': 'Get your first follower',
@@ -58,7 +135,6 @@ def create_default_achievements(user):
             'threshold': 10000,
             'points_reward': 500
         },
-        # Earnings milestones
         {
             'title': 'First Dollar',
             'description': 'Earn your first dollar',
@@ -75,7 +151,6 @@ def create_default_achievements(user):
             'threshold': 100,
             'points_reward': 100
         },
-        # Posts milestones
         {
             'title': 'Content Creator',
             'description': 'Create 10 posts',

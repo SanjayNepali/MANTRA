@@ -94,6 +94,14 @@ class FanClub(models.Model):
         indexes = [
             models.Index(fields=['celebrity', 'club_type']),
             models.Index(fields=['slug']),
+            models.Index(fields=['celebrity', 'is_official']),  # Added index
+        ]
+        constraints = [  # Added constraints block
+            models.UniqueConstraint(
+                fields=['celebrity', 'is_official'],
+                condition=models.Q(is_official=True),
+                name='unique_official_fanclub_per_celebrity'
+            )
         ]
     
     def __str__(self):
@@ -106,12 +114,42 @@ class FanClub(models.Model):
         elif self.cover_image:
             return self.cover_image.url
         return '/static/images/placeholderclub.png'
-
+    
+    def can_post(self, user):
+        """Check if user can post in this fanclub"""
+        if self.is_official:
+            # Only celebrity can post in official fanclub
+            return user == self.celebrity
+        else:
+            # In non-official fanclubs, check allow_member_posts setting
+            if user == self.celebrity:
+                return True
+            if self.allow_member_posts:
+                # Check if user is a member
+                from .models import FanClubMembership  # Import here to avoid circular import
+                return FanClubMembership.objects.filter(
+                    fanclub=self,
+                    user=user,
+                    status='active'
+                ).exists()
+            return False
+        
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(f"{self.name}-{self.celebrity.username}")
 
         is_new = self._state.adding
+        
+        # Validate: Only one official fanclub per celebrity
+        if self.is_official and is_new:
+            existing = FanClub.objects.filter(
+                celebrity=self.celebrity,
+                is_official=True
+            ).exclude(pk=self.pk).first()
+            
+            if existing:
+                raise ValueError(f"Official fanclub already exists for {self.celebrity.username}")
+        
         super().save(*args, **kwargs)
 
         # Create group chat conversation for new fan clubs
@@ -152,6 +190,8 @@ class FanClub(models.Model):
     
     def add_member(self, user):
         """Add member to fanclub"""
+        from .models import FanClubMembership  # Import here to avoid circular import
+        
         membership, created = FanClubMembership.objects.get_or_create(
             user=user,
             fanclub=self,
@@ -170,6 +210,8 @@ class FanClub(models.Model):
     
     def remove_member(self, user):
         """Remove member from fanclub"""
+        from .models import FanClubMembership  # Import here to avoid circular import
+        
         try:
             membership = FanClubMembership.objects.get(user=user, fanclub=self)
             membership.delete()
@@ -184,8 +226,6 @@ class FanClub(models.Model):
             return True
         except FanClubMembership.DoesNotExist:
             return False
-
-
 class FanClubMembership(models.Model):
     """Membership model for fanclubs"""
 

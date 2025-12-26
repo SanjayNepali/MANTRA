@@ -47,10 +47,10 @@ class CollaborativeFilter:
             raise ValueError("Model not fitted")
         
         # Get similar items
-        item_vector = self.user_item_matrix[:, item_id].toarray().flatten()
+        item_vector = self.user_item_matrix.T[item_id].toarray().flatten()
         distances, indices = self.model.kneighbors(
             item_vector.reshape(1, -1),
-            n_neighbors=self.k_neighbors
+            n_neighbors=min(self.k_neighbors, self.user_item_matrix.shape[1] - 1)
         )
         
         # Calculate weighted average of ratings
